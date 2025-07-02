@@ -63,6 +63,7 @@ const BulkStudentUpload = ({ dtodMode = false }) => {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('sclassName', sclassName); // Send selected class ObjectId
+            formData.append('adminID', currentUser._id); // Send adminID
             setLoading(true);
             try {
                 const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/DtodStudentsUpload`, {
