@@ -7,10 +7,14 @@ import {
 } from './dtodSlice';
 const REACT_APP_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
-export const getAllDtodStudents = () => async (dispatch) => {
+// Accept adminId and classId as arguments
+export const getAllDtodStudents = (adminId, classId) => async (dispatch) => {
     dispatch(getDtodRequest());
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/dtod_students`);
+        let url = `${REACT_APP_BASE_URL}/dtod_students?`;
+        if (adminId) url += `adminId=${adminId}`;
+        if (classId) url += `${adminId ? '&' : ''}classId=${classId}`;
+        const result = await axios.get(url);
         if (result.data.message) {
             dispatch(getDtodFailed(result.data.message));
         } else {

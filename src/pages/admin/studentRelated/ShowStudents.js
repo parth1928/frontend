@@ -33,10 +33,14 @@ const ShowStudents = () => {
     const { dtodStudentsList } = useSelector((state) => state.dtod);
     const { currentUser } = useSelector(state => state.user)
 
+    // Assume you have a way to get the selected classId, e.g., from state or UI
+    const [selectedClassId, setSelectedClassId] = React.useState("");
+
     useEffect(() => {
         dispatch(getAllStudents(currentUser._id));
-        dispatch(getAllDtodStudents());
-    }, [currentUser._id, dispatch]);
+        // Pass adminId and classId to getAllDtodStudents
+        dispatch(getAllDtodStudents(currentUser._id, selectedClassId));
+    }, [currentUser._id, selectedClassId, dispatch]);
 
     if (error) {
         console.log(error);
