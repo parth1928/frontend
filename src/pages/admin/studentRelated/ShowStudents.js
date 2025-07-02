@@ -38,7 +38,7 @@ const ShowStudents = () => {
 
     useEffect(() => {
         dispatch(getAllStudents(currentUser._id));
-        // Pass adminId and classId to getAllDtodStudents
+        // Pass adminId (school) and classId to getAllDtodStudents
         dispatch(getAllDtodStudents(currentUser._id, selectedClassId));
     }, [currentUser._id, selectedClassId, dispatch]);
 
