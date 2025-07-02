@@ -1,0 +1,1012 @@
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
+Looking for roll suffix: 01
+Looking for roll suffix: 02
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 01
+Comparing 03 with 01
+Comparing 04 with 01
+Comparing 05 with 01
+Comparing 06 with 01
+Comparing 07 with 01
+Comparing 08 with 01
+Comparing 09 with 01
+Comparing 10 with 01
+Found students in class: [
+  { name: 'Emily Brown', roll: '2023002' },
+  { name: 'Michael Davis', roll: '2023003' },
+  { name: 'Sarah Wilson', roll: '2023004' },
+  { name: 'David Taylor', roll: '2023005' },
+  { name: 'Jessica Lee', roll: '2023006' },
+  { name: 'Robert Johnson', roll: '2023007' },
+  { name: 'Lisa Anderson', roll: '2023008' },
+  { name: 'James Martin', roll: '2023009' },
+  { name: 'Amanda White', roll: '2023010' }
+]
+Comparing 02 with 02
+Comparing 03 with 02
+Comparing 04 with 02
+Comparing 05 with 02
+Comparing 06 with 02
+Comparing 07 with 02
+Comparing 08 with 02
+Comparing 09 with 02
+Comparing 10 with 02
+Found matching student: Emily Brown 2023002
+Updated existing attendance record
