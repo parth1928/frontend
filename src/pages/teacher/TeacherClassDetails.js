@@ -21,8 +21,10 @@ const TeacherClassDetails = () => {
     const [showQuickAttendance, setShowQuickAttendance] = React.useState(false);
 
     useEffect(() => {
-        dispatch(getClassStudents(classID));
-    }, [dispatch, classID])
+        // Use currentUser.school?._id for adminId if available, else fallback to currentUser._id
+        const adminId = currentUser.school?._id || currentUser._id;
+        dispatch(getClassStudents(classID, adminId));
+    }, [dispatch, classID, currentUser])
 
     const [isDownloading, setIsDownloading] = React.useState(false);
 
