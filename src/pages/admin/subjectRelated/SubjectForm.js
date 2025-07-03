@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, TextField, Grid, Box, Typography, CircularProgress } from "@mui/material";
+import { Button, TextField, Grid, Box, Typography, CircularProgress, FormControlLabel, Switch, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStuff } from '../../../redux/userRelated/userHandle';
@@ -7,7 +7,9 @@ import { underControl } from '../../../redux/userRelated/userSlice';
 import Popup from '../../../components/Popup';
 
 const SubjectForm = () => {
-    const [subjects, setSubjects] = useState([{ subName: "", subCode: "", sessions: "" }]);
+    const [subjects, setSubjects] = useState([{ subName: "", subCode: "", sessions: "", isLab: false, batches: [] }]);
+    const [batchCounts, setBatchCounts] = useState([0]);
+    const [batchRanges, setBatchRanges] = useState([[]]);
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -15,6 +17,8 @@ const SubjectForm = () => {
 
     const userState = useSelector(state => state.user);
     const { status, currentUser, response, error } = userState;
+
+    const { studentsList } = useSelector(state => state.student);
 
     const sclassName = params.id
     const adminID = currentUser._id
@@ -42,8 +46,15 @@ const SubjectForm = () => {
         setSubjects(newSubjects);
     };
 
+
+    const handleIsLabChange = (index) => (event) => {
+        const newSubjects = [...subjects];
+        newSubjects[index].isLab = event.target.checked;
+        setSubjects(newSubjects);
+    };
+
     const handleAddSubject = () => {
-        setSubjects([...subjects, { subName: "", subCode: "" }]);
+        setSubjects([...subjects, { subName: "", subCode: "", sessions: "", isLab: false }]);
     };
 
     const handleRemoveSubject = (index) => () => {
@@ -58,6 +69,7 @@ const SubjectForm = () => {
             subName: subject.subName,
             subCode: subject.subCode,
             sessions: subject.sessions,
+            isLab: subject.isLab || false,
         })),
         adminID,
     };
@@ -127,6 +139,18 @@ const SubjectForm = () => {
                                 onChange={handleSessionsChange(index)}
                                 sx={styles.inputField}
                                 required
+                            />
+                        </Grid>
+                        <Grid item xs={4}>
+                            <FormControlLabel
+                                control={
+                                    <Switch
+                                        checked={subject.isLab || false}
+                                        onChange={handleIsLabChange(index)}
+                                        color="primary"
+                                    />
+                                }
+                                label="Is this a lab subject?"
                             />
                         </Grid>
                         <Grid item xs={6}>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getSubjectDetails } from '../../redux/sclassRelated/sclassHandle';
 import {
     Box,
     Button,
@@ -25,6 +27,26 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 
 const QuickAttendance = ({ classID, subjectID }) => {
+    const dispatch = useDispatch();
+    const { subjectDetails } = useSelector((state) => state.sclass);
+    const [selectedBatch, setSelectedBatch] = useState('');
+    const [batchStudents, setBatchStudents] = useState([]);
+    // Fetch subject details (for isLab and batches)
+    useEffect(() => {
+        if (subjectID) {
+            dispatch(getSubjectDetails(subjectID, 'Subject'));
+        }
+    }, [dispatch, subjectID]);
+
+    // When batch is selected, set students for that batch
+    useEffect(() => {
+        if (subjectDetails && subjectDetails.isLab && subjectDetails.batches && selectedBatch) {
+            const batch = subjectDetails.batches.find(b => b.batchName === selectedBatch);
+            setBatchStudents(batch ? batch.students : []);
+        } else {
+            setBatchStudents([]);
+        }
+    }, [subjectDetails, selectedBatch]);
     const [date, setDate] = useState(dayjs());
     const [mode, setMode] = useState('present');
     const [rollInput, setRollInput] = useState('');
@@ -35,6 +57,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
     const [currentSuffix, setCurrentSuffix] = useState('');
     const [processingQueue, setProcessingQueue] = useState([]);
 
+    // Filtered roll input handler for lab batches
     const handleRollInput = async (event) => {
         if (event.key === 'Enter') {
             event.preventDefault();
@@ -51,7 +74,11 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 return;
             }
 
-            // Fetch all students for preview (do not mark attendance yet)
+            // For lab: filter only students in selected batch
+            let studentsToSearch = (subjectDetails && subjectDetails.isLab && selectedBatch)
+                ? batchStudents
+                : undefined;
+
             let previewedStudents = [];
             for (let suffix of suffixes) {
                 let rollSuffixToSend = suffix;
@@ -71,7 +98,8 @@ const QuickAttendance = ({ classID, subjectID }) => {
                             date: date.format('YYYY-MM-DD'),
                             rollSuffix: rollSuffixToSend,
                             mode: mode,
-                            preview: true // tell backend this is preview only
+                            preview: true,
+                            students: studentsToSearch // backend should filter if provided
                         })
                     });
                     const data = await response.json();
@@ -220,6 +248,27 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 />
             </LocalizationProvider>
 
+            {/* Batch selection for lab subjects */}
+            {subjectDetails && subjectDetails.isLab && subjectDetails.batches && (
+                <FormControl fullWidth sx={{ mt: 3 }}>
+                    <FormLabel>Select Batch</FormLabel>
+                    <RadioGroup
+                        row
+                        value={selectedBatch}
+                        onChange={e => setSelectedBatch(e.target.value)}
+                    >
+                        {subjectDetails.batches.map((batch, idx) => (
+                            <FormControlLabel
+                                key={batch.batchName}
+                                value={batch.batchName}
+                                control={<Radio />}
+                                label={batch.batchName}
+                            />
+                        ))}
+                    </RadioGroup>
+                </FormControl>
+            )}
+
             <FormControl sx={{ mt: 3, width: '100%' }}>
                 <FormLabel>Attendance Mode</FormLabel>
                 <RadioGroup
@@ -238,10 +287,12 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 value={rollInput}
                 onChange={(e) => setRollInput(e.target.value)}
                 onKeyPress={handleRollInput}
-                disabled={loading}
+                disabled={loading || (subjectDetails && subjectDetails.isLab && !selectedBatch)}
                 sx={{ mt: 3 }}
                 placeholder="For example: 41 01 02"
-                helperText="Press Enter after typing numbers (separated by spaces)"
+                helperText={subjectDetails && subjectDetails.isLab ?
+                    "Select a batch and then enter roll numbers for that batch only" :
+                    "Press Enter after typing numbers (separated by spaces)"}
             />
 
             {message.text && (
@@ -288,7 +339,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 color="primary"
                 onClick={submitAttendance}
                 sx={{ mt: 3 }}
-                disabled={markedStudents.length === 0 || loading}
+                disabled={markedStudents.length === 0 || loading || (subjectDetails && subjectDetails.isLab && !selectedBatch)}
             >
                 Submit Attendance ({markedStudents.length} students)
             </Button>
