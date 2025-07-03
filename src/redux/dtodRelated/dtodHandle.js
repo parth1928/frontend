@@ -14,7 +14,6 @@ export const getAllDtodStudents = (adminId, classId) => async (dispatch) => {
         let url = `${REACT_APP_BASE_URL}/dtod_students?`;
         if (adminId) url += `adminId=${adminId}`;
         if (classId) url += `${adminId ? '&' : ''}classId=${classId}`;
-        // The backend now expects 'adminId' to be used for filtering by 'school'.
         const result = await axios.get(url);
         if (result.data.message) {
             dispatch(getDtodFailed(result.data.message));
