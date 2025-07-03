@@ -101,60 +101,68 @@ const SubjectForm = () => {
     return (
         <form onSubmit={submitHandler}>
             <Box mb={2}>
-                <Typography variant="h6" >Add Subjects</Typography>
+                <Typography variant="h6">Add Subjects</Typography>
             </Box>
             <Grid container spacing={2}>
                 {subjects.map((subject, index) => (
                     <React.Fragment key={index}>
-                        <Grid item xs={6}>
-                            <TextField
-                                fullWidth
-                                label="Subject Name"
-                                variant="outlined"
-                                value={subject.subName}
-                                onChange={handleSubjectNameChange(index)}
-                                sx={styles.inputField}
-                                required
-                            />
+                        <Grid item xs={12}>
+                            <Box p={2} mb={2} sx={{ border: '2px solid #1976d2', borderRadius: 2, background: '#f0f6ff' }}>
+                                <Grid container spacing={2} alignItems="center">
+                                    <Grid item xs={12} sm={4}>
+                                        <TextField
+                                            fullWidth
+                                            label="Subject Name"
+                                            variant="outlined"
+                                            value={subject.subName}
+                                            onChange={handleSubjectNameChange(index)}
+                                            sx={styles.inputField}
+                                            required
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={3}>
+                                        <TextField
+                                            fullWidth
+                                            label="Subject Code"
+                                            variant="outlined"
+                                            value={subject.subCode}
+                                            onChange={handleSubjectCodeChange(index)}
+                                            sx={styles.inputField}
+                                            required
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={2}>
+                                        <TextField
+                                            fullWidth
+                                            label="Sessions"
+                                            variant="outlined"
+                                            type="number"
+                                            inputProps={{ min: 0 }}
+                                            value={subject.sessions}
+                                            onChange={handleSessionsChange(index)}
+                                            sx={styles.inputField}
+                                            required
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={3}>
+                                        <Box display="flex" alignItems="center" justifyContent="center">
+                                            <FormControlLabel
+                                                control={
+                                                    <Switch
+                                                        checked={subject.isLab || false}
+                                                        onChange={handleIsLabChange(index)}
+                                                        color="primary"
+                                                    />
+                                                }
+                                                label={<span style={{ fontWeight: 600, color: '#1976d2' }}>Is this a lab subject?</span>}
+                                            />
+                                        </Box>
+                                    </Grid>
+                                </Grid>
+                            </Box>
                         </Grid>
-                        <Grid item xs={4}>
-                            <TextField
-                                fullWidth
-                                label="Subject Code"
-                                variant="outlined"
-                                value={subject.subCode}
-                                onChange={handleSubjectCodeChange(index)}
-                                sx={styles.inputField}
-                                required
-                            />
-                        </Grid>
-                        <Grid item xs={4}>
-                            <TextField
-                                fullWidth
-                                label="Sessions"
-                                variant="outlined"
-                                type="number"
-                                inputProps={{ min: 0 }}
-                                value={subject.sessions}
-                                onChange={handleSessionsChange(index)}
-                                sx={styles.inputField}
-                                required
-                            />
-                        </Grid>
-                        <Grid item xs={4}>
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={subject.isLab || false}
-                                        onChange={handleIsLabChange(index)}
-                                        color="primary"
-                                    />
-                                }
-                                label="Is this a lab subject?"
-                            />
-                        </Grid>
-                        <Grid item xs={6}>
-                            <Box display="flex" alignItems="flex-end">
+                        <Grid item xs={12}>
+                            <Box display="flex" alignItems="flex-end" justifyContent="flex-end">
                                 {index === 0 ? (
                                     <Button
                                         variant="outlined"
