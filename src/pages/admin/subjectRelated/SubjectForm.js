@@ -82,7 +82,20 @@ const SubjectForm = () => {
 
     useEffect(() => {
         if (status === 'added') {
-            navigate("/Admin/subjects");
+            // If the first subject is a lab, redirect to batch assignment
+            const firstLab = subjects.find(s => s.isLab);
+            if (firstLab) {
+                // Assume backend returns new subject ID in response._id or response.subjectID
+                // Fallback to /Admin/subjects if not found
+                const subjectID = response && (response._id || response.subjectID);
+                if (subjectID) {
+                    navigate(`/Admin/subjects/batch-assign/${sclassName}/${subjectID}`);
+                } else {
+                    navigate("/Admin/subjects");
+                }
+            } else {
+                navigate("/Admin/subjects");
+            }
             dispatch(underControl())
             setLoader(false)
         }
@@ -96,7 +109,7 @@ const SubjectForm = () => {
             setShowPopup(true)
             setLoader(false)
         }
-    }, [status, navigate, error, response, dispatch]);
+    }, [status, navigate, error, response, dispatch, subjects, sclassName]);
 
     return (
         <form onSubmit={submitHandler}>
