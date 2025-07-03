@@ -10,11 +10,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useEffect } from 'react';
 import { getAllSclasses } from '../../redux/sclassRelated/sclassHandle';
 import { getAllStudents } from '../../redux/studentRelated/studentHandle';
+import { getAllDtodStudents } from '../../redux/dtodRelated/dtodHandle';
 import { getAllTeachers } from '../../redux/teacherRelated/teacherHandle';
 
 const AdminHomePage = () => {
     const dispatch = useDispatch();
     const { studentsList } = useSelector((state) => state.student);
+    const { dtodStudentsList } = useSelector((state) => state.dtod);
     const { sclassesList } = useSelector((state) => state.sclass);
     const { teachersList } = useSelector((state) => state.teacher);
 
@@ -24,11 +26,12 @@ const AdminHomePage = () => {
 
     useEffect(() => {
         dispatch(getAllStudents(adminID));
+        dispatch(getAllDtodStudents(adminID));
         dispatch(getAllSclasses(adminID, "Sclass"));
         dispatch(getAllTeachers(adminID));
     }, [adminID, dispatch]);
 
-    const numberOfStudents = studentsList && studentsList.length;
+    const numberOfStudents = (studentsList?.length || 0) + (dtodStudentsList?.length || 0);
     const numberOfClasses = sclassesList && sclassesList.length;
     const numberOfTeachers = teachersList && teachersList.length;
 
