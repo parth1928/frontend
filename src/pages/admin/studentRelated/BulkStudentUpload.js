@@ -87,40 +87,41 @@ const BulkStudentUpload = ({ dtodMode = false }) => {
             return;
         }
 
-        const students = results.data;
-        let successCount = 0;
-        let errorCount = 0;
-
-        for (const student of students) {
-            if (!student.name || !student.rollNum || !student.email) continue;
-
-            const password = `${student.name.toLowerCase()}${student.rollNum}`;
-            const fields = {
+        // Bulk regular student upload
+        const students = results.data
+            .filter(student => student.name && student.rollNum && student.email)
+            .map(student => ({
                 name: student.name,
                 rollNum: student.rollNum,
                 email: student.email,
-                password,
+                password: `${student.name.toLowerCase()}${student.rollNum}`,
                 sclassName,
                 adminID: currentUser._id,
                 role: 'Student',
                 attendance: []
-            };
+            }));
 
-            try {
-                await dispatch(registerUser(fields, 'Student'));
-                successCount++;
-            } catch (error) {
-                errorCount++;
+        setLoading(true);
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/Students/BulkRegister`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': localStorage.getItem('token'),
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ students })
+            });
+            const data = await response.json();
+            if (Array.isArray(data) && data.length > 0) {
+                setMessage(`Successfully added ${data.length} students.`);
+            } else {
+                setMessage(data.message || 'Bulk upload failed.');
             }
+        } catch (error) {
+            setMessage('Error uploading students: ' + error.message);
         }
-
-        setMessage(`Successfully added ${successCount} students. ${errorCount} failed.`);
         setShowPopup(true);
         setLoading(false);
-
-        if (successCount > 0) {
-            setTimeout(() => navigate(-1), 2000);
-        }
     };
 
     const handleSubmit = (event) => {
