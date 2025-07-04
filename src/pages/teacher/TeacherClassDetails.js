@@ -129,72 +129,11 @@ const TeacherClassDetails = () => {
         filteredStudents = sclassStudents.filter(stu => batch.students.includes(stu._id));
     }
 
-    const studentRows = filteredStudents.map((student) => {
-        return {
-            name: student.name,
-            rollNum: student.rollNum,
-            id: student._id,
-        };
-    })
-
-
-    const StudentsButtonHaver = ({ row }) => {
-
-    // Modified to accept batchIdx for lab subjects
-    const downloadExcel = async (batchIdx) => {
-        if (!classID || !subjectID) {
-            alert('Class and Subject information is required');
-            return;
-        }
-
-        setIsDownloading(true);
-        try {
-            const token = localStorage.getItem('token');
-            let url = `${BACKEND_URL}/attendance/download/${classID}/${subjectID}`;
-            if (subjectDetail && subjectDetail.isLab && Array.isArray(subjectDetail.batches) && subjectDetail.batches.length > 0) {
-                url += `?batchIdx=${batchIdx}`;
-            }
-            const response = await fetch(
-                url,
-                {
-                    headers: {
-                        'Authorization': token || ''
-                    }
-                }
-            );
-            // Check if response is ok before trying to parse it
-            if (!response.ok) {
-                throw new Error('Failed to download attendance');
-            }
-            // Get the response as blob directly
-            const blob = await response.blob();
-            if (blob.type.includes('application/json')) {
-                // If we got JSON instead of an Excel file, there's an error
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const errorData = JSON.parse(reader.result);
-                    alert(errorData.message || 'Failed to generate Excel file');
-                };
-                reader.readAsText(blob);
-                return;
-            }
-
-            const urlObj = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = urlObj;
-            link.download = `attendance_${classID}_${new Date().toISOString().slice(0,10)}.xlsx`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(urlObj);
-        } catch (error) {
-            console.error('Download failed:', error);
-            alert(error.message || 'Failed to download attendance');
-        } finally {
-            setIsDownloading(false);
-        }
-    }
-
+    const studentRows = filteredStudents.map((student) => ({
+        name: student.name,
+        rollNum: student.rollNum,
+        id: student._id,
+    }));
 
     return (
         <>
@@ -237,19 +176,6 @@ const TeacherClassDetails = () => {
                                 <Typography variant="h5">
                                     Students List:
                                 </Typography>
-                                <BlackButton
-                                  size="small"
-                                  aria-controls={open ? 'split-button-menu' : undefined}
-                                  aria-expanded={open ? 'true' : undefined}
-                                  aria-label="select merge strategy"
-                                  aria-haspopup="menu"
-                                  onClick={handleToggle}
-                                >
-                                  {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
-                                </BlackButton>
-                                <BlueButton>
-                                    Add Students
-                                </BlueButton>
                                 <BlueButton
                                     onClick={() => downloadExcel(selectedBatchIdx)}
                                     disabled={isDownloading}
@@ -268,7 +194,7 @@ const TeacherClassDetails = () => {
                                 </Box>
                             )}
                             {Array.isArray(filteredStudents) && filteredStudents.length > 0 &&
-                                <TableTemplate buttonHaver={StudentsButtonHaver} columns={studentColumns} rows={studentRows} />
+                                <TableTemplate columns={studentColumns} rows={studentRows} />
                             }
                         </Paper>
                     )}
@@ -276,7 +202,5 @@ const TeacherClassDetails = () => {
             )}
         </>
     );
-};
-
 }
 export default TeacherClassDetails;
