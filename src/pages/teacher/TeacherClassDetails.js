@@ -9,6 +9,9 @@ import TableTemplate from "../../components/TableTemplate";
 import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
 import QuickAttendance from './QuickAttendance';
 
+// Define your backend URL here or import from config
+const BACKEND_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
+
 const TeacherClassDetails = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch();
@@ -21,6 +24,73 @@ const TeacherClassDetails = () => {
     const [subjectDetail, setSubjectDetail] = useState(null);
     const [selectedBatchIdx, setSelectedBatchIdx] = useState(0);
     const [showQuickAttendance, setShowQuickAttendance] = useState(false);
+    // For download button loading state
+    const [isDownloading, setIsDownloading] = useState(false);
+
+    // Handler for dropdown toggle (used in BlackButton)
+    const [open, setOpen] = useState(false);
+    const anchorRef = React.useRef(null);
+    const [selectedIndex, setSelectedIndex] = useState(0);
+    const options = ['Take Attendance', 'Provide Marks'];
+
+    const handleToggle = () => {
+        setOpen((prevOpen) => !prevOpen);
+    };
+
+    // Modified to accept batchIdx for lab subjects
+    const downloadExcel = async (batchIdx) => {
+        if (!classID || !subjectID) {
+            alert('Class and Subject information is required');
+            return;
+        }
+
+        setIsDownloading(true);
+        try {
+            const token = localStorage.getItem('token');
+            let url = `${BACKEND_URL}/attendance/download/${classID}/${subjectID}`;
+            if (subjectDetail && subjectDetail.isLab && Array.isArray(subjectDetail.batches) && subjectDetail.batches.length > 0) {
+                url += `?batchIdx=${batchIdx}`;
+            }
+            const response = await fetch(
+                url,
+                {
+                    headers: {
+                        'Authorization': token || ''
+                    }
+                }
+            );
+            // Check if response is ok before trying to parse it
+            if (!response.ok) {
+                throw new Error('Failed to download attendance');
+            }
+            // Get the response as blob directly
+            const blob = await response.blob();
+            if (blob.type.includes('application/json')) {
+                // If we got JSON instead of an Excel file, there's an error
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const errorData = JSON.parse(reader.result);
+                    alert(errorData.message || 'Failed to generate Excel file');
+                };
+                reader.readAsText(blob);
+                return;
+            }
+
+            const urlObj = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = urlObj;
+            link.download = `attendance_${classID}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(urlObj);
+        } catch (error) {
+            console.error('Download failed:', error);
+            alert(error.message || 'Failed to download attendance');
+        } finally {
+            setIsDownloading(false);
+        }
+    };
 
 
 
@@ -67,12 +137,8 @@ const TeacherClassDetails = () => {
         };
     })
 
-    const StudentsButtonHaver = ({ row }) => {
-        const options = ['Take Attendance', 'Provide Marks'];
 
-        const [open, setOpen] = React.useState(false);
-        const anchorRef = React.useRef(null);
-        const [selectedIndex, setSelectedIndex] = React.useState(0);
+    const StudentsButtonHaver = ({ row }) => {
 
     // Modified to accept batchIdx for lab subjects
     const downloadExcel = async (batchIdx) => {
