@@ -282,16 +282,16 @@ const TeacherClassDetails = () => {
                                 <Typography variant="h5">
                                     Students List:
                                 </Typography>
-                                <BlueButton
-                                    variant="contained"
-                                    onClick={() => navigate(`/Teacher/class/student/bulk-attendance/${subjectID}`)}
-                                >
-                                    Take Bulk Attendance
-                                </BlueButton>
-                            </Box>
-                            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
-                                <BlueButton
-                                    onClick={() => navigate("/Teacher/class/addstudents")}
+                        <BlackButton
+                          size="small"
+                          aria-controls={open ? 'split-button-menu' : undefined}
+                          aria-expanded={open ? 'true' : undefined}
+                          aria-label="select merge strategy"
+                          aria-haspopup="menu"
+                          onClick={handleToggle}
+                        >
+                          {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+                        </BlackButton>
                                 >
                                     Add Students
                                 </BlueButton>
