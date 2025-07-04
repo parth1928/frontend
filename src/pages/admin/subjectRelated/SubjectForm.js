@@ -50,6 +50,34 @@ const SubjectForm = () => {
     const handleIsLabChange = (index) => (event) => {
         const newSubjects = [...subjects];
         newSubjects[index].isLab = event.target.checked;
+        // Reset batches if toggled off
+        if (!event.target.checked) {
+            newSubjects[index].batches = [];
+        }
+        setSubjects(newSubjects);
+    };
+
+    // Batch assignment logic
+    const handleBatchCountChange = (index) => (event) => {
+        const count = parseInt(event.target.value) || 0;
+        const newSubjects = [...subjects];
+        // Initialize batches as arrays of student IDs
+        newSubjects[index].batches = Array.from({ length: count }, () => []);
+        setSubjects(newSubjects);
+    };
+
+    const handleStudentToggle = (subjectIdx, batchIdx, studentId) => (event) => {
+        const newSubjects = [...subjects];
+        const batch = newSubjects[subjectIdx].batches[batchIdx] || [];
+        if (event.target.checked) {
+            // Add student
+            if (!batch.includes(studentId)) batch.push(studentId);
+        } else {
+            // Remove student
+            const i = batch.indexOf(studentId);
+            if (i > -1) batch.splice(i, 1);
+        }
+        newSubjects[subjectIdx].batches[batchIdx] = batch;
         setSubjects(newSubjects);
     };
 
@@ -70,6 +98,11 @@ const SubjectForm = () => {
             subCode: subject.subCode,
             sessions: subject.sessions,
             isLab: subject.isLab || false,
+            batches: subject.isLab && subject.batches ?
+                subject.batches.map((batch, idx) => ({
+                    batchName: `Batch ${idx + 1}`,
+                    students: batch
+                })) : [],
         })),
         adminID,
     };
@@ -82,20 +115,7 @@ const SubjectForm = () => {
 
     useEffect(() => {
         if (status === 'added') {
-            // If the first subject is a lab, redirect to batch assignment
-            const firstLab = subjects.find(s => s.isLab);
-            if (firstLab) {
-                // Assume backend returns new subject ID in response._id or response.subjectID
-                // Fallback to /Admin/subjects if not found
-                const subjectID = response && (response._id || response.subjectID);
-                if (subjectID) {
-                    navigate(`/Admin/subjects/batch-assign/${sclassName}/${subjectID}`);
-                } else {
-                    navigate("/Admin/subjects");
-                }
-            } else {
-                navigate("/Admin/subjects");
-            }
+            navigate("/Admin/subjects");
             dispatch(underControl())
             setLoader(false)
         }
@@ -172,6 +192,51 @@ const SubjectForm = () => {
                                         </Box>
                                     </Grid>
                                 </Grid>
+                                {/* Batch assignment UI for lab subjects */}
+                                {subject.isLab && (
+                                    <Box mt={3} p={2} sx={{ border: '1px dashed #1976d2', borderRadius: 2, background: '#e3f2fd' }}>
+                                        <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2' }}>Batch Assignment</Typography>
+                                        <Box mt={2} mb={2}>
+                                            <TextField
+                                                label="Number of Batches"
+                                                type="number"
+                                                inputProps={{ min: 1, max: 10 }}
+                                                value={subject.batches ? subject.batches.length : 0}
+                                                onChange={handleBatchCountChange(index)}
+                                                sx={{ width: 200 }}
+                                            />
+                                        </Box>
+                                        {subject.batches && subject.batches.length > 0 && (
+                                            <Box>
+                                                {subject.batches.map((batch, batchIdx) => (
+                                                    <Box key={batchIdx} mb={2} p={2} sx={{ border: '1px solid #90caf9', borderRadius: 1, background: '#f5faff' }}>
+                                                        <Typography variant="subtitle2" sx={{ color: '#1976d2', fontWeight: 500 }}>Batch {batchIdx + 1}</Typography>
+                                                        <Grid container spacing={1}>
+                                                            {studentsList && studentsList.length > 0 ? (
+                                                                studentsList.map(student => (
+                                                                    <Grid item xs={12} sm={6} md={4} key={student._id}>
+                                                                        <FormControlLabel
+                                                                            control={
+                                                                                <Switch
+                                                                                    checked={batch.includes(student._id)}
+                                                                                    onChange={handleStudentToggle(index, batchIdx, student._id)}
+                                                                                    color="primary"
+                                                                                />
+                                                                            }
+                                                                            label={<span style={{ color: '#1976d2' }}>{student.name} ({student.rollNum})</span>}
+                                                                        />
+                                                                    </Grid>
+                                                                ))
+                                                            ) : (
+                                                                <Typography>No students found.</Typography>
+                                                            )}
+                                                        </Grid>
+                                                    </Box>
+                                                ))}
+                                            </Box>
+                                        )}
+                                    </Box>
+                                )}
                             </Box>
                         </Grid>
                         <Grid item xs={12}>
