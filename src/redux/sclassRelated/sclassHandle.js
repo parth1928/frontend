@@ -32,7 +32,11 @@ export const getClassStudents = (id, adminId) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/Sclass/Students/${id}?adminId=${adminId}`);
+        let url = `${REACT_APP_BASE_URL}/Sclass/Students/${id}`;
+        if (adminId) {
+            url += `?adminId=${adminId}`;
+        }
+        const result = await axios.get(url);
         if (result.data.message) {
             dispatch(getFailedTwo(result.data.message));
         } else {

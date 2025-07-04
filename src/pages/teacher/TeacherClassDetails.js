@@ -22,8 +22,13 @@ const TeacherClassDetails = () => {
 
     useEffect(() => {
         // Use currentUser.school?._id for adminId if available, else fallback to currentUser._id
-        const adminId = currentUser.school?._id || currentUser._id;
-        dispatch(getClassStudents(classID, adminId));
+        let adminId = currentUser.school?._id;
+        // Only pass adminId if it exists
+        if (adminId) {
+            dispatch(getClassStudents(classID, adminId));
+        } else {
+            dispatch(getClassStudents(classID));
+        }
     }, [dispatch, classID, currentUser])
 
     const [isDownloading, setIsDownloading] = React.useState(false);
