@@ -79,15 +79,16 @@ const TeacherClassDetails = () => {
                 </Popper>
             </>
         );
-                // If we got JSON instead of an Excel file, there's an error
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const errorData = JSON.parse(reader.result);
-                    alert(errorData.message || 'Failed to generate Excel file');
-                };
-                reader.readAsText(blob);
-                return;
-            }
+    }
+    // If we got JSON instead of an Excel file, there's an error
+    const reader = new FileReader();
+    reader.onload = () => {
+        const errorData = JSON.parse(reader.result);
+        alert(errorData.message || 'Failed to generate Excel file');
+    };
+    reader.readAsText(blob);
+    return;
+}
 
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
