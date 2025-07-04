@@ -23,88 +23,25 @@ const TeacherClassDetails = () => {
     const [showQuickAttendance, setShowQuickAttendance] = useState(false);
 
 
+
     // Fetch subject details for batch info
     useEffect(() => {
         const fetchSubjectDetail = async () => {
-        return (
-            <>
-                <ButtonGroup ref={anchorRef} variant="contained" aria-label="split button">
-                    <BlackButton
-                        size="small"
-                        aria-controls={open ? 'split-button-menu' : undefined}
-                        aria-expanded={open ? 'true' : undefined}
-                        aria-label="select merge strategy"
-                        aria-haspopup="menu"
-                        onClick={handleToggle}
-                    >
-                        {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
-                    </BlackButton>
-                </ButtonGroup>
-                <Popper
-                    sx={{
-                        zIndex: 1,
-                    }}
-                    open={open}
-                    anchorEl={anchorRef.current}
-                    role={undefined}
-                    transition
-                    disablePortal
-                >
-                    {({ TransitionProps, placement }) => (
-                        <Grow
-                            {...TransitionProps}
-                            style={{
-                                transformOrigin:
-                                    placement === 'bottom' ? 'center top' : 'center bottom',
-                            }}
-                        >
-                            <Paper>
-                                <ClickAwayListener onClickAway={handleClose}>
-                                    <MenuList id="split-button-menu" autoFocusItem>
-                                        {options.map((option, index) => (
-                                            <MenuItem
-                                                key={option}
-                                                disabled={index === 2}
-                                                selected={index === selectedIndex}
-                                                onClick={(event) => handleMenuItemClick(event, index)}
-                                            >
-                                                {option}
-                                            </MenuItem>
-                                        ))}
-                                    </MenuList>
-                                </ClickAwayListener>
-                            </Paper>
-                        </Grow>
-                    )}
-                </Popper>
-            </>
-        );
-    }
-    // If we got JSON instead of an Excel file, there's an error
-    const reader = new FileReader();
-    reader.onload = () => {
-        const errorData = JSON.parse(reader.result);
-        alert(errorData.message || 'Failed to generate Excel file');
-    };
-    reader.readAsText(blob);
-    return;
-}
-
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `attendance_${classID}_${new Date().toISOString().slice(0,10)}.xlsx`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Download failed:', error);
-            alert(error.message || 'Failed to download attendance');
-        } finally {
-            setIsDownloading(false);
-        }
-    };
+            if (!subjectID) return;
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`${BACKEND_URL}/subject/${subjectID}`, {
+                    headers: { 'Authorization': token || '' }
+                });
+                if (!response.ok) throw new Error('Failed to fetch subject details');
+                const data = await response.json();
+                setSubjectDetail(data);
+            } catch (err) {
+                setSubjectDetail(null);
+            }
+        };
+        fetchSubjectDetail();
+    }, [subjectID]);
 
     if (error) {
         console.log(error)
@@ -191,28 +128,7 @@ const TeacherClassDetails = () => {
             setIsDownloading(false);
         }
     }
-                                    <ClickAwayListener onClickAway={handleClose}>
-                                        <MenuList id="split-button-menu" autoFocusItem>
-                                            {options.map((option, index) => (
-                                                <MenuItem
-                                                    key={option}
-                                                    disabled={index === 2}
-                                                    selected={index === selectedIndex}
-                                                    onClick={(event) => handleMenuItemClick(event, index)}
-                                                >
-                                                    {option}
-                                                </MenuItem>
-                                            ))}
-                                        </MenuList>
-                                    </ClickAwayListener>
-                                </Paper>
-                            </Grow>
-                        )}
-                    </Popper>
-                </React.Fragment>
-            </>
-        );
-    };
+
 
     return (
         <>
@@ -296,4 +212,5 @@ const TeacherClassDetails = () => {
     );
 };
 
+}
 export default TeacherClassDetails;
