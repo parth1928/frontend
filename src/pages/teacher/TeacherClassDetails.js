@@ -94,6 +94,14 @@ const TeacherClassDetails = () => {
 
 
 
+
+    // Fetch students for the class when classID changes
+    useEffect(() => {
+        if (classID) {
+            dispatch(getClassStudents(classID));
+        }
+    }, [classID, dispatch]);
+
     // Fetch subject details for batch info
     useEffect(() => {
         const fetchSubjectDetail = async () => {
