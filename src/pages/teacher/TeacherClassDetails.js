@@ -282,17 +282,17 @@ const TeacherClassDetails = () => {
                                 <Typography variant="h5">
                                     Students List:
                                 </Typography>
-                        <BlackButton
-                          size="small"
-                          aria-controls={open ? 'split-button-menu' : undefined}
-                          aria-expanded={open ? 'true' : undefined}
-                          aria-label="select merge strategy"
-                          aria-haspopup="menu"
-                          onClick={handleToggle}
-                        >
-                          {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
-                        </BlackButton>
+                                <BlackButton
+                                  size="small"
+                                  aria-controls={open ? 'split-button-menu' : undefined}
+                                  aria-expanded={open ? 'true' : undefined}
+                                  aria-label="select merge strategy"
+                                  aria-haspopup="menu"
+                                  onClick={handleToggle}
                                 >
+                                  {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+                                </BlackButton>
+                                <BlueButton>
                                     Add Students
                                 </BlueButton>
                                 <BlueButton
