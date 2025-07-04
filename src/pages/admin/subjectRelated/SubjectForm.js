@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, TextField, Grid, Box, Typography, CircularProgress, FormControlLabel, Switch } from "@mui/material";
+import { Button, TextField, Grid, Box, Typography, CircularProgress, FormControlLabel, Switch, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStuff } from '../../../redux/userRelated/userHandle';
@@ -8,6 +8,8 @@ import Popup from '../../../components/Popup';
 
 const SubjectForm = () => {
     const [subjects, setSubjects] = useState([{ subName: "", subCode: "", sessions: "", isLab: false, batches: [] }]);
+    const [batchCounts, setBatchCounts] = useState([0]);
+    const [batchRanges, setBatchRanges] = useState([[]]);
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -80,7 +82,7 @@ const SubjectForm = () => {
     };
 
     const handleAddSubject = () => {
-        setSubjects([...subjects, { subName: "", subCode: "", sessions: "", isLab: false, batches: [] }]);
+        setSubjects([...subjects, { subName: "", subCode: "", sessions: "", isLab: false }]);
     };
 
     const handleRemoveSubject = (index) => () => {
@@ -96,12 +98,11 @@ const SubjectForm = () => {
             subCode: subject.subCode,
             sessions: subject.sessions,
             isLab: subject.isLab || false,
-            batches: subject.isLab && subject.batches && subject.batches.length > 0
-                ? subject.batches.map((batch, idx) => ({
+            batches: subject.isLab && subject.batches ?
+                subject.batches.map((batch, idx) => ({
                     batchName: `Batch ${idx + 1}`,
                     students: batch
-                }))
-                : [],
+                })) : [],
         })),
         adminID,
     };

@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -22,12 +21,14 @@ const TeacherClassDetails = () => {
     const [showQuickAttendance, setShowQuickAttendance] = React.useState(false);
 
     useEffect(() => {
-        dispatch(getClassStudents(classID));
-    }, [dispatch, classID])
+        // Use currentUser.school?._id for adminId if available, else fallback to currentUser._id
+        const adminId = currentUser.school?._id || currentUser._id;
+        dispatch(getClassStudents(classID, adminId));
+    }, [dispatch, classID, currentUser])
 
     const [isDownloading, setIsDownloading] = React.useState(false);
 
-    const BACKEND_URL = "http://localhost:5000";
+    const BACKEND_URL = process.env.REACT_APP_API_BASE_URL;
     
     const downloadExcel = async () => {
         if (!classID || !subjectID) {
@@ -40,7 +41,7 @@ const TeacherClassDetails = () => {
             const token = localStorage.getItem('token');
             console.log('Downloading attendance for:', classID, subjectID);
             const response = await fetch(
-                `http://localhost:5000/attendance/download/${classID}/${subjectID}`,
+                `${BACKEND_URL}/attendance/download/${classID}/${subjectID}`,
                 {
                     headers: {
                         'Authorization': token || ''
