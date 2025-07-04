@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom'
@@ -13,12 +13,34 @@ const TeacherClassDetails = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch();
     const { sclassStudents, loading, error, getresponse } = useSelector((state) => state.sclass);
-
     const { currentUser } = useSelector((state) => state.user);
     const classID = currentUser.teachSclass?._id
     const subjectID = currentUser.teachSubject?._id
 
-    const [showQuickAttendance, setShowQuickAttendance] = React.useState(false);
+    // State for subject details (to get isLab and batches)
+    const [subjectDetail, setSubjectDetail] = useState(null);
+    const [selectedBatchIdx, setSelectedBatchIdx] = useState(0);
+    const [showQuickAttendance, setShowQuickAttendance] = useState(false);
+
+
+    // Fetch subject details for batch info
+    useEffect(() => {
+        const fetchSubjectDetail = async () => {
+            if (!subjectID) return;
+            try {
+                const token = localStorage.getItem('token');
+                const BACKEND_URL = process.env.REACT_APP_API_BASE_URL;
+                const res = await fetch(`${BACKEND_URL}/Subject/${subjectID}`, {
+                    headers: { 'Authorization': token || '' }
+                });
+                const data = await res.json();
+                setSubjectDetail(data);
+            } catch (e) {
+                setSubjectDetail(null);
+            }
+        };
+        fetchSubjectDetail();
+    }, [subjectID]);
 
     useEffect(() => {
         // Use currentUser.school?._id for adminId if available, else fallback to currentUser._id
@@ -92,7 +114,14 @@ const TeacherClassDetails = () => {
         { id: 'rollNum', label: 'Roll Number', minWidth: 100 },
     ]
 
-    const studentRows = sclassStudents.map((student) => {
+    // Filter students for selected batch if lab subject
+    let filteredStudents = sclassStudents;
+    if (subjectDetail && subjectDetail.isLab && Array.isArray(subjectDetail.batches) && subjectDetail.batches.length > 0) {
+        const batch = subjectDetail.batches[selectedBatchIdx] || { students: [] };
+        filteredStudents = sclassStudents.filter(stu => batch.students.includes(stu._id));
+    }
+
+    const studentRows = filteredStudents.map((student) => {
         return {
             name: student.name,
             rollNum: student.rollNum,
@@ -107,58 +136,60 @@ const TeacherClassDetails = () => {
         const anchorRef = React.useRef(null);
         const [selectedIndex, setSelectedIndex] = React.useState(0);
 
-        const handleClick = () => {
-            console.info(`You clicked ${options[selectedIndex]}`);
-            if (selectedIndex === 0) {
-                handleAttendance();
-            } else if (selectedIndex === 1) {
-                handleMarks();
-            }
-        };
-
-        const handleAttendance = () => {
-            navigate(`/Teacher/class/student/attendance/${row.id}/${subjectID}`)
+    // Modified to accept batchIdx for lab subjects
+    const downloadExcel = async (batchIdx) => {
+        if (!classID || !subjectID) {
+            alert('Class and Subject information is required');
+            return;
         }
-        const handleMarks = () => {
-            navigate(`/Teacher/class/student/marks/${row.id}/${subjectID}`)
-        };
 
-        const handleBulkAttendance = () => {
-            navigate(`/Teacher/class/student/bulk-attendance/${subjectID}`)
-        };
-
-        const handleMenuItemClick = (event, index) => {
-            setSelectedIndex(index);
-            setOpen(false);
-        };
-
-        const handleToggle = () => {
-            setOpen((prevOpen) => !prevOpen);
-        };
-
-        const handleClose = (event) => {
-            if (anchorRef.current && anchorRef.current.contains(event.target)) {
+        setIsDownloading(true);
+        try {
+            const token = localStorage.getItem('token');
+            let url = `${BACKEND_URL}/attendance/download/${classID}/${subjectID}`;
+            if (subjectDetail && subjectDetail.isLab && Array.isArray(subjectDetail.batches) && subjectDetail.batches.length > 0) {
+                url += `?batchIdx=${batchIdx}`;
+            }
+            const response = await fetch(
+                url,
+                {
+                    headers: {
+                        'Authorization': token || ''
+                    }
+                }
+            );
+            // Check if response is ok before trying to parse it
+            if (!response.ok) {
+                throw new Error('Failed to download attendance');
+            }
+            // Get the response as blob directly
+            const blob = await response.blob();
+            if (blob.type.includes('application/json')) {
+                // If we got JSON instead of an Excel file, there's an error
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const errorData = JSON.parse(reader.result);
+                    alert(errorData.message || 'Failed to generate Excel file');
+                };
+                reader.readAsText(blob);
                 return;
             }
 
-            setOpen(false);
-        };
-        return (
-            <>
-                <BlueButton
-                    variant="contained"
-                    onClick={() =>
-                        navigate("/Teacher/class/student/" + row.id)
-                    }
-                >
-                    View
-                </BlueButton>
-
-                <React.Fragment>
-                    <ButtonGroup variant="contained" ref={anchorRef} aria-label="split button">
-                        <Button onClick={handleClick}>{options[selectedIndex]}</Button>
-                        <BlackButton
-                            size="small"
+            const urlObj = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = urlObj;
+            link.download = `attendance_${classID}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(urlObj);
+        } catch (error) {
+            console.error('Download failed:', error);
+            alert(error.message || 'Failed to download attendance');
+        } finally {
+            setIsDownloading(false);
+        }
+    };
                             aria-controls={open ? 'split-button-menu' : undefined}
                             aria-expanded={open ? 'true' : undefined}
                             aria-label="select merge strategy"
@@ -231,6 +262,22 @@ const TeacherClassDetails = () => {
                                 Students List:
                             </Typography>
 
+                            {/* Batch selection for lab subjects only */}
+                            {subjectDetail && subjectDetail.isLab && Array.isArray(subjectDetail.batches) && subjectDetail.batches.length > 0 && (
+                                <Box sx={{ mb: 2 }}>
+                                    <Typography variant="subtitle1" sx={{ color: '#1976d2', fontWeight: 600 }}>Select Batch:</Typography>
+                                    <select
+                                        value={selectedBatchIdx}
+                                        onChange={e => setSelectedBatchIdx(Number(e.target.value))}
+                                        style={{ padding: '8px', borderRadius: '4px', border: '1px solid #1976d2', marginLeft: '12px' }}
+                                    >
+                                        {subjectDetail.batches.map((batch, idx) => (
+                                            <option value={idx} key={idx}>{batch.batchName || `Batch ${idx + 1}`}</option>
+                                        ))}
+                                    </select>
+                                </Box>
+                            )}
+
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                                 <Typography variant="h5">
                                     Students List:
@@ -249,7 +296,7 @@ const TeacherClassDetails = () => {
                                     Add Students
                                 </BlueButton>
                                 <BlueButton
-                                    onClick={downloadExcel}
+                                    onClick={() => downloadExcel(selectedBatchIdx)}
                                     disabled={isDownloading}
                                 >
                                     {isDownloading ? 'Downloading...' : 'Download Attendance Excel'}
@@ -265,7 +312,7 @@ const TeacherClassDetails = () => {
                                     <QuickAttendance classID={classID} subjectID={subjectID} />
                                 </Box>
                             )}
-                            {Array.isArray(sclassStudents) && sclassStudents.length > 0 &&
+                            {Array.isArray(filteredStudents) && filteredStudents.length > 0 &&
                                 <TableTemplate buttonHaver={StudentsButtonHaver} columns={studentColumns} rows={studentRows} />
                             }
                         </Paper>
