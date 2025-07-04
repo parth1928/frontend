@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom'
@@ -8,6 +8,8 @@ import { BlackButton, BlueButton} from "../../components/buttonStyles";
 import TableTemplate from "../../components/TableTemplate";
 import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
 import QuickAttendance from './QuickAttendance';
+import { FormControl, InputLabel, Select, MenuItem as MuiMenuItem } from "@mui/material";
+import axios from "axios";
 
 const TeacherClassDetails = () => {
     const navigate = useNavigate()
@@ -21,6 +23,22 @@ const TeacherClassDetails = () => {
     console.log('TeacherClassDetails: classID:', classID, 'subjectID:', subjectID);
 
     const [showQuickAttendance, setShowQuickAttendance] = React.useState(false);
+    const [subjectDetails, setSubjectDetails] = useState({});
+    const [batchList, setBatchList] = useState([]);
+    const [selectedBatch, setSelectedBatch] = useState('');
+
+    // Fetch subject details (with batches) on mount
+    useEffect(() => {
+        if (subjectID) {
+            axios.get(`${process.env.REACT_APP_API_BASE_URL}/subject/${subjectID}`)
+                .then(res => {
+                    setSubjectDetails(res.data);
+                    if (res.data.isLab && Array.isArray(res.data.batches)) {
+                        setBatchList(res.data.batches);
+                    }
+                });
+        }
+    }, [subjectID]);
 
     useEffect(() => {
         // Use currentUser.school?._id for adminId if available, else fallback to currentUser._id
@@ -41,10 +59,13 @@ const TeacherClassDetails = () => {
 
     const [isDownloading, setIsDownloading] = React.useState(false);
 
-    // Debug: Log fetched students after fetch
-    React.useEffect(() => {
-        console.log('TeacherClassDetails: sclassStudents:', sclassStudents);
-    }, [sclassStudents]);
+
+    // Filter students for selected batch if lab
+    const filteredStudents = subjectDetails.isLab && selectedBatch
+        ? sclassStudents.filter(student =>
+            batchList.find(b => b.batchName === selectedBatch)?.students.includes(student._id)
+        )
+        : sclassStudents;
 
     const BACKEND_URL = process.env.REACT_APP_API_BASE_URL;
     
@@ -112,7 +133,7 @@ const TeacherClassDetails = () => {
 
     // Debug: Log fetched students
     console.log('TeacherClassDetails: sclassStudents:', sclassStudents);
-    const studentRows = sclassStudents.map((student) => {
+    const studentRows = filteredStudents.map((student) => {
         return {
             name: student.name,
             rollNum: student.rollNum,
@@ -239,6 +260,20 @@ const TeacherClassDetails = () => {
                     <Typography variant="h4" align="center" gutterBottom>
                         Class Details
                     </Typography>
+                    {subjectDetails.isLab && batchList.length > 0 && (
+                        <FormControl fullWidth sx={{ mb: 2 }}>
+                            <InputLabel>Select Batch</InputLabel>
+                            <Select
+                                value={selectedBatch}
+                                label="Select Batch"
+                                onChange={e => setSelectedBatch(e.target.value)}
+                            >
+                                {batchList.map((batch, idx) => (
+                                    <MuiMenuItem key={idx} value={batch.batchName}>{batch.batchName}</MuiMenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                    )}
                     {getresponse ? (
                         <>
                             <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
@@ -257,7 +292,7 @@ const TeacherClassDetails = () => {
                                 </Typography>
                                 <BlueButton
                                     variant="contained"
-                                    onClick={() => navigate(`/Teacher/class/student/bulk-attendance/${subjectID}`)}
+                                    onClick={() => navigate(`/Teacher/class/student/bulk-attendance/${subjectID}?batch=${selectedBatch}`)}
                                 >
                                     Take Bulk Attendance
                                 </BlueButton>
@@ -269,7 +304,7 @@ const TeacherClassDetails = () => {
                                     Add Students
                                 </BlueButton>
                                 <BlueButton
-                                    onClick={downloadExcel}
+                                    onClick={() => downloadExcel(selectedBatch)}
                                     disabled={isDownloading}
                                 >
                                     {isDownloading ? 'Downloading...' : 'Download Attendance Excel'}
@@ -282,10 +317,10 @@ const TeacherClassDetails = () => {
                             </Box>
                             {showQuickAttendance && (
                                 <Box sx={{ mb: 2 }}>
-                                    <QuickAttendance classID={classID} subjectID={subjectID} />
+                                    <QuickAttendance classID={classID} subjectID={subjectID} batchName={selectedBatch} />
                                 </Box>
                             )}
-                            {Array.isArray(sclassStudents) && sclassStudents.length > 0 &&
+                            {Array.isArray(filteredStudents) && filteredStudents.length > 0 &&
                                 <TableTemplate buttonHaver={StudentsButtonHaver} columns={studentColumns} rows={studentRows} />
                             }
                         </Paper>
