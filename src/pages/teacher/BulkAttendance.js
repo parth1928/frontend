@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateStudentFields } from '../../redux/studentRelated/studentHandle';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import {
     Box,
     Typography,
@@ -45,11 +45,18 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
     },
 }));
 
+
 const BulkAttendance = () => {
     const dispatch = useDispatch();
     const { sclassStudents, loading } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector((state) => state.user);
+    const { subjectID } = useParams();
     const { classID } = useParams();
+    const location = useLocation();
+
+    // Get batchName from query string
+    const queryParams = new URLSearchParams(location.search);
+    const batchName = queryParams.get('batch') || '';
 
     const [date, setDate] = useState('');
     const [showPopup, setShowPopup] = useState(false);
@@ -57,19 +64,42 @@ const BulkAttendance = () => {
     const [success, setSuccess] = useState(false);
     const [loader, setLoader] = useState(false);
     const [attendance, setAttendance] = useState({});
+    const [subjectDetails, setSubjectDetails] = useState({});
+    const [batchList, setBatchList] = useState([]);
+
+    // Fetch subject details (with batches) on mount
+    useEffect(() => {
+        if (subjectID) {
+            fetch(`${process.env.REACT_APP_API_BASE_URL}/subject/${subjectID}`)
+                .then(res => res.json())
+                .then(res => {
+                    setSubjectDetails(res);
+                    if (res.isLab && Array.isArray(res.batches)) {
+                        setBatchList(res.batches);
+                    }
+                });
+        }
+    }, [subjectID]);
 
     useEffect(() => {
         dispatch(getClassStudents(classID));
     }, [dispatch, classID]);
 
+    // Filter students for selected batch if lab
+    const filteredStudents = subjectDetails.isLab && batchName
+        ? sclassStudents.filter(student =>
+            batchList.find(b => b.batchName === batchName)?.students.includes(student._id)
+        )
+        : sclassStudents;
+
     useEffect(() => {
         // Initialize attendance state with all students marked as present
         const initialAttendance = {};
-        sclassStudents.forEach(student => {
+        filteredStudents.forEach(student => {
             initialAttendance[student._id] = true; // true = present, false = absent
         });
         setAttendance(initialAttendance);
-    }, [sclassStudents]);
+    }, [filteredStudents]);
 
     const handleAttendanceChange = (studentId, checked) => {
         setAttendance(prev => ({
@@ -80,7 +110,7 @@ const BulkAttendance = () => {
 
     const markAllPresent = () => {
         const newAttendance = {};
-        sclassStudents.forEach(student => {
+        filteredStudents.forEach(student => {
             newAttendance[student._id] = true;
         });
         setAttendance(newAttendance);
@@ -88,7 +118,7 @@ const BulkAttendance = () => {
 
     const markAllAbsent = () => {
         const newAttendance = {};
-        sclassStudents.forEach(student => {
+        filteredStudents.forEach(student => {
             newAttendance[student._id] = false;
         });
         setAttendance(newAttendance);
@@ -99,8 +129,8 @@ const BulkAttendance = () => {
         setLoader(true);
 
         try {
-            // Process attendance for each student
-            for (const student of sclassStudents) {
+            // Only process attendance for filtered students (batch students for lab)
+            for (const student of filteredStudents) {
                 const fields = {
                     subName: currentUser.teachSubject._id,
                     status: attendance[student._id] ? 'Present' : 'Absent',
@@ -194,7 +224,7 @@ const BulkAttendance = () => {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {sclassStudents.map((student) => (
+                                    {filteredStudents.map((student) => (
                                         <StyledTableRow key={student._id}>
                                             <StyledTableCell>{student.name}</StyledTableCell>
                                             <StyledTableCell>{student.rollNum}</StyledTableCell>
@@ -217,7 +247,7 @@ const BulkAttendance = () => {
                         {/* Show count of students marked present */}
                         <Box sx={{ mb: 2, textAlign: 'center' }}>
                             <Typography variant="subtitle1" color="success.main">
-                                Marked Present: {Object.values(attendance).filter(Boolean).length} / {sclassStudents.length}
+                                Marked Present: {Object.values(attendance).filter(Boolean).length} / {filteredStudents.length}
                             </Typography>
                         </Box>
 

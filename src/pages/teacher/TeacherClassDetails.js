@@ -69,30 +69,36 @@ const TeacherClassDetails = () => {
 
     const BACKEND_URL = process.env.REACT_APP_API_BASE_URL;
     
-    const downloadExcel = async () => {
+    const downloadExcel = async (batchName) => {
         if (!classID || !subjectID) {
             alert('Class and Subject information is required');
+            return;
+        }
+        // For lab subjects, require batch selection
+        if (subjectDetails.isLab && batchList.length > 0 && !batchName) {
+            alert('Please select a batch to download attendance for this lab subject.');
             return;
         }
 
         setIsDownloading(true);
         try {
             const token = localStorage.getItem('token');
-            console.log('Downloading attendance for:', classID, subjectID);
+            let url = `${BACKEND_URL}/attendance/download/${classID}/${subjectID}`;
+            if (subjectDetails.isLab && batchName) {
+                url += `?batch=${encodeURIComponent(batchName)}`;
+            }
             const response = await fetch(
-                `${BACKEND_URL}/attendance/download/${classID}/${subjectID}`,
+                url,
                 {
                     headers: {
                         'Authorization': token || ''
                     }
                 }
             );
-            
             // Check if response is ok before trying to parse it
             if (!response.ok) {
                 throw new Error('Failed to download attendance');
             }
-            
             // Get the response as blob directly
             const blob = await response.blob();
             if (blob.type.includes('application/json')) {
@@ -105,15 +111,14 @@ const TeacherClassDetails = () => {
                 reader.readAsText(blob);
                 return;
             }
-
-            const url = window.URL.createObjectURL(blob);
+            const urlObj = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = url;
+            link.href = urlObj;
             link.download = `attendance_${classID}_${new Date().toISOString().slice(0,10)}.xlsx`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
+            window.URL.revokeObjectURL(urlObj);
         } catch (error) {
             console.error('Download failed:', error);
             alert(error.message || 'Failed to download attendance');
@@ -292,7 +297,13 @@ const TeacherClassDetails = () => {
                                 </Typography>
                                 <BlueButton
                                     variant="contained"
-                                    onClick={() => navigate(`/Teacher/class/student/bulk-attendance/${subjectID}?batch=${selectedBatch}`)}
+                                    onClick={() => {
+                                        if (subjectDetails.isLab && batchList.length > 0 && !selectedBatch) {
+                                            alert('Please select a batch to take bulk attendance for this lab subject.');
+                                            return;
+                                        }
+                                        navigate(`/Teacher/class/student/bulk-attendance/${subjectID}${subjectDetails.isLab && selectedBatch ? `?batch=${encodeURIComponent(selectedBatch)}` : ''}`);
+                                    }}
                                 >
                                     Take Bulk Attendance
                                 </BlueButton>
