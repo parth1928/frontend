@@ -26,59 +26,59 @@ const TeacherClassDetails = () => {
     // Fetch subject details for batch info
     useEffect(() => {
         const fetchSubjectDetail = async () => {
-            if (!subjectID) return;
-            try {
-                const token = localStorage.getItem('token');
-                const BACKEND_URL = process.env.REACT_APP_API_BASE_URL;
-                const res = await fetch(`${BACKEND_URL}/Subject/${subjectID}`, {
-                    headers: { 'Authorization': token || '' }
-                });
-                const data = await res.json();
-                setSubjectDetail(data);
-            } catch (e) {
-                setSubjectDetail(null);
-            }
-        };
-        fetchSubjectDetail();
-    }, [subjectID]);
-
-    useEffect(() => {
-        // Use currentUser.school?._id for adminId if available, else fallback to currentUser._id
-        const adminId = currentUser.school?._id || currentUser._id;
-        dispatch(getClassStudents(classID, adminId));
-    }, [dispatch, classID, currentUser])
-
-    const [isDownloading, setIsDownloading] = React.useState(false);
-
-    const BACKEND_URL = process.env.REACT_APP_API_BASE_URL;
-    
-    const downloadExcel = async () => {
-        if (!classID || !subjectID) {
-            alert('Class and Subject information is required');
-            return;
-        }
-
-        setIsDownloading(true);
-        try {
-            const token = localStorage.getItem('token');
-            console.log('Downloading attendance for:', classID, subjectID);
-            const response = await fetch(
-                `${BACKEND_URL}/attendance/download/${classID}/${subjectID}`,
-                {
-                    headers: {
-                        'Authorization': token || ''
-                    }
-                }
-            );
-            
-            // Check if response is ok before trying to parse it
-            if (!response.ok) {
-                throw new Error('Failed to download attendance');
-            }
-            
-            // Get the response as blob directly
-            const blob = await response.blob();
-            if (blob.type.includes('application/json')) {
+        return (
+            <>
+                <ButtonGroup ref={anchorRef} variant="contained" aria-label="split button">
+                    <BlackButton
+                        size="small"
+                        aria-controls={open ? 'split-button-menu' : undefined}
+                        aria-expanded={open ? 'true' : undefined}
+                        aria-label="select merge strategy"
+                        aria-haspopup="menu"
+                        onClick={handleToggle}
+                    >
+                        {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
+                    </BlackButton>
+                </ButtonGroup>
+                <Popper
+                    sx={{
+                        zIndex: 1,
+                    }}
+                    open={open}
+                    anchorEl={anchorRef.current}
+                    role={undefined}
+                    transition
+                    disablePortal
+                >
+                    {({ TransitionProps, placement }) => (
+                        <Grow
+                            {...TransitionProps}
+                            style={{
+                                transformOrigin:
+                                    placement === 'bottom' ? 'center top' : 'center bottom',
+                            }}
+                        >
+                            <Paper>
+                                <ClickAwayListener onClickAway={handleClose}>
+                                    <MenuList id="split-button-menu" autoFocusItem>
+                                        {options.map((option, index) => (
+                                            <MenuItem
+                                                key={option}
+                                                disabled={index === 2}
+                                                selected={index === selectedIndex}
+                                                onClick={(event) => handleMenuItemClick(event, index)}
+                                            >
+                                                {option}
+                                            </MenuItem>
+                                        ))}
+                                    </MenuList>
+                                </ClickAwayListener>
+                            </Paper>
+                        </Grow>
+                    )}
+                </Popper>
+            </>
+        );
                 // If we got JSON instead of an Excel file, there's an error
                 const reader = new FileReader();
                 reader.onload = () => {
