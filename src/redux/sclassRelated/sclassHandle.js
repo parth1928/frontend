@@ -33,8 +33,8 @@ export const getClassStudents = (id, adminId) => async (dispatch) => {
 
     try {
         let url = `${REACT_APP_BASE_URL}/Sclass/Students/${id}`;
-        // Only add adminId if it is a non-empty string and not 'undefined'
-        if (adminId && adminId !== "undefined") {
+        // Extra defensive: Only add adminId if it is a non-empty string, not undefined/null, not the string 'undefined', and not empty after trimming
+        if (adminId && typeof adminId === 'string' && adminId.trim() !== '' && adminId !== 'undefined' && adminId !== 'null') {
             url += `?adminId=${adminId}`;
         }
         const result = await axios.get(url);

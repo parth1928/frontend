@@ -15,23 +15,36 @@ const TeacherClassDetails = () => {
     const { sclassStudents, loading, error, getresponse } = useSelector((state) => state.sclass);
 
     const { currentUser } = useSelector((state) => state.user);
-    const classID = currentUser.teachSclass?._id
-    const subjectID = currentUser.teachSubject?._id
+    const classID = currentUser.teachSclass?._id;
+    const subjectID = currentUser.teachSubject?._id;
+    // Debug: Log classID and subjectID
+    console.log('TeacherClassDetails: classID:', classID, 'subjectID:', subjectID);
 
     const [showQuickAttendance, setShowQuickAttendance] = React.useState(false);
 
     useEffect(() => {
         // Use currentUser.school?._id for adminId if available, else fallback to currentUser._id
         let adminId = currentUser.school?._id;
-        // Only pass adminId if it exists
-        if (adminId) {
-            dispatch(getClassStudents(classID, adminId));
+        // Debug: Log adminId before dispatch
+        console.log('TeacherClassDetails: adminId:', adminId);
+        // Final defensive check: Only dispatch if classID is valid
+        if (classID && typeof classID === 'string' && classID !== 'undefined' && classID !== 'null') {
+            if (adminId && typeof adminId === 'string' && adminId.trim() !== '' && adminId !== 'undefined' && adminId !== 'null') {
+                dispatch(getClassStudents(classID, adminId));
+            } else {
+                dispatch(getClassStudents(classID));
+            }
         } else {
-            dispatch(getClassStudents(classID));
+            console.warn('TeacherClassDetails: Invalid classID, skipping fetch.');
         }
-    }, [dispatch, classID, currentUser])
+    }, [dispatch, classID, currentUser]);
 
     const [isDownloading, setIsDownloading] = React.useState(false);
+
+    // Debug: Log fetched students after fetch
+    React.useEffect(() => {
+        console.log('TeacherClassDetails: sclassStudents:', sclassStudents);
+    }, [sclassStudents]);
 
     const BACKEND_URL = process.env.REACT_APP_API_BASE_URL;
     
@@ -97,6 +110,8 @@ const TeacherClassDetails = () => {
         { id: 'rollNum', label: 'Roll Number', minWidth: 100 },
     ]
 
+    // Debug: Log fetched students
+    console.log('TeacherClassDetails: sclassStudents:', sclassStudents);
     const studentRows = sclassStudents.map((student) => {
         return {
             name: student.name,
