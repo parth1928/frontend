@@ -94,6 +94,18 @@ const BulkAttendance = () => {
         if (currentUser) {
             adminId = currentUser.admin || currentUser.school || currentUser._id;
         }
+        // Fallback: try to get adminId from user in localStorage if still undefined
+        if (!adminId) {
+            try {
+                const userLS = JSON.parse(localStorage.getItem('user'));
+                adminId = userLS?.admin || userLS?.school || userLS?._id;
+            } catch (e) {}
+        }
+        // Final fallback: use a hardcoded string to avoid undefined
+        if (!adminId) {
+            adminId = 'default';
+            console.warn('BulkAttendance: adminId is missing, using fallback value.');
+        }
         console.log('BulkAttendance currentUser:', currentUser);
         console.log('BulkAttendance using adminId:', adminId);
         dispatch(getClassStudents(classID, adminId));
