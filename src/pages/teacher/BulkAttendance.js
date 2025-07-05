@@ -47,13 +47,15 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 
 const BulkAttendance = () => {
+    // Always get params at the very top, only once
+    const params = useParams();
+    const classID = params.classID;
+    const subjectID = params.subjectID;
     // Debug log for params
     console.log('BulkAttendance: classID:', classID, 'subjectID:', subjectID);
     const dispatch = useDispatch();
     const { sclassStudents, loading } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector((state) => state.user);
-    const { subjectID } = useParams();
-    const { classID } = useParams();
     const location = useLocation();
 
     // Get batchName from query string (default empty)
