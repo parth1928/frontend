@@ -54,9 +54,9 @@ const BulkAttendance = () => {
     const { classID } = useParams();
     const location = useLocation();
 
-    // Get batchName from query string
+    // Get batchName from query string (default empty)
     const queryParams = new URLSearchParams(location.search);
-    const batchName = queryParams.get('batch') || '';
+    const initialBatchName = queryParams.get('batch') || '';
 
     const [date, setDate] = useState('');
     const [showPopup, setShowPopup] = useState(false);
@@ -66,6 +66,7 @@ const BulkAttendance = () => {
     const [attendance, setAttendance] = useState({});
     const [subjectDetails, setSubjectDetails] = useState({});
     const [batchList, setBatchList] = useState([]);
+    const [batchName, setBatchName] = useState(initialBatchName);
 
     // Fetch subject details (with batches) on mount
     useEffect(() => {
@@ -90,7 +91,7 @@ const BulkAttendance = () => {
         ? sclassStudents.filter(student =>
             batchList.find(b => b.batchName === batchName)?.students.includes(student._id)
         )
-        : sclassStudents;
+        : (!subjectDetails.isLab ? sclassStudents : []); // For lab, if no batch selected, show none
 
     useEffect(() => {
         // Initialize attendance state with all students marked as present
@@ -127,6 +128,15 @@ const BulkAttendance = () => {
     const submitAttendance = async (e) => {
         e.preventDefault();
         setLoader(true);
+
+        // Defensive: For lab, require batch selection
+        if (subjectDetails.isLab && !batchName) {
+            setLoader(false);
+            setShowPopup(true);
+            setMessage('Please select a batch for lab subject.');
+            setSuccess(false);
+            return;
+        }
 
         try {
             // Only process attendance for filtered students (batch students for lab)
@@ -186,6 +196,24 @@ const BulkAttendance = () => {
                                         }}
                                     />
                                 </FormControl>
+                                {/* Batch selector for lab subjects */}
+                                {subjectDetails.isLab && batchList.length > 0 && (
+                                    <FormControl sx={{ width: '200px' }}>
+                                        <TextField
+                                            select
+                                            label="Select Batch"
+                                            value={batchName}
+                                            onChange={e => setBatchName(e.target.value)}
+                                            SelectProps={{ native: true }}
+                                            required
+                                        >
+                                            <option value="">-- Select Batch --</option>
+                                            {batchList.map(batch => (
+                                                <option key={batch.batchName} value={batch.batchName}>{batch.batchName}</option>
+                                            ))}
+                                        </TextField>
+                                    </FormControl>
+                                )}
                                 <Button
                                     variant="contained"
                                     onClick={markAllPresent}
@@ -212,7 +240,6 @@ const BulkAttendance = () => {
                                 </Button>
                             </Box>
                         </Stack>
-
 
                         <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2, mb: 4 }}>
                             <Table>
