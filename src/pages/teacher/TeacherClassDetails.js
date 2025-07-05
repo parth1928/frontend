@@ -302,7 +302,7 @@ const TeacherClassDetails = () => {
                                             alert('Please select a batch to take bulk attendance for this lab subject.');
                                             return;
                                         }
-                                        navigate(`/Teacher/class/student/bulk-attendance/${subjectID}${subjectDetails.isLab && selectedBatch ? `?batch=${encodeURIComponent(selectedBatch)}` : ''}`);
+                                        navigate(`/Teacher/class/student/bulk-attendance/${classID}/${subjectID}${subjectDetails.isLab && selectedBatch ? `?batch=${encodeURIComponent(selectedBatch)}` : ''}`);
                                     }}
                                 >
                                     Take Bulk Attendance
