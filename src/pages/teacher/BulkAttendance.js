@@ -113,11 +113,12 @@ const BulkAttendance = () => {
         adminId = String(adminId);
         console.log('BulkAttendance currentUser:', currentUser);
         console.log('BulkAttendance using adminId:', adminId);
-        if (classID && classID !== 'undefined') {
-            dispatch(getClassStudents(classID, adminId));
-        } else {
-            console.warn('BulkAttendance: classID is undefined, not fetching students.');
+        // Extra defensive: Only dispatch if classID is a valid non-empty string and not 'undefined' or 'null'
+        if (!classID || typeof classID !== 'string' || classID.trim() === '' || classID === 'undefined' || classID === 'null') {
+            console.warn('BulkAttendance: Invalid classID, not fetching students. classID:', classID);
+            return;
         }
+        dispatch(getClassStudents(classID, adminId));
     }, [dispatch, classID, currentUser]);
 
     // Filter students for selected batch if lab
