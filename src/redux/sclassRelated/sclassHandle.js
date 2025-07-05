@@ -29,14 +29,19 @@ export const getAllSclasses = (id, address) => async (dispatch) => {
 }
 
 export const getClassStudents = (id, adminId) => async (dispatch) => {
+    // Defensive: Only proceed if id is a valid string and not 'undefined' or empty
+    if (!id || typeof id !== 'string' || id.trim() === '' || id === 'undefined' || id === 'null') {
+        console.warn('getClassStudents: Invalid id, aborting API call. id:', id);
+        return;
+    }
     dispatch(getRequest());
-
     try {
         let url = `${REACT_APP_BASE_URL}/Sclass/Students/${id}`;
         // Extra defensive: Only add adminId if it is a non-empty string, not undefined/null, not the string 'undefined', and not empty after trimming
         if (adminId && typeof adminId === 'string' && adminId.trim() !== '' && adminId !== 'undefined' && adminId !== 'null') {
             url += `?adminId=${adminId}`;
         }
+        console.log('getClassStudents: Fetching URL:', url);
         const result = await axios.get(url);
         if (result.data.message) {
             dispatch(getFailedTwo(result.data.message));
