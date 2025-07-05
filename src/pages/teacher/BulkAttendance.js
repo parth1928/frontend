@@ -136,13 +136,17 @@ const BulkAttendance = () => {
     }, [filteredStudents]);
 
     useEffect(() => {
-        // Initialize attendance state with all students marked as present
-        const initialAttendance = {};
-        filteredStudents.forEach(student => {
-            initialAttendance[String(student._id)] = true; // true = present, false = absent
-        });
-        setAttendance(initialAttendance);
-        console.log('BulkAttendance attendance state:', initialAttendance);
+        // Only initialize attendance if there are students to show
+        if (filteredStudents.length > 0) {
+            const initialAttendance = {};
+            filteredStudents.forEach(student => {
+                initialAttendance[String(student._id)] = true; // true = present, false = absent
+            });
+            setAttendance(initialAttendance);
+            console.log('BulkAttendance attendance state:', initialAttendance);
+        } else {
+            setAttendance({});
+        }
     }, [filteredStudents]);
 
     const handleAttendanceChange = (studentId, checked) => {
@@ -159,7 +163,7 @@ const BulkAttendance = () => {
     const markAllPresent = () => {
         const newAttendance = {};
         filteredStudents.forEach(student => {
-            newAttendance[student._id] = true;
+            newAttendance[String(student._id)] = true;
         });
         setAttendance(newAttendance);
     };
@@ -167,7 +171,7 @@ const BulkAttendance = () => {
     const markAllAbsent = () => {
         const newAttendance = {};
         filteredStudents.forEach(student => {
-            newAttendance[student._id] = false;
+            newAttendance[String(student._id)] = false;
         });
         setAttendance(newAttendance);
     };
@@ -188,9 +192,10 @@ const BulkAttendance = () => {
         try {
             // Only process attendance for filtered students (batch students for lab)
             for (const student of filteredStudents) {
+                const sid = String(student._id);
                 const fields = {
                     subName: currentUser.teachSubject._id,
-                    status: attendance[student._id] ? 'Present' : 'Absent',
+                    status: attendance[sid] ? 'Present' : 'Absent',
                     date
                 };
                 await dispatch(updateStudentFields(student._id, fields, 'StudentAttendance'));
@@ -303,15 +308,15 @@ const BulkAttendance = () => {
                                             <StyledTableCell>{student.name}</StyledTableCell>
                                             <StyledTableCell>{student.rollNum}</StyledTableCell>
                                             <StyledTableCell align="center">
-                                                <Switch
-                                                    checked={!!attendance[student._id]}
-                                                    onChange={(e) => handleAttendanceChange(student._id, e.target.checked)}
-                                                    color="success"
-                                                    disabled={loader}
-                                                />
-                                                <Typography component="span" sx={{ ml: 1, color: attendance[student._id] ? 'success.main' : 'error.main' }}>
-                                                    {attendance[student._id] ? 'Present' : 'Absent'}
-                                                </Typography>
+                                    <Switch
+                                        checked={!!attendance[String(student._id)]}
+                                        onChange={(e) => handleAttendanceChange(student._id, e.target.checked)}
+                                        color="success"
+                                        disabled={loader || (subjectDetails.isLab && !batchName)}
+                                    />
+                                    <Typography component="span" sx={{ ml: 1, color: attendance[String(student._id)] ? 'success.main' : 'error.main' }}>
+                                        {attendance[String(student._id)] ? 'Present' : 'Absent'}
+                                    </Typography>
                                             </StyledTableCell>
                                         </StyledTableRow>
                                     ))}
