@@ -89,8 +89,13 @@ const BulkAttendance = () => {
     }, [subjectID]);
 
     useEffect(() => {
-        // Pass adminId if available (from currentUser or other source)
-        let adminId = currentUser && currentUser.school ? currentUser.school : undefined;
+        // Try to get adminId from currentUser.admin, currentUser.school, or fallback to currentUser._id
+        let adminId = undefined;
+        if (currentUser) {
+            adminId = currentUser.admin || currentUser.school || currentUser._id;
+        }
+        console.log('BulkAttendance currentUser:', currentUser);
+        console.log('BulkAttendance using adminId:', adminId);
         dispatch(getClassStudents(classID, adminId));
     }, [dispatch, classID, currentUser]);
 
