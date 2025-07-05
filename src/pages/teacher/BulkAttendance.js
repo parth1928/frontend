@@ -89,8 +89,10 @@ const BulkAttendance = () => {
     }, [subjectID]);
 
     useEffect(() => {
-        dispatch(getClassStudents(classID));
-    }, [dispatch, classID]);
+        // Pass adminId if available (from currentUser or other source)
+        let adminId = currentUser && currentUser.school ? currentUser.school : undefined;
+        dispatch(getClassStudents(classID, adminId));
+    }, [dispatch, classID, currentUser]);
 
     // Filter students for selected batch if lab
     const filteredStudents = subjectDetails.isLab && batchName
