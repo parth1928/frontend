@@ -72,6 +72,20 @@ const BulkAttendance = () => {
     const [batchList, setBatchList] = useState([]);
     const [batchName, setBatchName] = useState(initialBatchName);
 
+    // Reset batchName when subject changes (for lab subjects)
+    useEffect(() => {
+        if (subjectDetails.isLab) {
+            setBatchName('');
+        }
+    }, [subjectID]);
+
+    // Reset attendance when batch changes for lab subjects
+    useEffect(() => {
+        if (subjectDetails.isLab) {
+            setAttendance({});
+        }
+    }, [batchName]);
+
     // Always fetch subject details (with batches) on mount
     useEffect(() => {
         if (subjectID) {
