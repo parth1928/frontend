@@ -68,7 +68,7 @@ const BulkAttendance = () => {
     const [batchList, setBatchList] = useState([]);
     const [batchName, setBatchName] = useState(initialBatchName);
 
-    // Fetch subject details (with batches) on mount
+    // Always fetch subject details (with batches) on mount
     useEffect(() => {
         if (subjectID) {
             fetch(`${process.env.REACT_APP_API_BASE_URL}/subject/${subjectID}`)
@@ -77,7 +77,13 @@ const BulkAttendance = () => {
                     setSubjectDetails(res);
                     if (res.isLab && Array.isArray(res.batches)) {
                         setBatchList(res.batches);
+                    } else {
+                        setBatchList([]);
                     }
+                })
+                .catch(() => {
+                    setSubjectDetails({});
+                    setBatchList([]);
                 });
         }
     }, [subjectID]);
@@ -163,8 +169,8 @@ const BulkAttendance = () => {
 
     return (
         <>
-            {loading ? (
-                <div>Loading...</div>
+            {loading || (subjectID && !subjectDetails._id && !subjectDetails.isLab && !subjectDetails.subName) ? (
+                <div>Loading subject details...</div>
             ) : (
                 <Box sx={{ p: 3 }}>
                     <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', mb: 4 }}>
