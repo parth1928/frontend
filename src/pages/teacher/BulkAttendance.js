@@ -263,9 +263,10 @@ const BulkAttendance = () => {
                                             <StyledTableCell>{student.rollNum}</StyledTableCell>
                                             <StyledTableCell align="center">
                                                 <Switch
-                                                    checked={attendance[student._id]}
+                                                    checked={!!attendance[student._id]}
                                                     onChange={(e) => handleAttendanceChange(student._id, e.target.checked)}
                                                     color="success"
+                                                    disabled={loader}
                                                 />
                                                 <Typography component="span" sx={{ ml: 1, color: attendance[student._id] ? 'success.main' : 'error.main' }}>
                                                     {attendance[student._id] ? 'Present' : 'Absent'}
