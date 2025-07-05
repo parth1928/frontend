@@ -45,15 +45,15 @@ const TeacherClassDetails = () => {
         let adminId = currentUser.school?._id;
         // Debug: Log adminId before dispatch
         console.log('TeacherClassDetails: adminId:', adminId);
-        // Final defensive check: Only dispatch if classID is valid
-        if (classID && typeof classID === 'string' && classID !== 'undefined' && classID !== 'null') {
-            if (adminId && typeof adminId === 'string' && adminId.trim() !== '' && adminId !== 'undefined' && adminId !== 'null') {
-                dispatch(getClassStudents(classID, adminId));
-            } else {
-                dispatch(getClassStudents(classID));
-            }
+        // Extra defensive: Only dispatch if classID is a valid non-empty string and not 'undefined' or 'null'
+        if (!classID || typeof classID !== 'string' || classID.trim() === '' || classID === 'undefined' || classID === 'null') {
+            console.warn('TeacherClassDetails: Invalid classID, skipping fetch. classID:', classID);
+            return;
+        }
+        if (adminId && typeof adminId === 'string' && adminId.trim() !== '' && adminId !== 'undefined' && adminId !== 'null') {
+            dispatch(getClassStudents(classID, adminId));
         } else {
-            console.warn('TeacherClassDetails: Invalid classID, skipping fetch.');
+            dispatch(getClassStudents(classID));
         }
     }, [dispatch, classID, currentUser]);
 
