@@ -47,6 +47,8 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 
 const BulkAttendance = () => {
+    // Debug log for params
+    console.log('BulkAttendance: classID:', classID, 'subjectID:', subjectID);
     const dispatch = useDispatch();
     const { sclassStudents, loading } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector((state) => state.user);
@@ -109,7 +111,11 @@ const BulkAttendance = () => {
         adminId = String(adminId);
         console.log('BulkAttendance currentUser:', currentUser);
         console.log('BulkAttendance using adminId:', adminId);
-        dispatch(getClassStudents(classID, adminId));
+        if (classID && classID !== 'undefined') {
+            dispatch(getClassStudents(classID, adminId));
+        } else {
+            console.warn('BulkAttendance: classID is undefined, not fetching students.');
+        }
     }, [dispatch, classID, currentUser]);
 
     // Filter students for selected batch if lab
