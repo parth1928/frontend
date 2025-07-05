@@ -106,6 +106,7 @@ const BulkAttendance = () => {
             adminId = 'default';
             console.warn('BulkAttendance: adminId is missing, using fallback value.');
         }
+        adminId = String(adminId);
         console.log('BulkAttendance currentUser:', currentUser);
         console.log('BulkAttendance using adminId:', adminId);
         dispatch(getClassStudents(classID, adminId));
@@ -113,25 +114,37 @@ const BulkAttendance = () => {
 
     // Filter students for selected batch if lab
     const filteredStudents = subjectDetails.isLab && batchName
-        ? sclassStudents.filter(student =>
-            batchList.find(b => b.batchName === batchName)?.students.includes(student._id)
-        )
+        ? sclassStudents.filter(student => {
+            const sid = String(student._id);
+            const batch = batchList.find(b => b.batchName === batchName);
+            return batch && batch.students.map(id => String(id)).includes(sid);
+        })
         : (!subjectDetails.isLab ? sclassStudents : []); // For lab, if no batch selected, show none
+
+    // Debug log for filtered students
+    useEffect(() => {
+        console.log('BulkAttendance filteredStudents:', filteredStudents);
+    }, [filteredStudents]);
 
     useEffect(() => {
         // Initialize attendance state with all students marked as present
         const initialAttendance = {};
         filteredStudents.forEach(student => {
-            initialAttendance[student._id] = true; // true = present, false = absent
+            initialAttendance[String(student._id)] = true; // true = present, false = absent
         });
         setAttendance(initialAttendance);
+        console.log('BulkAttendance attendance state:', initialAttendance);
     }, [filteredStudents]);
 
     const handleAttendanceChange = (studentId, checked) => {
-        setAttendance(prev => ({
-            ...prev,
-            [studentId]: checked
-        }));
+        setAttendance(prev => {
+            const newState = {
+                ...prev,
+                [String(studentId)]: checked
+            };
+            console.log('BulkAttendance attendance updated:', newState);
+            return newState;
+        });
     };
 
     const markAllPresent = () => {
