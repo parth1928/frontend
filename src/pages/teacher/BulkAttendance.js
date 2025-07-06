@@ -50,7 +50,9 @@ const BulkAttendance = () => {
     const dispatch = useDispatch();
     const { sclassStudents, loading } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector((state) => state.user);
-    const { subjectID, classID } = useParams();
+    const params = useParams();
+    const classID = params.classID;
+    const subjectID = params.subjectID;
     const location = useLocation();
 
     // Validate required IDs
@@ -97,9 +99,13 @@ const BulkAttendance = () => {
 
     useEffect(() => {
         // Only fetch students if we have a valid classID
-        if (classID && classID !== 'undefined' && classID !== 'null') {
-            dispatch(getClassStudents(classID));
+        if (!classID || classID === 'undefined' || classID === 'null') {
+            console.warn('BulkAttendance: Invalid classID:', classID);
+            return;
         }
+
+        console.log('BulkAttendance: Fetching students for classID:', classID);
+        dispatch(getClassStudents(classID));
     }, [dispatch, classID]);
 
     // Filter students for selected batch if lab using useMemo

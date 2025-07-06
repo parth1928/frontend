@@ -3,7 +3,18 @@ import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom'
 import { getClassStudents } from "../../redux/sclassRelated/sclassHandle";
-import { Paper, Box, Typography, ButtonGroup, Button, Popper, Grow, ClickAwayListener, MenuList, MenuItem } from '@mui/material';
+import { 
+    Paper, 
+    Box, 
+    Typography, 
+    ButtonGroup, 
+    Button, 
+    Popper, 
+    Grow,
+    ClickAwayListener, 
+    MenuList, 
+    MenuItem 
+} from '@mui/material';
 import { BlackButton, BlueButton} from "../../components/buttonStyles";
 import TableTemplate from "../../components/TableTemplate";
 import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
@@ -25,6 +36,8 @@ const TeacherClassDetails = () => {
     React.useEffect(() => {
         if (!classID || !subjectID) {
             console.warn('Missing required IDs:', { classID, subjectID });
+        } else {
+            console.log('TeacherClassDetails: Using IDs:', { classID, subjectID });
         }
     }, [classID, subjectID]);
 
@@ -80,11 +93,17 @@ const TeacherClassDetails = () => {
 
 
     // Filter students for selected batch if lab
-    const filteredStudents = subjectDetails.isLab && selectedBatch
-        ? sclassStudents.filter(student =>
-            batchList.find(b => b.batchName === selectedBatch)?.students.includes(student._id)
-        )
-        : sclassStudents;
+    const filteredStudents = React.useMemo(() => {
+        if (!Array.isArray(sclassStudents)) {
+            return [];
+        }
+        if (subjectDetails.isLab && selectedBatch) {
+            return sclassStudents.filter(student =>
+                batchList.find(b => b.batchName === selectedBatch)?.students?.includes(student._id)
+            );
+        }
+        return sclassStudents;
+    }, [subjectDetails.isLab, selectedBatch, sclassStudents, batchList]);
 
     const BACKEND_URL = process.env.REACT_APP_API_BASE_URL;
     
@@ -155,15 +174,19 @@ const TeacherClassDetails = () => {
         { id: 'rollNum', label: 'Roll Number', minWidth: 100 },
     ]
 
-    // Debug: Log fetched students
-    console.log('TeacherClassDetails: sclassStudents:', sclassStudents);
-    const studentRows = filteredStudents.map((student) => {
-        return {
-            name: student.name,
-            rollNum: student.rollNum,
+    // Debug: Log fetched students and create rows with validation
+    const studentRows = React.useMemo(() => {
+        if (!Array.isArray(filteredStudents)) {
+            console.warn('TeacherClassDetails: filteredStudents is not an array');
+            return [];
+        }
+        console.log('TeacherClassDetails: Processing students:', filteredStudents.length);
+        return filteredStudents.map((student) => ({
+            name: student.name || 'No Name',
+            rollNum: student.rollNum || 'No Roll Number',
             id: student._id,
-        };
-    })
+        }));
+    }, [filteredStudents]);
 
     const StudentsButtonHaver = ({ row }) => {
         const options = ['Take Attendance', 'Provide Marks'];
@@ -186,10 +209,16 @@ const TeacherClassDetails = () => {
         }
         const handleMarks = () => {
             navigate(`/Teacher/class/student/marks/${row.id}/${subjectID}`)
-        };
-
-        const handleBulkAttendance = () => {
-            navigate(`/Teacher/class/student/bulk-attendance/${subjectID}`)
+        };                const handleBulkAttendance = () => {
+            if (!classID || !subjectID) {
+                alert('Missing required class or subject information');
+                return;
+            }
+            if (subjectDetails.isLab && batchList.length > 0 && !selectedBatch) {
+                alert('Please select a batch to take bulk attendance for this lab subject.');
+                return;
+            }
+            navigate(`/Teacher/class/student/bulk-attendance/${classID}/${subjectID}${subjectDetails.isLab && selectedBatch ? `?batch=${encodeURIComponent(selectedBatch)}` : ''}`);
         };
 
         const handleMenuItemClick = (event, index) => {
@@ -317,11 +346,15 @@ const TeacherClassDetails = () => {
                                 <BlueButton
                                     variant="contained"
                                     onClick={() => {
+                                        if (!classID || !subjectID) {
+                                            alert('Missing required class or subject information');
+                                            return;
+                                        }
                                         if (subjectDetails.isLab && batchList.length > 0 && !selectedBatch) {
                                             alert('Please select a batch to take bulk attendance for this lab subject.');
                                             return;
                                         }
-                                        navigate(`/Teacher/class/student/bulk-attendance/${subjectID}${subjectDetails.isLab && selectedBatch ? `?batch=${encodeURIComponent(selectedBatch)}` : ''}`);
+                                        navigate(`/Teacher/class/student/bulk-attendance/${classID}/${subjectID}${subjectDetails.isLab && selectedBatch ? `?batch=${encodeURIComponent(selectedBatch)}` : ''}`);
                                     }}
                                 >
                                     Take Bulk Attendance
@@ -347,7 +380,11 @@ const TeacherClassDetails = () => {
                             </Box>
                             {showQuickAttendance && (
                                 <Box sx={{ mb: 2 }}>
-                                    <QuickAttendance classID={classID} subjectID={subjectID} batchName={selectedBatch} />
+                                    {(!subjectDetails.isLab || (subjectDetails.isLab && selectedBatch)) ? (
+                                        <QuickAttendance classID={classID} subjectID={subjectID} batchName={selectedBatch} />
+                                    ) : (
+                                        <Typography color="error">Please select a batch to take quick attendance for this lab subject.</Typography>
+                                    )}
                                 </Box>
                             )}
                             {Array.isArray(filteredStudents) && filteredStudents.length > 0 &&
