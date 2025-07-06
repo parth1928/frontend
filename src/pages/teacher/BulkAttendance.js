@@ -62,6 +62,19 @@ const BulkAttendance = () => {
     }
     // Debug log for params
     console.log('BulkAttendance: classID:', classID, 'subjectID:', subjectID);
+    // Hard fail: if classID is invalid, show error and do not render UI
+    if (!classID) {
+        return (
+            <Box sx={{ p: 3 }}>
+                <Typography variant="h5" color="error" gutterBottom>
+                    Error: Invalid or missing class ID. Cannot load attendance page.
+                </Typography>
+                <Typography variant="body1">
+                    Please return to the previous page and try again. If the problem persists, contact your administrator.
+                </Typography>
+            </Box>
+        );
+    }
     const dispatch = useDispatch();
     const { sclassStudents, loading } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector((state) => state.user);
@@ -138,9 +151,13 @@ const BulkAttendance = () => {
         adminId = String(adminId);
         console.log('BulkAttendance currentUser:', currentUser);
         console.log('BulkAttendance using adminId:', adminId);
-        // Extra defensive: Only dispatch if classID is a valid non-empty string and not 'undefined' or 'null'
+        // Extra defensive: Only dispatch if classID and adminId are valid
         if (!classID || typeof classID !== 'string' || classID.trim() === '' || classID === 'undefined' || classID === 'null') {
             console.warn('BulkAttendance: Invalid classID, not fetching students. classID:', classID);
+            return;
+        }
+        if (!adminId || adminId === 'undefined') {
+            console.warn('BulkAttendance: Invalid adminId, skipping fetch. adminId:', adminId);
             return;
         }
         dispatch(getClassStudents(classID, adminId));
@@ -171,22 +188,24 @@ const BulkAttendance = () => {
         console.log('BulkAttendance filteredStudents:', filteredStudents);
     }, [filteredStudents]);
 
+    // Preserve attendance toggle state when students change
     useEffect(() => {
-        console.log("✅ useEffect - attendance re-init", {filteredStudents, attendanceInitialized});
-        // Only initialize attendance if there are students to show and not already initialized
-        if (filteredStudents.length > 0 && !attendanceInitialized) {
+        if (!attendanceInitialized && filteredStudents.length > 0) {
             const initialAttendance = {};
-            filteredStudents.forEach(student => {
-                initialAttendance[String(student._id)] = true; // All present
-            });
+            for (const student of filteredStudents) {
+                const sid = String(student._id);
+                if (!(sid in attendance)) {
+                    initialAttendance[sid] = true; // default to present
+                } else {
+                    initialAttendance[sid] = attendance[sid]; // preserve toggle if exists
+                }
+            }
             setAttendance(initialAttendance);
             setAttendanceInitialized(true);
-            console.log('Attendance initialized:', initialAttendance);
-        } else if (filteredStudents.length === 0) {
-            setAttendance({});
-            setAttendanceInitialized(false);
+            console.log('✅ Attendance initialized or preserved:', initialAttendance);
         }
-    }, [filteredStudents, attendanceInitialized]);
+        // No else branch: do not reset attendance if students disappear, to preserve toggles
+    }, [filteredStudents]);
 
     const handleAttendanceChange = (studentId, checked) => {
         setAttendance(prev => {
