@@ -72,9 +72,9 @@ const BulkAttendance = () => {
     const [batchList, setBatchList] = useState([]);
     const [batchName, setBatchName] = useState(initialBatchName);
 
-    // Reset batchName when subject changes (for lab subjects)
+    // Reset batchName when subject changes (for lab subjects), but only if not set from URL
     useEffect(() => {
-        if (subjectDetails.isLab) {
+        if (subjectDetails.isLab && !initialBatchName) {
             setBatchName('');
         }
     }, [subjectID]);
@@ -175,6 +175,7 @@ const BulkAttendance = () => {
     };
 
     const markAllPresent = () => {
+        if (subjectDetails.isLab && !batchName) return;
         const newAttendance = {};
         filteredStudents.forEach(student => {
             newAttendance[String(student._id)] = true;
@@ -183,6 +184,7 @@ const BulkAttendance = () => {
     };
 
     const markAllAbsent = () => {
+        if (subjectDetails.isLab && !batchName) return;
         const newAttendance = {};
         filteredStudents.forEach(student => {
             newAttendance[String(student._id)] = false;
@@ -289,6 +291,7 @@ const BulkAttendance = () => {
                                         px: 3,
                                         py: 1,
                                     }}
+                                    disabled={subjectDetails.isLab && !batchName}
                                 >
                                     Mark All Present
                                 </Button>
@@ -301,49 +304,59 @@ const BulkAttendance = () => {
                                         px: 3,
                                         py: 1,
                                     }}
+                                    disabled={subjectDetails.isLab && !batchName}
                                 >
                                     Mark All Absent
                                 </Button>
                             </Box>
                         </Stack>
 
-                        <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2, mb: 4 }}>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <StyledTableCell>Name</StyledTableCell>
-                                        <StyledTableCell>Roll Number</StyledTableCell>
-                                        <StyledTableCell align="center">Attendance Status</StyledTableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {filteredStudents.map((student) => (
-                                        <StyledTableRow key={student._id}>
-                                            <StyledTableCell>{student.name}</StyledTableCell>
-                                            <StyledTableCell>{student.rollNum}</StyledTableCell>
-                                            <StyledTableCell align="center">
-                                    <Switch
-                                        checked={!!attendance[String(student._id)]}
-                                        onChange={(e) => handleAttendanceChange(student._id, e.target.checked)}
-                                        color="success"
-                                        disabled={loader || (subjectDetails.isLab && !batchName)}
-                                    />
-                                    <Typography component="span" sx={{ ml: 1, color: attendance[String(student._id)] ? 'success.main' : 'error.main' }}>
-                                        {attendance[String(student._id)] ? 'Present' : 'Absent'}
-                                    </Typography>
-                                            </StyledTableCell>
-                                        </StyledTableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
+                        {/* Only render table if not lab or (lab and batchName selected) */}
+                        {!subjectDetails.isLab || (subjectDetails.isLab && batchName) ? (
+                            <>
+                                <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2, mb: 4 }}>
+                                    <Table>
+                                        <TableHead>
+                                            <TableRow>
+                                                <StyledTableCell>Name</StyledTableCell>
+                                                <StyledTableCell>Roll Number</StyledTableCell>
+                                                <StyledTableCell align="center">Attendance Status</StyledTableCell>
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {filteredStudents.map((student) => (
+                                                <StyledTableRow key={student._id}>
+                                                    <StyledTableCell>{student.name}</StyledTableCell>
+                                                    <StyledTableCell>{student.rollNum}</StyledTableCell>
+                                                    <StyledTableCell align="center">
+                                                        <Switch
+                                                            checked={!!attendance[String(student._id)]}
+                                                            onChange={(e) => handleAttendanceChange(student._id, e.target.checked)}
+                                                            color="success"
+                                                            disabled={loader || (subjectDetails.isLab && !batchName)}
+                                                        />
+                                                        <Typography component="span" sx={{ ml: 1, color: attendance[String(student._id)] ? 'success.main' : 'error.main' }}>
+                                                            {attendance[String(student._id)] ? 'Present' : 'Absent'}
+                                                        </Typography>
+                                                    </StyledTableCell>
+                                                </StyledTableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
 
-                        {/* Show count of students marked present */}
-                        <Box sx={{ mb: 2, textAlign: 'center' }}>
-                            <Typography variant="subtitle1" color="success.main">
-                                Marked Present: {Object.values(attendance).filter(Boolean).length} / {filteredStudents.length}
+                                {/* Show count of students marked present */}
+                                <Box sx={{ mb: 2, textAlign: 'center' }}>
+                                    <Typography variant="subtitle1" color="success.main">
+                                        Marked Present: {Object.values(attendance).filter(Boolean).length} / {filteredStudents.length}
+                                    </Typography>
+                                </Box>
+                            </>
+                        ) : (
+                            <Typography variant="subtitle1" color="error.main" sx={{ mt: 3 }}>
+                                Please select a batch to take attendance.
                             </Typography>
-                        </Box>
+                        )}
 
                         <PurpleButton
                             fullWidth
