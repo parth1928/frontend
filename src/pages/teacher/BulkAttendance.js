@@ -51,10 +51,11 @@ const BulkAttendance = () => {
     const params = useParams();
     let classID = params.classID;
     let subjectID = params.subjectID;
-    // Defensive: check for undefined/null/empty classID
+    // Defensive: check for undefined/null/empty classID/subjectID, but do NOT return before hooks
+    let invalidClassID = false;
     if (!classID || classID === 'undefined' || classID === 'null' || classID.trim() === '') {
         console.error('BulkAttendance: classID is invalid:', classID);
-        classID = undefined;
+        invalidClassID = true;
     }
     if (!subjectID || subjectID === 'undefined' || subjectID === 'null' || subjectID.trim() === '') {
         console.error('BulkAttendance: subjectID is invalid:', subjectID);
@@ -62,19 +63,7 @@ const BulkAttendance = () => {
     }
     // Debug log for params
     console.log('BulkAttendance: classID:', classID, 'subjectID:', subjectID);
-    // Hard fail: if classID is invalid, show error and do not render UI
-    if (!classID) {
-        return (
-            <Box sx={{ p: 3 }}>
-                <Typography variant="h5" color="error" gutterBottom>
-                    Error: Invalid or missing class ID. Cannot load attendance page.
-                </Typography>
-                <Typography variant="body1">
-                    Please return to the previous page and try again. If the problem persists, contact your administrator.
-                </Typography>
-            </Box>
-        );
-    }
+
     const dispatch = useDispatch();
     const { sclassStudents, loading } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector((state) => state.user);
@@ -94,6 +83,19 @@ const BulkAttendance = () => {
     const [subjectDetails, setSubjectDetails] = useState({});
     const [batchList, setBatchList] = useState([]);
     const [batchName, setBatchName] = useState(initialBatchName);
+    // Hard fail: if classID is invalid, show error and do not render UI (after all hooks)
+    if (invalidClassID) {
+        return (
+            <Box sx={{ p: 3 }}>
+                <Typography variant="h5" color="error" gutterBottom>
+                    Error: Invalid or missing class ID. Cannot load attendance page.
+                </Typography>
+                <Typography variant="body1">
+                    Please return to the previous page and try again. If the problem persists, contact your administrator.
+                </Typography>
+            </Box>
+        );
+    }
 
     // Reset batchName when subject changes (for lab subjects), but only if not set from URL
     useEffect(() => {
