@@ -47,26 +47,11 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 
 const BulkAttendance = () => {
-    // Always get params at the very top, only once
-    const params = useParams();
-    let classID = params.classID;
-    let subjectID = params.subjectID;
-    // Defensive: check for undefined/null/empty classID/subjectID, but do NOT return before hooks
-    let invalidClassID = false;
-    if (!classID || classID === 'undefined' || classID === 'null' || classID.trim() === '') {
-        console.error('BulkAttendance: classID is invalid:', classID);
-        invalidClassID = true;
-    }
-    if (!subjectID || subjectID === 'undefined' || subjectID === 'null' || subjectID.trim() === '') {
-        console.error('BulkAttendance: subjectID is invalid:', subjectID);
-        subjectID = undefined;
-    }
-    // Debug log for params
-    console.log('BulkAttendance: classID:', classID, 'subjectID:', subjectID);
-
     const dispatch = useDispatch();
     const { sclassStudents, loading } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector((state) => state.user);
+    const { subjectID } = useParams();
+    const { classID } = useParams();
     const location = useLocation();
 
     // Get batchName from query string (default empty)
@@ -79,42 +64,9 @@ const BulkAttendance = () => {
     const [success, setSuccess] = useState(false);
     const [loader, setLoader] = useState(false);
     const [attendance, setAttendance] = useState({});
-    const [attendanceInitialized, setAttendanceInitialized] = useState(false);
     const [subjectDetails, setSubjectDetails] = useState({});
     const [batchList, setBatchList] = useState([]);
     const [batchName, setBatchName] = useState(initialBatchName);
-    // Hard fail: if classID is invalid, show error and do not render UI (after all hooks and state)
-
-    // ...existing code for hooks and state above...
-
-    // Place this return as the very first thing in the render body, after all hooks
-    if (invalidClassID) {
-        return (
-            <Box sx={{ p: 3 }}>
-                <Typography variant="h5" color="error" gutterBottom>
-                    Error: Invalid or missing class ID. Cannot load attendance page.
-                </Typography>
-                <Typography variant="body1">
-                    Please return to the previous page and try again. If the problem persists, contact your administrator.
-                </Typography>
-            </Box>
-        );
-    }
-
-    // Reset batchName when subject changes (for lab subjects), but only if not set from URL
-    useEffect(() => {
-        if (subjectDetails.isLab && !initialBatchName) {
-            setBatchName('');
-        }
-    }, [subjectID]);
-
-    // Reset attendance and initialization flag when batch changes for lab subjects
-    useEffect(() => {
-        if (subjectDetails.isLab) {
-            setAttendance({});
-            setAttendanceInitialized(false);
-        }
-    }, [batchName]);
 
     // Always fetch subject details (with batches) on mount
     useEffect(() => {
@@ -137,107 +89,44 @@ const BulkAttendance = () => {
     }, [subjectID]);
 
     useEffect(() => {
-        // Try to get adminId from currentUser.admin, currentUser.school, or fallback to currentUser._id
-        let adminId = undefined;
-        if (currentUser) {
-            adminId = currentUser.admin || currentUser.school || currentUser._id;
-        }
-        // Fallback: try to get adminId from user in localStorage if still undefined
-        if (!adminId) {
-            try {
-                const userLS = JSON.parse(localStorage.getItem('user'));
-                adminId = userLS?.admin || userLS?.school || userLS?._id;
-            } catch (e) {}
-        }
-        // Final fallback: use a hardcoded string to avoid undefined
-        if (!adminId) {
-            adminId = 'default';
-            console.warn('BulkAttendance: adminId is missing, using fallback value.');
-        }
-        adminId = String(adminId);
-        console.log('BulkAttendance currentUser:', currentUser);
-        console.log('BulkAttendance using adminId:', adminId);
-        // Extra defensive: Only dispatch if classID and adminId are valid
-        if (!classID || typeof classID !== 'string' || classID.trim() === '' || classID === 'undefined' || classID === 'null') {
-            console.warn('BulkAttendance: Invalid classID, not fetching students. classID:', classID);
-            return;
-        }
-        if (!adminId || adminId === 'undefined') {
-            console.warn('BulkAttendance: Invalid adminId, skipping fetch. adminId:', adminId);
-            return;
-        }
-        dispatch(getClassStudents(classID, adminId));
-    }, [dispatch, classID, currentUser]);
+        dispatch(getClassStudents(classID));
+    }, [dispatch, classID]);
 
     // Filter students for selected batch if lab
     const filteredStudents = subjectDetails.isLab && batchName
-        ? sclassStudents.filter(student => {
-            const sid = String(student._id);
-            if (!sid || sid === 'undefined' || sid === 'null' || sid.trim() === '') {
-                console.error('Filtered student with invalid _id:', student);
-                return false;
-            }
-            const batch = batchList.find(b => b.batchName === batchName);
-            return batch && batch.students.map(id => String(id)).includes(sid);
-        })
-        : (!subjectDetails.isLab ? sclassStudents.filter(student => {
-            const sid = String(student._id);
-            if (!sid || sid === 'undefined' || sid === 'null' || sid.trim() === '') {
-                console.error('Filtered student with invalid _id:', student);
-                return false;
-            }
-            return true;
-        }) : []); // For lab, if no batch selected, show none
+        ? sclassStudents.filter(student =>
+            batchList.find(b => b.batchName === batchName)?.students.includes(student._id)
+        )
+        : (!subjectDetails.isLab ? sclassStudents : []); // For lab, if no batch selected, show none
 
-    // Debug log for filtered students
     useEffect(() => {
-        console.log('BulkAttendance filteredStudents:', filteredStudents);
-    }, [filteredStudents]);
-
-    // Preserve attendance toggle state when students change
-    useEffect(() => {
-        if (!attendanceInitialized && filteredStudents.length > 0) {
-            const initialAttendance = {};
-            for (const student of filteredStudents) {
-                const sid = String(student._id);
-                if (!(sid in attendance)) {
-                    initialAttendance[sid] = true; // default to present
-                } else {
-                    initialAttendance[sid] = attendance[sid]; // preserve toggle if exists
-                }
-            }
-            setAttendance(initialAttendance);
-            setAttendanceInitialized(true);
-            console.log('✅ Attendance initialized or preserved:', initialAttendance);
-        }
-        // No else branch: do not reset attendance if students disappear, to preserve toggles
+        // Initialize attendance state with all students marked as present
+        const initialAttendance = {};
+        filteredStudents.forEach(student => {
+            initialAttendance[student._id] = true; // true = present, false = absent
+        });
+        setAttendance(initialAttendance);
     }, [filteredStudents]);
 
     const handleAttendanceChange = (studentId, checked) => {
-        setAttendance(prev => {
-            const newState = {
-                ...prev,
-                [String(studentId)]: checked
-            };
-            console.log('BulkAttendance attendance updated:', newState);
-            return newState;
-        });
+        setAttendance(prev => ({
+            ...prev,
+            [studentId]: checked
+        }));
     };
 
     const markAllPresent = () => {
-        if (subjectDetails.isLab && !batchName) return;
         const newAttendance = {};
         filteredStudents.forEach(student => {
-            newAttendance[String(student._id)] = true;
+            newAttendance[student._id] = true;
         });
         setAttendance(newAttendance);
     };
 
     const markAllAbsent = () => {
-        if (subjectDetails.isLab && !batchName) return;
         const newAttendance = {};
         filteredStudents.forEach(student => {
-            newAttendance[String(student._id)] = false;
+            newAttendance[student._id] = false;
         });
         setAttendance(newAttendance);
     };
@@ -258,10 +147,9 @@ const BulkAttendance = () => {
         try {
             // Only process attendance for filtered students (batch students for lab)
             for (const student of filteredStudents) {
-                const sid = String(student._id);
                 const fields = {
                     subName: currentUser.teachSubject._id,
-                    status: attendance[sid] ? 'Present' : 'Absent',
+                    status: attendance[student._id] ? 'Present' : 'Absent',
                     date
                 };
                 await dispatch(updateStudentFields(student._id, fields, 'StudentAttendance'));
@@ -341,7 +229,6 @@ const BulkAttendance = () => {
                                         px: 3,
                                         py: 1,
                                     }}
-                                    disabled={subjectDetails.isLab && !batchName}
                                 >
                                     Mark All Present
                                 </Button>
@@ -354,68 +241,49 @@ const BulkAttendance = () => {
                                         px: 3,
                                         py: 1,
                                     }}
-                                    disabled={subjectDetails.isLab && !batchName}
                                 >
                                     Mark All Absent
                                 </Button>
                             </Box>
                         </Stack>
 
-                        {/* Only render table if not lab or (lab and batchName selected) */}
-                        {!subjectDetails.isLab || (subjectDetails.isLab && batchName) ? (
-                            <>
-                                <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2, mb: 4 }}>
-                                    <Table>
-                                        <TableHead>
-                                            <TableRow>
-                                                <StyledTableCell>Name</StyledTableCell>
-                                                <StyledTableCell>Roll Number</StyledTableCell>
-                                                <StyledTableCell align="center">Attendance Status</StyledTableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {filteredStudents.map((student, idx) => {
-                                                const sid = String(student._id);
-                                                if (!sid || sid === 'undefined' || sid === 'null' || sid.trim() === '') {
-                                                    console.error('Rendering Switch for invalid student._id:', student, idx);
-                                                    return null;
-                                                }
-                                                const isDisabled = loader || (subjectDetails.isLab && !batchName);
-                                                console.log('Rendering Switch for:', sid, attendance, 'Switch disabled:', isDisabled);
-                                                return (
-                                                    <StyledTableRow key={sid}>
-                                                        <StyledTableCell>{student.name}</StyledTableCell>
-                                                        <StyledTableCell>{student.rollNum}</StyledTableCell>
-                                                        <StyledTableCell align="center">
-                                                            <Switch
-                                                                checked={!!attendance[sid]}
-                                                                onChange={(e) => handleAttendanceChange(sid, e.target.checked)}
-                                                                color="success"
-                                                                disabled={isDisabled}
-                                                            />
-                                                            <Typography component="span" sx={{ ml: 1, color: attendance[sid] ? 'success.main' : 'error.main' }}>
-                                                                {attendance[sid] ? 'Present' : 'Absent'}
-                                                            </Typography>
-                                                        </StyledTableCell>
-                                                    </StyledTableRow>
-                                                );
-                                            })}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
+                        <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2, mb: 4 }}>
+                            <Table>
+                                <TableHead>
+                                    <TableRow>
+                                        <StyledTableCell>Name</StyledTableCell>
+                                        <StyledTableCell>Roll Number</StyledTableCell>
+                                        <StyledTableCell align="center">Attendance Status</StyledTableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {filteredStudents.map((student) => (
+                                        <StyledTableRow key={student._id}>
+                                            <StyledTableCell>{student.name}</StyledTableCell>
+                                            <StyledTableCell>{student.rollNum}</StyledTableCell>
+                                            <StyledTableCell align="center">
+                                                <Switch
+                                                    checked={!!attendance[student._id]}
+                                                    onChange={(e) => handleAttendanceChange(student._id, e.target.checked)}
+                                                    color="success"
+                                                    disabled={loader}
+                                                />
+                                                <Typography component="span" sx={{ ml: 1, color: attendance[student._id] ? 'success.main' : 'error.main' }}>
+                                                    {attendance[student._id] ? 'Present' : 'Absent'}
+                                                </Typography>
+                                            </StyledTableCell>
+                                        </StyledTableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
 
-                                {/* Show count of students marked present */}
-                                <Box sx={{ mb: 2, textAlign: 'center' }}>
-                                    <Typography variant="subtitle1" color="success.main">
-                                        Marked Present: {Object.values(attendance).filter(Boolean).length} / {filteredStudents.length}
-                                    </Typography>
-                                </Box>
-                            </>
-                        ) : (
-                            <Typography variant="subtitle1" color="error.main" sx={{ mt: 3 }}>
-                                Please select a batch to take attendance.
+                        {/* Show count of students marked present */}
+                        <Box sx={{ mb: 2, textAlign: 'center' }}>
+                            <Typography variant="subtitle1" color="success.main">
+                                Marked Present: {Object.values(attendance).filter(Boolean).length} / {filteredStudents.length}
                             </Typography>
-                        )}
+                        </Box>
 
                         <PurpleButton
                             fullWidth
