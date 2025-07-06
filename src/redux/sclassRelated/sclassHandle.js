@@ -32,6 +32,12 @@ export const getClassStudents = (id, adminId) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
+        // Don't make the API call if id is undefined/null/empty
+        if (!id || id === 'undefined' || id === 'null') {
+            dispatch(getFailedTwo('Invalid class ID'));
+            return;
+        }
+
         let url = `${REACT_APP_BASE_URL}/Sclass/Students/${id}`;
         // Extra defensive: Only add adminId if it is a non-empty string, not undefined/null, not the string 'undefined', and not empty after trimming
         if (adminId && typeof adminId === 'string' && adminId.trim() !== '' && adminId !== 'undefined' && adminId !== 'null') {

@@ -17,10 +17,16 @@ const TeacherClassDetails = () => {
     const { sclassStudents, loading, error, getresponse } = useSelector((state) => state.sclass);
 
     const { currentUser } = useSelector((state) => state.user);
-    const classID = currentUser.teachSclass?._id;
-    const subjectID = currentUser.teachSubject?._id;
-    // Debug: Log classID and subjectID
-    console.log('TeacherClassDetails: classID:', classID, 'subjectID:', subjectID);
+    // Ensure we have valid IDs before using them
+    const classID = currentUser?.teachSclass?._id;
+    const subjectID = currentUser?.teachSubject?._id;
+    
+    // If we're missing required IDs, show appropriate message
+    React.useEffect(() => {
+        if (!classID || !subjectID) {
+            console.warn('Missing required IDs:', { classID, subjectID });
+        }
+    }, [classID, subjectID]);
 
     const [showQuickAttendance, setShowQuickAttendance] = React.useState(false);
     const [subjectDetails, setSubjectDetails] = useState({});
@@ -41,20 +47,33 @@ const TeacherClassDetails = () => {
     }, [subjectID]);
 
     useEffect(() => {
-        // Use currentUser.school?._id for adminId if available, else fallback to currentUser._id
-        let adminId = currentUser.school?._id;
-        // Debug: Log adminId before dispatch
-        console.log('TeacherClassDetails: adminId:', adminId);
-        // Final defensive check: Only dispatch if classID is valid
-        if (classID && typeof classID === 'string' && classID !== 'undefined' && classID !== 'null') {
-            if (adminId && typeof adminId === 'string' && adminId.trim() !== '' && adminId !== 'undefined' && adminId !== 'null') {
-                dispatch(getClassStudents(classID, adminId));
-            } else {
-                dispatch(getClassStudents(classID));
+        const fetchStudents = async () => {
+            try {
+                if (!classID) {
+                    console.warn('TeacherClassDetails: Missing classID');
+                    return;
+                }
+
+                // Get adminId from currentUser
+                const adminId = currentUser?.school?._id;
+
+                // Validate classID and adminId
+                if (typeof classID !== 'string' || classID === 'undefined' || classID === 'null') {
+                    console.warn('TeacherClassDetails: Invalid classID');
+                    return;
+                }
+
+                if (adminId && typeof adminId === 'string' && adminId.trim() && adminId !== 'undefined' && adminId !== 'null') {
+                    await dispatch(getClassStudents(classID, adminId));
+                } else {
+                    await dispatch(getClassStudents(classID));
+                }
+            } catch (error) {
+                console.error('TeacherClassDetails: Error fetching students:', error);
             }
-        } else {
-            console.warn('TeacherClassDetails: Invalid classID, skipping fetch.');
-        }
+        };
+
+        fetchStudents();
     }, [dispatch, classID, currentUser]);
 
     const [isDownloading, setIsDownloading] = React.useState(false);

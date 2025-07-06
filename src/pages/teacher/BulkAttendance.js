@@ -53,6 +53,13 @@ const BulkAttendance = () => {
     const { subjectID, classID } = useParams();
     const location = useLocation();
 
+    // Validate required IDs
+    React.useEffect(() => {
+        if (!classID || !subjectID) {
+            console.warn('BulkAttendance: Missing required IDs:', { classID, subjectID });
+        }
+    }, [classID, subjectID]);
+
     // Get batchName from query string (default empty)
     const queryParams = new URLSearchParams(location.search);
     const initialBatchName = queryParams.get('batch') || '';
@@ -89,7 +96,10 @@ const BulkAttendance = () => {
     }, [subjectID]);
 
     useEffect(() => {
-        dispatch(getClassStudents(classID));
+        // Only fetch students if we have a valid classID
+        if (classID && classID !== 'undefined' && classID !== 'null') {
+            dispatch(getClassStudents(classID));
+        }
     }, [dispatch, classID]);
 
     // Filter students for selected batch if lab using useMemo
@@ -146,6 +156,23 @@ const BulkAttendance = () => {
         e.preventDefault();
         setLoader(true);
 
+        // Validate all required data
+        if (!currentUser?.teachSubject?._id) {
+            setLoader(false);
+            setShowPopup(true);
+            setMessage('Teacher subject information is missing.');
+            setSuccess(false);
+            return;
+        }
+
+        if (!classID || !subjectID) {
+            setLoader(false);
+            setShowPopup(true);
+            setMessage('Class or subject information is missing.');
+            setSuccess(false);
+            return;
+        }
+
         // Defensive: For lab, require batch selection
         if (subjectDetails.isLab && !batchName) {
             setLoader(false);
@@ -180,8 +207,8 @@ const BulkAttendance = () => {
 
     return (
         <>
-            {loading || (subjectID && !subjectDetails._id && !subjectDetails.isLab && !subjectDetails.subName) ? (
-                <div>Loading subject details...</div>
+            {loading || !classID || (subjectID && !subjectDetails._id && !subjectDetails.isLab && !subjectDetails.subName) ? (
+                <div>Loading subject details... {!classID ? "Missing class ID" : ""}</div>
             ) : (
                 <Box sx={{ p: 3 }}>
                     <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', mb: 4 }}>
