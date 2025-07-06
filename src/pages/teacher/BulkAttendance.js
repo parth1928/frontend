@@ -83,7 +83,11 @@ const BulkAttendance = () => {
     const [subjectDetails, setSubjectDetails] = useState({});
     const [batchList, setBatchList] = useState([]);
     const [batchName, setBatchName] = useState(initialBatchName);
-    // Hard fail: if classID is invalid, show error and do not render UI (after all hooks)
+    // Hard fail: if classID is invalid, show error and do not render UI (after all hooks and state)
+
+    // ...existing code for hooks and state above...
+
+    // Place this return as the very first thing in the render body, after all hooks
     if (invalidClassID) {
         return (
             <Box sx={{ p: 3 }}>
