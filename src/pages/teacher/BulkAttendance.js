@@ -50,8 +50,7 @@ const BulkAttendance = () => {
     const dispatch = useDispatch();
     const { sclassStudents, loading } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector((state) => state.user);
-    const { subjectID } = useParams();
-    const { classID } = useParams();
+    const { subjectID, classID } = useParams();
     const location = useLocation();
 
     // Get batchName from query string (default empty)
