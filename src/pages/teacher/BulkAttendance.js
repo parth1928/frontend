@@ -68,6 +68,7 @@ const BulkAttendance = () => {
     const [success, setSuccess] = useState(false);
     const [loader, setLoader] = useState(false);
     const [attendance, setAttendance] = useState({});
+    const [attendanceInitialized, setAttendanceInitialized] = useState(false);
     const [subjectDetails, setSubjectDetails] = useState({});
     const [batchList, setBatchList] = useState([]);
     const [batchName, setBatchName] = useState(initialBatchName);
@@ -79,10 +80,11 @@ const BulkAttendance = () => {
         }
     }, [subjectID]);
 
-    // Reset attendance when batch changes for lab subjects
+    // Reset attendance and initialization flag when batch changes for lab subjects
     useEffect(() => {
         if (subjectDetails.isLab) {
             setAttendance({});
+            setAttendanceInitialized(false);
         }
     }, [batchName]);
 
@@ -150,18 +152,20 @@ const BulkAttendance = () => {
     }, [filteredStudents]);
 
     useEffect(() => {
-        // Only initialize attendance if there are students to show
-        if (filteredStudents.length > 0) {
+        // Only initialize attendance if there are students to show and not already initialized
+        if (filteredStudents.length > 0 && !attendanceInitialized) {
             const initialAttendance = {};
             filteredStudents.forEach(student => {
-                initialAttendance[String(student._id)] = true; // true = present, false = absent
+                initialAttendance[String(student._id)] = true; // All present
             });
             setAttendance(initialAttendance);
-            console.log('BulkAttendance attendance state:', initialAttendance);
-        } else {
+            setAttendanceInitialized(true);
+            console.log('Attendance initialized:', initialAttendance);
+        } else if (filteredStudents.length === 0) {
             setAttendance({});
+            setAttendanceInitialized(false);
         }
-    }, [filteredStudents]);
+    }, [filteredStudents, attendanceInitialized]);
 
     const handleAttendanceChange = (studentId, checked) => {
         setAttendance(prev => {
