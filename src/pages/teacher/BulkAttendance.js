@@ -152,6 +152,7 @@ const BulkAttendance = () => {
     }, [filteredStudents]);
 
     useEffect(() => {
+        console.log("✅ useEffect - attendance re-init", {filteredStudents, attendanceInitialized});
         // Only initialize attendance if there are students to show and not already initialized
         if (filteredStudents.length > 0 && !attendanceInitialized) {
             const initialAttendance = {};
@@ -328,23 +329,28 @@ const BulkAttendance = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {filteredStudents.map((student) => (
-                                                <StyledTableRow key={student._id}>
-                                                    <StyledTableCell>{student.name}</StyledTableCell>
-                                                    <StyledTableCell>{student.rollNum}</StyledTableCell>
-                                                    <StyledTableCell align="center">
-                                                        <Switch
-                                                            checked={!!attendance[String(student._id)]}
-                                                            onChange={(e) => handleAttendanceChange(student._id, e.target.checked)}
-                                                            color="success"
-                                                            disabled={loader || (subjectDetails.isLab && !batchName)}
-                                                        />
-                                                        <Typography component="span" sx={{ ml: 1, color: attendance[String(student._id)] ? 'success.main' : 'error.main' }}>
-                                                            {attendance[String(student._id)] ? 'Present' : 'Absent'}
-                                                        </Typography>
-                                                    </StyledTableCell>
-                                                </StyledTableRow>
-                                            ))}
+                                            {filteredStudents.map((student) => {
+                                                const sid = String(student._id);
+                                                const isDisabled = loader || (subjectDetails.isLab && !batchName);
+                                                console.log('Rendering Switch for:', sid, attendance, 'Switch disabled:', isDisabled);
+                                                return (
+                                                    <StyledTableRow key={sid}>
+                                                        <StyledTableCell>{student.name}</StyledTableCell>
+                                                        <StyledTableCell>{student.rollNum}</StyledTableCell>
+                                                        <StyledTableCell align="center">
+                                                            <Switch
+                                                                checked={!!attendance[sid]}
+                                                                onChange={(e) => handleAttendanceChange(sid, e.target.checked)}
+                                                                color="success"
+                                                                disabled={isDisabled}
+                                                            />
+                                                            <Typography component="span" sx={{ ml: 1, color: attendance[sid] ? 'success.main' : 'error.main' }}>
+                                                                {attendance[sid] ? 'Present' : 'Absent'}
+                                                            </Typography>
+                                                        </StyledTableCell>
+                                                    </StyledTableRow>
+                                                );
+                                            })}
                                         </TableBody>
                                     </Table>
                                 </TableContainer>
