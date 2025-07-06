@@ -49,8 +49,17 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 const BulkAttendance = () => {
     // Always get params at the very top, only once
     const params = useParams();
-    const classID = params.classID;
-    const subjectID = params.subjectID;
+    let classID = params.classID;
+    let subjectID = params.subjectID;
+    // Defensive: check for undefined/null/empty classID
+    if (!classID || classID === 'undefined' || classID === 'null' || classID.trim() === '') {
+        console.error('BulkAttendance: classID is invalid:', classID);
+        classID = undefined;
+    }
+    if (!subjectID || subjectID === 'undefined' || subjectID === 'null' || subjectID.trim() === '') {
+        console.error('BulkAttendance: subjectID is invalid:', subjectID);
+        subjectID = undefined;
+    }
     // Debug log for params
     console.log('BulkAttendance: classID:', classID, 'subjectID:', subjectID);
     const dispatch = useDispatch();
@@ -141,10 +150,21 @@ const BulkAttendance = () => {
     const filteredStudents = subjectDetails.isLab && batchName
         ? sclassStudents.filter(student => {
             const sid = String(student._id);
+            if (!sid || sid === 'undefined' || sid === 'null' || sid.trim() === '') {
+                console.error('Filtered student with invalid _id:', student);
+                return false;
+            }
             const batch = batchList.find(b => b.batchName === batchName);
             return batch && batch.students.map(id => String(id)).includes(sid);
         })
-        : (!subjectDetails.isLab ? sclassStudents : []); // For lab, if no batch selected, show none
+        : (!subjectDetails.isLab ? sclassStudents.filter(student => {
+            const sid = String(student._id);
+            if (!sid || sid === 'undefined' || sid === 'null' || sid.trim() === '') {
+                console.error('Filtered student with invalid _id:', student);
+                return false;
+            }
+            return true;
+        }) : []); // For lab, if no batch selected, show none
 
     // Debug log for filtered students
     useEffect(() => {
@@ -329,8 +349,12 @@ const BulkAttendance = () => {
                                             </TableRow>
                                         </TableHead>
                                         <TableBody>
-                                            {filteredStudents.map((student) => {
+                                            {filteredStudents.map((student, idx) => {
                                                 const sid = String(student._id);
+                                                if (!sid || sid === 'undefined' || sid === 'null' || sid.trim() === '') {
+                                                    console.error('Rendering Switch for invalid student._id:', student, idx);
+                                                    return null;
+                                                }
                                                 const isDisabled = loader || (subjectDetails.isLab && !batchName);
                                                 console.log('Rendering Switch for:', sid, attendance, 'Switch disabled:', isDisabled);
                                                 return (
