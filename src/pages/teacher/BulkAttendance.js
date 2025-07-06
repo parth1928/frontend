@@ -66,6 +66,7 @@ const BulkAttendance = () => {
     const [subjectDetails, setSubjectDetails] = useState({});
     const [batchList, setBatchList] = useState([]);
     const [batchName, setBatchName] = useState(initialBatchName);
+    const [isResetInProgress, setIsResetInProgress] = useState(false);
 
     // Always fetch subject details (with batches) on mount
     useEffect(() => {
@@ -91,27 +92,38 @@ const BulkAttendance = () => {
         dispatch(getClassStudents(classID));
     }, [dispatch, classID]);
 
-    // Filter students for selected batch if lab
-    const filteredStudents = subjectDetails.isLab && batchName
-        ? sclassStudents.filter(student =>
-            batchList.find(b => b.batchName === batchName)?.students.includes(student._id)
-        )
-        : (!subjectDetails.isLab ? sclassStudents : []); // For lab, if no batch selected, show none
+    // Filter students for selected batch if lab using useMemo
+    const filteredStudents = React.useMemo(() => {
+        if (subjectDetails.isLab && batchName) {
+            return sclassStudents.filter(student =>
+                batchList.find(b => b.batchName === batchName)?.students.includes(student._id)
+            );
+        }
+        return !subjectDetails.isLab ? sclassStudents : [];
+    }, [subjectDetails.isLab, batchName, sclassStudents, batchList]);
 
     useEffect(() => {
-        // Initialize attendance state with all students marked as present
-        const initialAttendance = {};
-        filteredStudents.forEach(student => {
-            initialAttendance[student._id] = true; // true = present, false = absent
-        });
-        setAttendance(initialAttendance);
-    }, [filteredStudents]);
+        // Initialize attendance state with all students marked as present when batch changes
+        if (batchName || !subjectDetails.isLab) {
+            setIsResetInProgress(true);
+            const initialAttendance = {};
+            filteredStudents.forEach(student => {
+                initialAttendance[student._id] = true; // true = present, false = absent
+            });
+            setAttendance(initialAttendance);
+            setIsResetInProgress(false);
+        } else {
+            setAttendance({});
+        }
+    }, [filteredStudents, batchName, subjectDetails.isLab]);
 
     const handleAttendanceChange = (studentId, checked) => {
-        setAttendance(prev => ({
-            ...prev,
-            [studentId]: checked
-        }));
+        if (!isResetInProgress) {
+            setAttendance(prev => ({
+                ...prev,
+                [studentId]: checked
+            }));
+        }
     };
 
     const markAllPresent = () => {
