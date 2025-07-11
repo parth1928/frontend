@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from '../../api/axiosInstance';
 import {
     authRequest,
     stuffAdded,
@@ -12,14 +12,13 @@ import {
     getFailed,
     getError,
 } from './userSlice';
-const REACT_APP_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 
 export const loginUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
 
     try {
-        const result = await axios.post(`${REACT_APP_BASE_URL}/${role}Login`, fields, {
+        const result = await axios.post(`/${role}Login`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
         if (result.data.role) {
@@ -36,7 +35,7 @@ export const registerUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
 
     try {
-        const result = await axios.post(`${REACT_APP_BASE_URL}/${role}Reg`, fields, {
+        const result = await axios.post(`/${role}Reg`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
         if (result.data.schoolName) {
@@ -63,9 +62,9 @@ export const getUserDetails = (id, address) => async (dispatch) => {
     try {
         let url;
         if (address === 'D2D') {
-            url = `${REACT_APP_BASE_URL}/dtod_students/${id}`;
+            url = `/dtod_students/${id}`;
         } else {
-            url = `${REACT_APP_BASE_URL}/${address}/${id}`;
+            url = `/${address}/${id}`;
         }
         const result = await axios.get(url);
         if (result.data) {
@@ -101,7 +100,7 @@ export const updateUser = (fields, id, address) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.put(`${REACT_APP_BASE_URL}/${address}/${id}`, fields, {
+        const result = await axios.put(`/${address}/${id}`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
         if (result.data.schoolName) {
@@ -119,7 +118,7 @@ export const addStuff = (fields, address) => async (dispatch) => {
     dispatch(authRequest());
 
     try {
-        const result = await axios.post(`${REACT_APP_BASE_URL}/${address}Create`, fields, {
+        const result = await axios.post(`/${address}Create`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
 
@@ -136,7 +135,7 @@ export const addStuff = (fields, address) => async (dispatch) => {
 export const updateTeacherSubject = (fields) => async (dispatch) => {
     dispatch(getRequest());
     try {
-        const result = await axios.put(`${REACT_APP_BASE_URL}/TeacherSubject`, fields, {
+        const result = await axios.put(`/TeacherSubject`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
         if (result.data.message) {
