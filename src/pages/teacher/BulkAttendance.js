@@ -163,10 +163,19 @@ const BulkAttendance = () => {
         setLoader(true);
 
         // Validate all required data
-        if (!currentUser?.teachSubject?._id) {
+        if (!currentUser?.teachSubjects || currentUser.teachSubjects.length === 0) {
             setLoader(false);
             setShowPopup(true);
             setMessage('Teacher subject information is missing.');
+            setSuccess(false);
+            return;
+        }
+
+        // Check if current subject is in teacher's assigned subjects
+        if (!currentUser.teachSubjects.some(sub => sub._id === subjectID)) {
+            setLoader(false);
+            setShowPopup(true);
+            setMessage('You are not assigned to this subject.');
             setSuccess(false);
             return;
         }
@@ -192,7 +201,7 @@ const BulkAttendance = () => {
             // Only process attendance for filtered students (batch students for lab)
             for (const student of filteredStudents) {
                 const fields = {
-                    subName: currentUser.teachSubject._id,
+                    subName: subjectID,
                     status: attendance[student._id] ? 'Present' : 'Absent',
                     date
                 };
