@@ -132,3 +132,19 @@ export const addStuff = (fields, address) => async (dispatch) => {
         dispatch(authError(error.message));
     }
 };
+
+export const updateTeacherSubject = (fields) => async (dispatch) => {
+    dispatch(getRequest());
+    try {
+        const result = await axios.put(`${REACT_APP_BASE_URL}/TeacherSubject`, fields, {
+            headers: { 'Content-Type': 'application/json' },
+        });
+        if (result.data.message) {
+            dispatch(getFailed(result.data.message));
+        } else {
+            dispatch(doneSuccess(result.data));
+        }
+    } catch (error) {
+        dispatch(getError(error.message));
+    }
+};
