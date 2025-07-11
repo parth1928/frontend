@@ -57,14 +57,15 @@ const ShowTeachers = () => {
 
     const columns = [
         { id: 'name', label: 'Name', minWidth: 170 },
-        { id: 'teachSubject', label: 'Subject', minWidth: 100 },
+        { id: 'teachSubjects', label: 'Subjects', minWidth: 200 },
         { id: 'teachSclass', label: 'Class', minWidth: 170 },
     ];
 
     const rows = teachersList.map((teacher) => {
         return {
             name: teacher.name,
-            teachSubject: teacher.teachSubject?.subName || null,
+            teachSubjects: teacher.teachSubjects ? 
+                teacher.teachSubjects.map(sub => sub.subName).join(', ') : null,
             teachSclass: teacher.teachSclass.sclassName,
             teachSclassID: teacher.teachSclass._id,
             id: teacher._id,
@@ -110,19 +111,19 @@ const ShowTeachers = () => {
                                     <StyledTableRow hover role="checkbox" tabIndex={-1} key={row.id}>
                                         {columns.map((column) => {
                                             const value = row[column.id];
-                                            if (column.id === 'teachSubject') {
+                                            if (column.id === 'teachSubjects') {
                                                 return (
                                                     <StyledTableCell key={column.id} align={column.align}>
-                                                        {value ? (
-                                                            value
-                                                        ) : (
-                                                            <Button variant="contained"
-                                                                onClick={() => {
-                                                                    navigate(`/Admin/teachers/choosesubject/${row.teachSclassID}/${row.id}`)
-                                                                }}>
-                                                                Add Subject
+                                                        <Box display="flex" alignItems="center" gap={1}>
+                                                            <span>{value || 'No subjects assigned'}</span>
+                                                            <Button 
+                                                                variant="contained" 
+                                                                size="small"
+                                                                onClick={() => navigate(`/Admin/teachers/assignsubjects/${row.id}`)}
+                                                            >
+                                                                {value ? 'Edit Subjects' : 'Assign Subjects'}
                                                             </Button>
-                                                        )}
+                                                        </Box>
                                                     </StyledTableCell>
                                                 );
                                             }
