@@ -9,6 +9,7 @@ import {
     Grid,
     Typography,
     CircularProgress,
+    Alert,
 } from '@mui/material';
 import { SupervisorAccount } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
@@ -19,7 +20,7 @@ const CoordinatorLogin = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { status, currentUser, currentRole } = useSelector(state => state.user);
+    const { status, currentUser, currentRole, error, response } = useSelector(state => state.user);
     const [loader, setLoader] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -27,19 +28,18 @@ const CoordinatorLogin = () => {
         password: ''
     });
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         setLoader(true);
         dispatch(loginUser(formData, 'Coordinator'));
     };
 
     useEffect(() => {
-        if (status === 'success' || currentUser !== null) {
-            if (currentRole === 'Coordinator') {
-                navigate('/Coordinator/dashboard');
-            }
+        if (status === 'success' && currentUser?.role === 'Coordinator') {
+            navigate('/coordinator/dashboard');
+            setLoader(false);
         }
-        else if (status === 'error') {
+        else if (status === 'error' || status === 'failed') {
             setLoader(false);
         }
     }, [status, currentUser, currentRole, navigate]);
@@ -62,6 +62,11 @@ const CoordinatorLogin = () => {
                     <Typography component="h1" variant="h5">
                         Class Coordinator Login
                     </Typography>
+                    {(status === 'failed' || status === 'error') && (
+                        <Alert severity="error" sx={{ mt: 2, width: '100%' }}>
+                            {response || error || "Login failed. Please try again."}
+                        </Alert>
+                    )}
                     <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
                         <TextField
                             margin="normal"
@@ -74,6 +79,7 @@ const CoordinatorLogin = () => {
                             autoFocus
                             value={formData.email}
                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            disabled={loader}
                         />
                         <TextField
                             margin="normal"
@@ -86,6 +92,7 @@ const CoordinatorLogin = () => {
                             autoComplete="current-password"
                             value={formData.password}
                             onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            disabled={loader}
                         />
                         <Button
                             type="submit"
@@ -98,7 +105,7 @@ const CoordinatorLogin = () => {
                         </Button>
                         <Grid container justifyContent="center">
                             <Grid item>
-                                <Button onClick={() => navigate('/')} color="primary">
+                                <Button onClick={() => navigate('/')} color="primary" disabled={loader}>
                                     Go back to home page
                                 </Button>
                             </Grid>

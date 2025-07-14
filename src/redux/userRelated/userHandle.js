@@ -21,13 +21,26 @@ export const loginUser = (fields, role) => async (dispatch) => {
         const result = await axios.post(`/${role}Login`, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
-        if (result.data.role) {
-            dispatch(authSuccess(result.data));
-        } else {
-            dispatch(authFailed(result.data.message));
+        
+        if (!result.data) {
+            dispatch(authFailed('No response from server'));
+            return;
         }
+
+        if (result.data.message) {
+            dispatch(authFailed(result.data.message));
+            return;
+        }
+
+        if (role === 'Coordinator' && (!result.data.role || result.data.role !== 'Coordinator')) {
+            dispatch(authFailed('Invalid coordinator account'));
+            return;
+        }
+
+        dispatch(authSuccess(result.data));
     } catch (error) {
-        dispatch(authError(error.message));
+        console.error('Login error:', error);
+        dispatch(authError(error.response?.data?.message || error.message || 'Login failed'));
     }
 };
 
