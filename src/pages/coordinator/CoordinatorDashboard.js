@@ -34,8 +34,8 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from "../../redux/userRelated/userHandle";
 import { getClassDetails } from '../../redux/sclassRelated/sclassHandle';
-import { getStudentList } from '../../redux/studentRelated/studentHandle';
-import { getStudentAttendance } from '../../redux/studentRelated/studentHandle';
+import { getStudentList, getStudentAttendance } from '../../redux/studentRelated/studentHandle';
+import { getSubjectList } from '../../redux/subjectRelated/subjectHandle';
 
 const drawerWidth = 240;
 
