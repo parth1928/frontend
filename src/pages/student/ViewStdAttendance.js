@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
-import { BottomNavigation, BottomNavigationAction, Box, Button, Card, CardContent, Collapse, Grid, Paper, Table, TableBody, TableHead, Typography } from '@mui/material';
+import { BottomNavigation, BottomNavigationAction, Box, Button, Card, CardContent, Collapse, Paper, Table, TableBody, TableHead, Typography } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserDetails } from '../../redux/userRelated/userHandle';
 import { calculateOverallAttendancePercentage, calculateSubjectAttendancePercentage, groupAttendanceBySubject } from '../../components/attendanceCalculator';
@@ -14,8 +14,9 @@ import { StyledTableCell, StyledTableRow } from '../../components/styles';
 
 const ViewStdAttendance = () => {
     const dispatch = useDispatch();
-
     const [openStates, setOpenStates] = useState({});
+    const [selectedSection, setSelectedSection] = useState('table');
+    const [subjectAttendance, setSubjectAttendance] = useState([]);
 
     const handleOpen = (subId) => {
         setOpenStates((prevState) => ({
@@ -33,16 +34,14 @@ const ViewStdAttendance = () => {
     if (response) { console.log(response) }
     else if (error) { console.log(error) }
 
-    const [subjectAttendance, setSubjectAttendance] = useState([]);
-    const [selectedSection, setSelectedSection] = useState('table');
-
     useEffect(() => {
         if (userDetails) {
             setSubjectAttendance(userDetails.attendance || []);
         }
-    }, [userDetails])
+    }, [userDetails]);
 
-    const attendanceBySubject = groupAttendanceBySubject(subjectAttendance)
+    const attendanceBySubject = groupAttendanceBySubject(subjectAttendance);
+    const overallAttendancePercentage = calculateOverallAttendancePercentage(subjectAttendance);
 
     const subjectData = Object.entries(attendanceBySubject).map(([subName, { subCode, present, sessions }]) => {
         const subjectAttendancePercentage = calculateSubjectAttendancePercentage(present, sessions);
