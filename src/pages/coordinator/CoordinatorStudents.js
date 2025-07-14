@@ -25,22 +25,39 @@ const CoordinatorStudents = () => {
     const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
 
     useEffect(() => {
+        console.log('Current User:', currentUser);
         if (currentUser?.assignedClass) {
+            console.log('Fetching class details for:', currentUser.assignedClass);
             dispatch(getClassDetails(currentUser.assignedClass));
         }
     }, [dispatch, currentUser]);
 
     useEffect(() => {
+        console.log('Current Class:', currentClass);
         if (currentClass?._id) {
+            console.log('Fetching students for class:', currentClass._id);
             dispatch(getAllStudents(currentClass._id));
             setHasAttemptedLoad(true);
         }
     }, [dispatch, currentClass]);
 
+    // Debug logging for state changes
+    useEffect(() => {
+        console.log('Students Data:', students);
+        console.log('Loading States:', { classLoading, studentsLoading });
+        console.log('Error State:', error);
+    }, [students, classLoading, studentsLoading, error]);
+
     if (classLoading || (!hasAttemptedLoad && studentsLoading)) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-                <CircularProgress />
+            <Box sx={{ display: 'flex' }}>
+                <CoordinatorSideBar />
+                <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+                        <CircularProgress />
+                        <Typography sx={{ ml: 2 }}>Loading data...</Typography>
+                    </Box>
+                </Box>
             </Box>
         );
     }
@@ -50,9 +67,12 @@ const CoordinatorStudents = () => {
             <Box sx={{ display: 'flex' }}>
                 <CoordinatorSideBar />
                 <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-                    <Alert severity="error">
-                        {error}
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        Error loading data: {error}
                     </Alert>
+                    <Typography>
+                        Please try refreshing the page. If the problem persists, try logging out and logging back in.
+                    </Typography>
                 </Box>
             </Box>
         );
@@ -66,9 +86,19 @@ const CoordinatorStudents = () => {
                     <Typography variant="h4" gutterBottom>
                         Students in {currentClass?.sclassName}
                     </Typography>
-                    <Alert severity="info">
-                        No students found in this class.
+                    <Alert severity="info" sx={{ mb: 2 }}>
+                        No students found in this class. This could mean either:
                     </Alert>
+                    <Typography component="div">
+                        <ul>
+                            <li>No students have been added to this class yet</li>
+                            <li>There might be an issue with the data connection</li>
+                            <li>The class might not be properly assigned</li>
+                        </ul>
+                    </Typography>
+                    <Typography sx={{ mt: 2 }}>
+                        Current Class ID: {currentClass?._id || 'Not assigned'}
+                    </Typography>
                 </Box>
             </Box>
         );

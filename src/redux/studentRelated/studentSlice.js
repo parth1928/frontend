@@ -1,11 +1,11 @@
-import { createSlice } from "@reduxjs/toolkit";
+import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-    studentsList: [],
+    userDetails: null,
     loading: false,
     error: null,
     response: null,
-    statestatus: "idle",
+    studentsAttendance: null
 };
 
 const studentSlice = createSlice({
@@ -14,33 +14,40 @@ const studentSlice = createSlice({
     reducers: {
         getRequest: (state) => {
             state.loading = true;
-        },
-        stuffDone: (state) => {
-            state.loading = false;
             state.error = null;
             state.response = null;
-            state.statestatus = "added";
         },
         getSuccess: (state, action) => {
-            state.studentsList = action.payload;
             state.loading = false;
+            state.userDetails = action.payload;
             state.error = null;
             state.response = null;
         },
         getFailed: (state, action) => {
-            state.response = action.payload;
             state.loading = false;
             state.error = null;
+            state.response = action.payload;
         },
         getError: (state, action) => {
             state.loading = false;
             state.error = action.payload;
         },
-        underStudentControl: (state) => {
+        getAttendanceSuccess: (state, action) => {
             state.loading = false;
-            state.response = null;
+            state.studentsAttendance = action.payload;
             state.error = null;
-            state.statestatus = "idle";
+            state.response = null;
+        },
+        clearErrors: (state) => {
+            state.error = null;
+            state.response = null;
+        },
+        clearData: (state) => {
+            state.userDetails = null;
+            state.studentsAttendance = null;
+            state.error = null;
+            state.response = null;
+            state.loading = false;
         }
     },
 });
@@ -50,8 +57,9 @@ export const {
     getSuccess,
     getFailed,
     getError,
-    underStudentControl,
-    stuffDone,
+    getAttendanceSuccess,
+    clearErrors,
+    clearData
 } = studentSlice.actions;
 
-export const studentReducer = studentSlice.reducer;
+export default studentSlice.reducer;
