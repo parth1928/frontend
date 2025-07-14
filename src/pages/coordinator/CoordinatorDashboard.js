@@ -32,10 +32,10 @@ import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import DownloadIcon from '@mui/icons-material/Download';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { logoutUser } from "redux/userRelated/userHandle";
-import { getClassDetails } from 'redux/sclassRelated/sclassHandle';
-import { getSubjectList } from 'redux/subjectRelated/subjectHandle';
-import { getStudentAttendance } from 'redux/studentRelated/studentHandle';
+import { logoutUser } from "../../redux/userRelated/userHandle";
+import { getClassDetails } from '../../redux/sclassRelated/sclassHandle';
+import { getStudentList } from '../../redux/studentRelated/studentHandle';
+import { getStudentAttendance } from '../../redux/studentRelated/studentHandle';
 
 const drawerWidth = 240;
 
