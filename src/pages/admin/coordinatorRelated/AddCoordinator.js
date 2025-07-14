@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStuff } from '../../../redux/userRelated/userHandle';
+import { getClassCoordinators } from '../../../redux/coordinatorRelated/coordinatorHandle';
 import { getAllSclasses } from '../../../redux/sclassRelated/sclassHandle';
 
 const AddCoordinator = ({ open, handleClose }) => {
@@ -41,8 +42,15 @@ const AddCoordinator = ({ open, handleClose }) => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        dispatch(addStuff(formData, 'ClassCoordinator'));
+        const submitData = {
+            ...formData,
+            school: currentUser._id,
+            role: 'Coordinator'
+        };
+        dispatch(addStuff(submitData, 'ClassCoordinator'));
         handleClose();
+        // Refresh the coordinators list
+        dispatch(getClassCoordinators(currentUser._id));
         setFormData({
             name: '',
             email: '',

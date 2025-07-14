@@ -1,10 +1,10 @@
 import axios from '../../api/axiosInstance';
 import {
     getRequest,
-    doneSuccess,
+    getSuccess,
     getFailed,
     getError,
-} from '../userRelated/userSlice';
+} from './coordinatorSlice';
 
 export const getAllCoordinators = (adminId) => async (dispatch) => {
     dispatch(getRequest());
@@ -14,7 +14,7 @@ export const getAllCoordinators = (adminId) => async (dispatch) => {
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
-            dispatch(doneSuccess(result.data));
+            dispatch(getSuccess(result.data));
         }
     } catch (error) {
         dispatch(getError(error));
@@ -29,7 +29,7 @@ export const getClassDetails = (id) => async (dispatch) => {
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
-            dispatch(doneSuccess(result.data));
+            dispatch(getSuccess(result.data));
         }
     } catch (error) {
         dispatch(getError(error));
@@ -44,7 +44,7 @@ export const getStudentsAttendance = (id) => async (dispatch) => {
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
-            dispatch(doneSuccess(result.data));
+            dispatch(getSuccess(result.data));
         }
     } catch (error) {
         dispatch(getError(error));
@@ -67,7 +67,7 @@ export const downloadAttendanceReport = (id) => async (dispatch) => {
         link.click();
         link.remove();
         
-        dispatch(doneSuccess(null));
+        dispatch(getSuccess(null));
     } catch (error) {
         dispatch(getError(error));
     }
