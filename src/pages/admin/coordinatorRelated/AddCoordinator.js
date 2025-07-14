@@ -30,8 +30,10 @@ const AddCoordinator = ({ open, handleClose }) => {
     });
 
     useEffect(() => {
-        dispatch(getAllSclasses(currentUser._id, 'SclassList'));
-    }, [currentUser._id, dispatch]);
+        if (currentUser?._id && open) {
+            dispatch(getAllSclasses(currentUser._id, 'SclassList'));
+        }
+    }, [currentUser?._id, dispatch, open]);
 
     const handleChange = (e) => {
         setFormData({
@@ -40,23 +42,28 @@ const AddCoordinator = ({ open, handleClose }) => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         const submitData = {
             ...formData,
             school: currentUser._id,
             role: 'Coordinator'
         };
-        dispatch(addStuff(submitData, 'ClassCoordinator'));
-        handleClose();
-        // Refresh the coordinators list
-        dispatch(getClassCoordinators(currentUser._id));
-        setFormData({
-            name: '',
-            email: '',
-            password: '',
-            assignedClass: '',
-        });
+        
+        try {
+            await dispatch(addStuff(submitData, 'ClassCoordinator'));
+            // Only refresh the list if add was successful
+            await dispatch(getClassCoordinators(currentUser._id));
+            handleClose();
+            setFormData({
+                name: '',
+                email: '',
+                password: '',
+                assignedClass: '',
+            });
+        } catch (error) {
+            console.error("Error adding coordinator:", error);
+        }
     };
 
     return (
@@ -107,7 +114,7 @@ const AddCoordinator = ({ open, handleClose }) => {
                                 {loading ? (
                                     <MenuItem disabled>Loading...</MenuItem>
                                 ) : (
-                                    sclassesList.map((sclass) => (
+                                    sclassesList?.map((sclass) => (
                                         <MenuItem key={sclass._id} value={sclass._id}>
                                             {sclass.sclassName}
                                         </MenuItem>

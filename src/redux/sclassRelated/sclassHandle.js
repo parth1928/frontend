@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from '../../api/axiosInstance';
 import {
     getRequest,
     getSuccess,
@@ -11,13 +11,12 @@ import {
     getSubDetailsSuccess,
     getSubDetailsRequest
 } from './sclassSlice';
-const REACT_APP_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 export const getAllSclasses = (id, address) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/${address}List/${id}`);
+        const result = await axios.get(`/${address}/${id}`);
         if (result.data.message) {
             dispatch(getFailedTwo(result.data.message));
         } else {
@@ -38,7 +37,7 @@ export const getClassStudents = (id, adminId) => async (dispatch) => {
             return;
         }
 
-        let url = `${REACT_APP_BASE_URL}/Sclass/Students/${id}`;
+        let url = `/Sclass/Students/${id}`;
         // Extra defensive: Only add adminId if it is a non-empty string, not undefined/null, not the string 'undefined', and not empty after trimming
         if (adminId && typeof adminId === 'string' && adminId.trim() !== '' && adminId !== 'undefined' && adminId !== 'null') {
             url += `?adminId=${adminId}`;
@@ -58,7 +57,7 @@ export const getClassDetails = (id, address) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/${address}/${id}`);
+        const result = await axios.get(`/${address}/${id}`);
         if (result.data) {
             dispatch(detailsSuccess(result.data));
         }
@@ -71,7 +70,7 @@ export const getSubjectList = (id, address) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/${address}/${id}`);
+        const result = await axios.get(`/${address}/${id}`);
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
@@ -86,7 +85,7 @@ export const getTeacherFreeClassSubjects = (id) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/FreeSubjectList/${id}`);
+        const result = await axios.get(`/FreeSubjectList/${id}`);
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
@@ -101,7 +100,7 @@ export const getSubjectDetails = (id, address) => async (dispatch) => {
     dispatch(getSubDetailsRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/${address}/${id}`);
+        const result = await axios.get(`/${address}/${id}`);
         if (result.data) {
             dispatch(getSubDetailsSuccess(result.data));
         }
