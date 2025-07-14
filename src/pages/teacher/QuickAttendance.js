@@ -26,152 +26,102 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
 
-const QuickAttendance = ({ classID, subjectID }) => {
+const QuickAttendance = ({ classID, subjectID, batchName, disabled }) => {
     const dispatch = useDispatch();
     const { subjectDetails } = useSelector((state) => state.sclass);
-    const [selectedBatch, setSelectedBatch] = useState('');
-    const [batchStudents, setBatchStudents] = useState([]);
-    // Fetch subject details (for isLab and batches)
-    useEffect(() => {
-        if (subjectID) {
-            dispatch(getSubjectDetails(subjectID, 'Subject'));
-        }
-    }, [dispatch, subjectID]);
-
-    // When batch is selected, set students for that batch
-    useEffect(() => {
-        if (subjectDetails && subjectDetails.isLab && subjectDetails.batches && selectedBatch) {
-            const batch = subjectDetails.batches.find(b => b.batchName === selectedBatch);
-            setBatchStudents(batch ? batch.students : []);
-        } else {
-            setBatchStudents([]);
-        }
-    }, [subjectDetails, selectedBatch]);
     const [date, setDate] = useState(dayjs());
     const [mode, setMode] = useState('present');
     const [rollInput, setRollInput] = useState('');
     const [markedStudents, setMarkedStudents] = useState([]);
     const [message, setMessage] = useState({ text: '', type: 'info' });
     const [loading, setLoading] = useState(false);
-    const [multipleMatches, setMultipleMatches] = useState([]);
-    const [currentSuffix, setCurrentSuffix] = useState('');
-    const [processingQueue, setProcessingQueue] = useState([]);
 
-    // Filtered roll input handler for lab batches
+    // Update this useEffect to handle subject details
+    useEffect(() => {
+        if (subjectID) {
+            dispatch(getSubjectDetails(subjectID, 'Subject'));
+        }
+    }, [dispatch, subjectID]);
+
     const handleRollInput = async (event) => {
         if (event.key === 'Enter') {
             event.preventDefault();
-            setLoading(true);
-
-            // Split input by commas and spaces, filter out empty strings
-            const suffixes = rollInput.trim()
-                .split(/[\s,]+/)
-                .filter(suffix => suffix.length > 0);
-
-            if (suffixes.length === 0) {
-                setMessage({ text: 'Please enter roll number suffixes', type: 'error' });
-                setLoading(false);
+            if (disabled || (subjectDetails?.isLab && !batchName)) {
+                setMessage({ text: 'Please select a batch first', type: 'error' });
                 return;
             }
 
-            // For lab: filter only students in selected batch
-            let studentsToSearch = (subjectDetails && subjectDetails.isLab && selectedBatch)
-                ? batchStudents
-                : undefined;
+            setLoading(true);
+            setMessage({ text: '', type: 'info' });
 
-            let previewedStudents = [];
-            for (let suffix of suffixes) {
-                let rollSuffixToSend = suffix;
-                if (!(typeof suffix === 'string' && (suffix[0] === 'D' || suffix[0] === 'd'))) {
-                    rollSuffixToSend = suffix.padStart(2, '0');
+            try {
+                if (!classID || !subjectID) {
+                    throw new Error('Class ID or Subject ID is missing');
                 }
-                try {
+
+                // Split and clean input
+                const suffixes = rollInput.trim()
+                    .split(/[\s,]+/)
+                    .filter(suffix => suffix.length > 0);
+
+                if (suffixes.length === 0) {
+                    setMessage({ text: 'Please enter roll number suffixes', type: 'error' });
+                    return;
+                }
+
+                // Process each suffix
+                for (let suffix of suffixes) {
+                    let rollSuffixToSend = suffix;
+                    if (!(typeof suffix === 'string' && (suffix[0] === 'D' || suffix[0] === 'd'))) {
+                        rollSuffixToSend = suffix.padStart(2, '0');
+                    }
+
+                    const requestBody = {
+                        classId: classID,
+                        subjectId: subjectID,
+                        date: date.format('YYYY-MM-DD'),
+                        rollSuffix: rollSuffixToSend,
+                        status: mode === 'present',
+                        batchName: batchName || undefined // Only include if provided
+                    };
+
                     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/attendance/quick-mark`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': localStorage.getItem('token')
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
                         },
-                        body: JSON.stringify({
-                            classId: classID,
-                            subjectId: subjectID,
-                            date: date.format('YYYY-MM-DD'),
-                            rollSuffix: rollSuffixToSend,
-                            mode: mode,
-                            preview: true,
-                            students: studentsToSearch // backend should filter if provided
-                        })
+                        body: JSON.stringify(requestBody)
                     });
+
                     const data = await response.json();
-                    if (data.success && data.student) {
-                        if (!previewedStudents.some(s => s.rollNum === data.student.rollNum)) {
-                            previewedStudents.push(data.student);
+
+                    if (response.ok && data.success && data.student) {
+                        if (!markedStudents.some(s => s.rollNum === data.student.rollNum)) {
+                            setMarkedStudents(prev => [...prev, data.student]);
+                            setMessage({
+                                text: `Marked ${data.student.name} (Roll: ${data.student.rollNum}) as ${mode}`,
+                                type: 'success'
+                            });
                         }
+                    } else {
+                        throw new Error(data.message || 'Failed to mark attendance');
                     }
-                } catch (error) {
-                    // ignore errors for preview
                 }
+
+                // Clear input after successful processing
+                setRollInput('');
+            } catch (error) {
+                console.error('Error marking attendance:', error);
+                setMessage({
+                    text: `Error: ${error.message}`,
+                    type: 'error'
+                });
+            } finally {
+                setLoading(false);
             }
-            setMarkedStudents(previewedStudents);
-            setLoading(false);
         }
     };
-
-    const handleStudentSelection = async (selectedStudent) => {
-        try {
-            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/attendance/quick-mark`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('token')
-                },
-                body: JSON.stringify({
-                    classId: classID,
-                    subjectId: subjectID,
-                    date: date.format('YYYY-MM-DD'),
-                    rollSuffix: selectedStudent.rollNum.toString(), // Use full roll number
-                    mode: mode
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success && data.student) {
-                if (!markedStudents.some(s => s.rollNum === data.student.rollNum)) {
-                    setMarkedStudents(prev => [...prev, data.student]);
-                    setMessage({
-                        text: `Marked ${data.student.name} (Roll: ${data.student.rollNum}) as ${mode}`,
-                        type: 'success'
-                    });
-                }
-            }
-        } catch (error) {
-            console.error('Error marking selected student:', error);
-            setMessage({
-                text: `Error marking student: ${error.message}`,
-                type: 'error'
-            });
-        }
-
-        // Clear dialog and process next suffix if any
-        setMultipleMatches([]);
-        processNextSuffix();
-    };
-
-    const processNextSuffix = () => {
-        setProcessingQueue(prev => {
-            if (prev.length > 0) {
-                // Just remove the first suffix; useEffect will process the next
-                return prev.slice(1);
-            }
-            setLoading(false);
-            setRollInput('');
-            return [];
-        });
-    };
-    // Remove useEffect and processingQueue logic, not needed for preview/submit flow
-
-    // Remove processSingleSuffix and processNextSuffix logic
 
     const submitAttendance = async () => {
         if (markedStudents.length === 0) {
@@ -179,48 +129,50 @@ const QuickAttendance = ({ classID, subjectID }) => {
             return;
         }
 
+        if (disabled || (subjectDetails?.isLab && !batchName)) {
+            setMessage({ text: 'Please select a batch first', type: 'error' });
+            return;
+        }
+
         setLoading(true);
         try {
+            const requestBody = {
+                classId: classID,
+                subjectId: subjectID,
+                date: date.format('YYYY-MM-DD'),
+                students: markedStudents.map(student => ({
+                    studentId: student._id,
+                    status: mode === 'present'
+                })),
+                batchName: batchName || undefined
+            };
+
             const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/attendance/quick-submit`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': localStorage.getItem('token')
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
-                body: JSON.stringify({
-                    classId: classID,
-                    subjectId: subjectID,
-                    date: date.format('YYYY-MM-DD'),
-                    markedStudents: markedStudents,
-                    mode: mode
-                })
+                body: JSON.stringify(requestBody)
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
             const data = await response.json();
-            console.log('Submit response:', data);
 
-            if (data.success) {
-                setMessage({ 
-                    text: `Successfully submitted attendance for ${markedStudents.length} students`, 
-                    type: 'success' 
+            if (response.ok && data.success) {
+                setMessage({
+                    text: `Successfully submitted attendance for ${markedStudents.length} students`,
+                    type: 'success'
                 });
                 setMarkedStudents([]);
                 setRollInput('');
             } else {
-                setMessage({ 
-                    text: data.message || 'Failed to submit attendance', 
-                    type: 'error' 
-                });
+                throw new Error(data.message || 'Failed to submit attendance');
             }
         } catch (error) {
             console.error('Error submitting attendance:', error);
-            setMessage({ 
-                text: `Failed to submit attendance: ${error.message}`, 
-                type: 'error' 
+            setMessage({
+                text: `Error: ${error.message}`,
+                type: 'error'
             });
         } finally {
             setLoading(false);
@@ -231,6 +183,11 @@ const QuickAttendance = ({ classID, subjectID }) => {
         <Box sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
             <Typography variant="h5" gutterBottom>
                 Quick Attendance
+                {subjectDetails?.isLab && !batchName && (
+                    <Typography variant="caption" color="error" display="block">
+                        Please select a batch first
+                    </Typography>
+                )}
             </Typography>
 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -245,29 +202,9 @@ const QuickAttendance = ({ classID, subjectID }) => {
                             margin: 'normal'
                         }
                     }}
+                    disabled={disabled}
                 />
             </LocalizationProvider>
-
-            {/* Batch selection for lab subjects */}
-            {subjectDetails && subjectDetails.isLab && subjectDetails.batches && (
-                <FormControl fullWidth sx={{ mt: 3 }}>
-                    <FormLabel>Select Batch</FormLabel>
-                    <RadioGroup
-                        row
-                        value={selectedBatch}
-                        onChange={e => setSelectedBatch(e.target.value)}
-                    >
-                        {subjectDetails.batches.map((batch, idx) => (
-                            <FormControlLabel
-                                key={batch.batchName}
-                                value={batch.batchName}
-                                control={<Radio />}
-                                label={batch.batchName}
-                            />
-                        ))}
-                    </RadioGroup>
-                </FormControl>
-            )}
 
             <FormControl sx={{ mt: 3, width: '100%' }}>
                 <FormLabel>Attendance Mode</FormLabel>
@@ -276,8 +213,8 @@ const QuickAttendance = ({ classID, subjectID }) => {
                     value={mode}
                     onChange={(e) => setMode(e.target.value)}
                 >
-                    <FormControlLabel value="present" control={<Radio />} label="Mark Present Students" />
-                    <FormControlLabel value="absent" control={<Radio />} label="Mark Absent Students" />
+                    <FormControlLabel value="present" control={<Radio />} label="Mark Present Students" disabled={disabled} />
+                    <FormControlLabel value="absent" control={<Radio />} label="Mark Absent Students" disabled={disabled} />
                 </RadioGroup>
             </FormControl>
 
@@ -287,11 +224,11 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 value={rollInput}
                 onChange={(e) => setRollInput(e.target.value)}
                 onKeyPress={handleRollInput}
-                disabled={loading || (subjectDetails && subjectDetails.isLab && !selectedBatch)}
+                disabled={disabled || loading || (subjectDetails?.isLab && !batchName)}
                 sx={{ mt: 3 }}
                 placeholder="For example: 41 01 02"
-                helperText={subjectDetails && subjectDetails.isLab ?
-                    "Select a batch and then enter roll numbers for that batch only" :
+                helperText={subjectDetails?.isLab ?
+                    batchName ? `Enter roll numbers for batch ${batchName}` : "Select a batch first" :
                     "Press Enter after typing numbers (separated by spaces)"}
             />
 
@@ -301,89 +238,28 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 </Alert>
             )}
 
-            <Paper sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5' }}>
-                <Typography variant="subtitle2" gutterBottom>
-                    Debug Information:
-                </Typography>
-                <Typography variant="body2">
-                    Class ID: {classID}
-                </Typography>
-                <Typography variant="body2">
-                    Subject ID: {subjectID}
-                </Typography>
-                <Typography variant="body2">
-                    Marked Students Count: {markedStudents.length}
-                </Typography>
-                <Typography variant="body2">
-                    Current Mode: {mode}
-                </Typography>
-                <Typography variant="body2">
-                    Submit Button State: {markedStudents.length === 0 ? 'Disabled' : 'Enabled'}
-                </Typography>
-                {markedStudents.length > 0 && (
-                    <Box sx={{ mt: 1 }}>
-                        <Typography variant="body2">
-                            Marked Students:
+            {markedStudents.length > 0 && (
+                <Paper sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5' }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                        Students Marked:
+                    </Typography>
+                    {markedStudents.map((student, idx) => (
+                        <Typography key={idx} variant="body2" sx={{ pl: 2 }}>
+                            • {student.name} (Roll: {student.rollNum}) - {mode}
                         </Typography>
-                        {markedStudents.map((student, idx) => (
-                            <Typography key={idx} variant="body2" sx={{ pl: 2 }}>
-                                • {student.name} (Roll: {student.rollNum})
-                            </Typography>
-                        ))}
-                    </Box>
-                )}
-            </Paper>
+                    ))}
+                </Paper>
+            )}
 
             <Button
                 variant="contained"
                 color="primary"
                 onClick={submitAttendance}
                 sx={{ mt: 3 }}
-                disabled={markedStudents.length === 0 || loading || (subjectDetails && subjectDetails.isLab && !selectedBatch)}
+                disabled={disabled || markedStudents.length === 0 || loading || (subjectDetails?.isLab && !batchName)}
             >
-                Submit Attendance ({markedStudents.length} students)
+                {loading ? "Submitting..." : `Submit Attendance (${markedStudents.length} students)`}
             </Button>
-
-            <Dialog 
-                open={multipleMatches.length > 0} 
-                onClose={() => {
-                    setMultipleMatches([]);
-                    processNextSuffix();
-                }}
-            >
-                <DialogTitle>
-                    Multiple Students Found
-                </DialogTitle>
-                <DialogContent>
-                    <Typography variant="body1" sx={{ mb: 2 }}>
-                        Multiple students found with roll number ending in {currentSuffix}. 
-                        Please select the correct student:
-                    </Typography>
-                    <List>
-                        {multipleMatches.map((student, index) => (
-                            <ListItem 
-                                button 
-                                key={index}
-                                onClick={() => handleStudentSelection(student)}
-                            >
-                                <ListItemText 
-                                    primary={`${student.name} (Roll: ${student.rollNum})`}
-                                />
-                            </ListItem>
-                        ))}
-                    </List>
-                </DialogContent>
-                <DialogActions>
-                    <Button 
-                        onClick={() => {
-                            setMultipleMatches([]);
-                            processNextSuffix();
-                        }}
-                    >
-                        Skip
-                    </Button>
-                </DialogActions>
-            </Dialog>
         </Box>
     );
 };
