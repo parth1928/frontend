@@ -17,6 +17,9 @@ import AccountMenu from '../../components/AccountMenu';
 import CoordinatorSideBar from './CoordinatorSideBar';
 import CoordinatorDashboard from './CoordinatorDashboard';
 import CoordinatorProfile from './CoordinatorProfile';
+import CoordinatorStudents from './CoordinatorStudents';
+import AttendanceAnalysis from './AttendanceAnalysis';
+import AttendanceReports from './AttendanceReports';
 
 const CoordinatorPortal = () => {
     const [open, setOpen] = React.useState(false);
@@ -70,6 +73,9 @@ const CoordinatorPortal = () => {
                     <Routes>
                         <Route path="/" element={<CoordinatorDashboard />} />
                         <Route path="/dashboard" element={<CoordinatorDashboard />} />
+                        <Route path="/students" element={<CoordinatorStudents />} />
+                        <Route path="/attendance" element={<AttendanceAnalysis />} />
+                        <Route path="/reports" element={<AttendanceReports />} />
                         <Route path="/profile" element={<CoordinatorProfile />} />
                         <Route path="/logout" element={<Logout />} />
                     </Routes>
