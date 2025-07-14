@@ -12,7 +12,7 @@ import {
 } from '@mui/material';
 import { SupervisorAccount } from '@mui/icons-material';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginUser } from '../../redux/userRelated/userHandle';
+import { loginUser } from 'redux/userRelated/userHandle';
 import styled from 'styled-components';
 
 const CoordinatorLogin = () => {
