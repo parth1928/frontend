@@ -23,6 +23,21 @@ export const getAllStudents = (id) => async (dispatch) => {
     }
 }
 
+export const getStudentList = (classId) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.get(`${REACT_APP_BASE_URL}/StudentList/${classId}`);
+        if (result.data.message) {
+            dispatch(getFailed(result.data.message));
+        } else {
+            dispatch(getSuccess(result.data));
+        }
+    } catch (error) {
+        dispatch(getError(error));
+    }
+}
+
 export const updateStudentFields = (id, fields, address) => async (dispatch) => {
     dispatch(getRequest());
 
