@@ -4,97 +4,118 @@ import {
     Paper,
     Typography,
     Grid,
-    Button,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
     CircularProgress,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow
+    Alert,
+    Button,
+    TextField,
+    MenuItem,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import { getClassDetails } from '../../redux/sclassRelated/sclassHandle';
-import { getAllStudents } from '../../redux/studentRelated/studentHandle';
+import { getClassAttendanceStats } from '../../redux/studentRelated/studentHandle';
 import CoordinatorSideBar from './CoordinatorSideBar';
+import SubjectWiseAttendanceTable from '../../components/SubjectWiseAttendanceTable';
 import DownloadIcon from '@mui/icons-material/Download';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import axios from '../../api/axiosInstance';
 
 const AttendanceReports = () => {
     const dispatch = useDispatch();
     const { currentUser } = useSelector((state) => state.user);
-    const { currentClass, loading: classLoading } = useSelector((state) => state.sclass);
-    const { userDetails: students, loading: studentsLoading } = useSelector((state) => state.user);
+    const { currentClass } = useSelector((state) => state.sclass);
+    const { studentsAttendance, loading, error } = useSelector((state) => state.student);
 
-    const [reportType, setReportType] = useState('monthly');
-    const [selectedMonth, setSelectedMonth] = useState('');
-    const [reportData, setReportData] = useState(null);
-
-    useEffect(() => {
-        if (currentUser?.assignedClass) {
-            dispatch(getClassDetails(currentUser.assignedClass));
-        }
-    }, [dispatch, currentUser]);
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
+    const [reportType, setReportType] = useState('overall');
+    const [downloading, setDownloading] = useState(false);
+    const [showDialog, setShowDialog] = useState(false);
+    const [dialogMessage, setDialogMessage] = useState('');
 
     useEffect(() => {
         if (currentClass?._id) {
-            dispatch(getAllStudents(currentClass._id));
+            dispatch(getClassAttendanceStats(currentClass._id));
         }
     }, [dispatch, currentClass]);
 
-    const generateReport = () => {
-        if (!students) return;
-
-        let data = [];
-        if (reportType === 'monthly' && selectedMonth) {
-            data = students.map(student => ({
-                rollNum: student.rollNum,
-                name: student.name,
-                attendance: student.attendance?.monthly?.[selectedMonth] || 0,
-                status: student.status || 'active'
-            }));
-        } else if (reportType === 'overall') {
-            data = students.map(student => ({
-                rollNum: student.rollNum,
-                name: student.name,
-                attendance: student.attendance?.overallPercentage || 0,
-                status: student.status || 'active'
-            }));
+    const handleDownload = async () => {
+        if (!currentClass?._id) {
+            setDialogMessage('No class selected');
+            setShowDialog(true);
+            return;
         }
 
-        setReportData(data);
+        try {
+            setDownloading(true);
+
+            let url = `${process.env.REACT_APP_API_BASE_URL}/coordinator/attendance/report/${currentClass._id}`;
+            const queryParams = [];
+
+            if (reportType === 'date-range' && startDate && endDate) {
+                queryParams.push(`startDate=${startDate.toISOString()}`);
+                queryParams.push(`endDate=${endDate.toISOString()}`);
+            }
+            queryParams.push(`type=${reportType}`);
+
+            if (queryParams.length > 0) {
+                url += '?' + queryParams.join('&');
+            }
+
+            const response = await axios.get(url, {
+                responseType: 'blob',
+                headers: {
+                    'Authorization': localStorage.getItem('token')
+                }
+            });
+
+            const blob = new Blob([response.data], { 
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+            });
+            
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `attendance_report_${currentClass.sclassName}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            setDialogMessage('Report downloaded successfully!');
+            setShowDialog(true);
+        } catch (error) {
+            console.error('Download error:', error);
+            setDialogMessage(error.response?.data?.message || 'Failed to download report');
+            setShowDialog(true);
+        } finally {
+            setDownloading(false);
+        }
     };
 
-    const downloadReport = () => {
-        if (!reportData) return;
-
-        const csvContent = [
-            ['Roll Number', 'Name', 'Attendance %', 'Status'],
-            ...reportData.map(student => [
-                student.rollNum,
-                student.name,
-                student.attendance,
-                student.status
-            ])
-        ].map(row => row.join(',')).join('\\n');
-
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.setAttribute('href', url);
-        link.setAttribute('download', `attendance_report_${reportType}_${selectedMonth || 'overall'}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    if (classLoading || studentsLoading) {
+    if (loading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-                <CircularProgress />
+            <Box sx={{ display: 'flex' }}>
+                <CoordinatorSideBar />
+                <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+                        <CircularProgress />
+                        <Typography sx={{ ml: 2 }}>Loading attendance data...</Typography>
+                    </Box>
+                </Box>
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Box sx={{ display: 'flex' }}>
+                <CoordinatorSideBar />
+                <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+                    <Alert severity="error">{error}</Alert>
+                </Box>
             </Box>
         );
     }
@@ -104,95 +125,101 @@ const AttendanceReports = () => {
             <CoordinatorSideBar />
             <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
                 <Typography variant="h4" gutterBottom>
-                    Attendance Reports - {currentClass?.sclassName}
+                    Attendance Reports
                 </Typography>
 
-                <Paper sx={{ p: 2, mb: 3 }}>
-                    <Grid container spacing={2} alignItems="center">
-                        <Grid item xs={12} md={4}>
-                            <FormControl fullWidth>
-                                <InputLabel>Report Type</InputLabel>
-                                <Select
-                                    value={reportType}
-                                    label="Report Type"
-                                    onChange={(e) => setReportType(e.target.value)}
-                                >
-                                    <MenuItem value="monthly">Monthly Report</MenuItem>
-                                    <MenuItem value="overall">Overall Report</MenuItem>
-                                </Select>
-                            </FormControl>
+                <Paper sx={{ p: 3, mb: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                        Download Reports
+                    </Typography>
+                    <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}>
+                            <TextField
+                                select
+                                fullWidth
+                                label="Report Type"
+                                value={reportType}
+                                onChange={(e) => setReportType(e.target.value)}
+                            >
+                                <MenuItem value="overall">Overall Attendance</MenuItem>
+                                <MenuItem value="monthly">Monthly Report</MenuItem>
+                                <MenuItem value="date-range">Custom Date Range</MenuItem>
+                                <MenuItem value="subject-wise">Subject-wise Report</MenuItem>
+                            </TextField>
                         </Grid>
 
-                        {reportType === 'monthly' && (
-                            <Grid item xs={12} md={4}>
-                                <FormControl fullWidth>
-                                    <InputLabel>Month</InputLabel>
-                                    <Select
-                                        value={selectedMonth}
-                                        label="Month"
-                                        onChange={(e) => setSelectedMonth(e.target.value)}
-                                    >
-                                        {['January', 'February', 'March', 'April', 'May', 'June', 
-                                          'July', 'August', 'September', 'October', 'November', 'December'].map(month => (
-                                            <MenuItem key={month} value={month.toLowerCase()}>{month}</MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            </Grid>
+                        {reportType === 'date-range' && (
+                            <>
+                                <Grid item xs={12} md={3}>
+                                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                        <DatePicker
+                                            label="Start Date"
+                                            value={startDate}
+                                            onChange={setStartDate}
+                                            renderInput={(params) => <TextField {...params} fullWidth />}
+                                        />
+                                    </LocalizationProvider>
+                                </Grid>
+                                <Grid item xs={12} md={3}>
+                                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                                        <DatePicker
+                                            label="End Date"
+                                            value={endDate}
+                                            onChange={setEndDate}
+                                            renderInput={(params) => <TextField {...params} fullWidth />}
+                                            minDate={startDate}
+                                        />
+                                    </LocalizationProvider>
+                                </Grid>
+                            </>
                         )}
 
-                        <Grid item xs={12} md={4}>
-                            <Button 
-                                variant="contained" 
-                                onClick={generateReport}
-                                disabled={reportType === 'monthly' && !selectedMonth}
-                                fullWidth
+                        <Grid item xs={12}>
+                            <Button
+                                variant="contained"
+                                startIcon={<DownloadIcon />}
+                                onClick={handleDownload}
+                                disabled={downloading || (reportType === 'date-range' && (!startDate || !endDate))}
                             >
-                                Generate Report
+                                {downloading ? 'Downloading...' : 'Download Report'}
                             </Button>
                         </Grid>
                     </Grid>
                 </Paper>
 
-                {reportData && (
-                    <Paper sx={{ p: 2 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                            <Typography variant="h6">
-                                Report Results
-                            </Typography>
-                            <Button
-                                variant="contained"
-                                startIcon={<DownloadIcon />}
-                                onClick={downloadReport}
-                            >
-                                Download CSV
-                            </Button>
-                        </Box>
+                <Paper sx={{ p: 3 }}>
+                    <Typography variant="h6" gutterBottom>
+                        Current Attendance Summary
+                    </Typography>
 
-                        <TableContainer>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Roll Number</TableCell>
-                                        <TableCell>Name</TableCell>
-                                        <TableCell>Attendance %</TableCell>
-                                        <TableCell>Status</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {reportData.map((student) => (
-                                        <TableRow key={student.rollNum}>
-                                            <TableCell>{student.rollNum}</TableCell>
-                                            <TableCell>{student.name}</TableCell>
-                                            <TableCell>{student.attendance}%</TableCell>
-                                            <TableCell>{student.status}</TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </Paper>
-                )}
+                    {studentsAttendance?.students && studentsAttendance.students.length > 0 ? (
+                        <SubjectWiseAttendanceTable students={studentsAttendance.students} />
+                    ) : (
+                        <Alert severity="info">No attendance data available</Alert>
+                    )}
+                </Paper>
+
+                <Dialog
+                    open={showDialog}
+                    onClose={() => setShowDialog(false)}
+                >
+                    <DialogTitle>
+                        {dialogMessage.includes('error') || dialogMessage.includes('fail') 
+                            ? 'Error' 
+                            : 'Success'
+                        }
+                    </DialogTitle>
+                    <DialogContent>
+                        <Typography>
+                            {dialogMessage}
+                        </Typography>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={() => setShowDialog(false)}>
+                            Close
+                        </Button>
+                    </DialogActions>
+                </Dialog>
             </Box>
         </Box>
     );

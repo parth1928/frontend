@@ -15,6 +15,7 @@ import { getClassAttendanceStats } from '../../redux/studentRelated/studentHandl
 import CoordinatorSideBar from './CoordinatorSideBar';
 import CustomBarChart from '../../components/CustomBarChart';
 import CustomPieChart from '../../components/CustomPieChart';
+import SubjectWiseAttendanceTable from '../../components/SubjectWiseAttendanceTable';
 
 const AttendanceAnalysis = () => {
     const dispatch = useDispatch();
@@ -177,6 +178,19 @@ const AttendanceAnalysis = () => {
                                 }))}
                                 dataKey="value"
                                 nameKey="name"
+                            />
+                        </Paper>
+                    </Grid>
+
+                    {/* Subject-wise Attendance Table */}
+                    <Grid item xs={12}>
+                        <Paper sx={{ p: 2 }}>
+                            <Typography variant="h6" gutterBottom>
+                                Subject-wise Attendance Details
+                            </Typography>
+                            <SubjectWiseAttendanceTable
+                                students={studentsAttendance.students}
+                                showPagination={true}
                             />
                         </Paper>
                     </Grid>
