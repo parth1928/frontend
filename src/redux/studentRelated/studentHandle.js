@@ -54,3 +54,18 @@ export const removeStuff = (id, address) => async (dispatch) => {
         dispatch(getError(error));
     }
 }
+
+export const getStudentAttendance = (classId) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.get(`${REACT_APP_BASE_URL}/StudentAttendance/${classId}`);
+        if (result.data.message) {
+            dispatch(getFailed(result.data.message));
+        } else {
+            dispatch(getSuccess(result.data));
+        }
+    } catch (error) {
+        dispatch(getError(error));
+    }
+}
