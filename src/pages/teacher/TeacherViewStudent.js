@@ -8,7 +8,6 @@ import { calculateOverallAttendancePercentage, calculateSubjectAttendancePercent
 import CustomPieChart from '../../components/CustomPieChart'
 import { PurpleButton } from '../../components/buttonStyles';
 import { StyledTableCell, StyledTableRow } from '../../components/styles';
-import { format } from 'date-fns';
 
 const TeacherViewStudent = () => {
 
@@ -127,7 +126,7 @@ const TeacherViewStudent = () => {
                                                                     <TableBody>
                                                                         {allData.map((data, index) => {
                                                                             const date = new Date(data.date);
-                                                                            const dateString = date.toString() !== "Invalid Date" ? format(date, 'dd/MM/yyyy') : "Invalid Date";
+                                                                            const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
                                                                             return (
                                                                                 <StyledTableRow key={index}>
                                                                                     <StyledTableCell component="th" scope="row">

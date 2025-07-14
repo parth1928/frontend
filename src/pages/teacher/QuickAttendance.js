@@ -21,10 +21,10 @@ import {
     ListItem,
     ListItemText
 } from '@mui/material';
-import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { format } from 'date-fns';
+import dayjs from 'dayjs';
 
 const QuickAttendance = ({ classID, subjectID }) => {
     const dispatch = useDispatch();
@@ -47,7 +47,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
             setBatchStudents([]);
         }
     }, [subjectDetails, selectedBatch]);
-    const [date, setDate] = useState(new Date());
+    const [date, setDate] = useState(dayjs());
     const [mode, setMode] = useState('present');
     const [rollInput, setRollInput] = useState('');
     const [markedStudents, setMarkedStudents] = useState([]);
@@ -101,7 +101,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
                         body: JSON.stringify({
                             classId: classID,
                             subjectId: subjectID,
-                            date: format(date, 'dd/MM/yyyy'),
+                            date: date.format('YYYY-MM-DD'),
                             rollSuffix: rollSuffixToSend,
                             mode: mode,
                             preview: true,
@@ -134,7 +134,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 body: JSON.stringify({
                     classId: classID,
                     subjectId: subjectID,
-                    date: format(date, 'yyyy-MM-dd'),
+                    date: date.format('YYYY-MM-DD'),
                     rollSuffix: selectedStudent.rollNum.toString(), // Use full roll number
                     mode: mode
                 })
@@ -196,7 +196,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 body: JSON.stringify({
                     classId: classID,
                     subjectId: subjectID,
-                    date: format(date, 'yyyy-MM-dd'),
+                    date: date.format('YYYY-MM-DD'),
                     markedStudents: markedStudents,
                     mode: mode
                 })
@@ -239,12 +239,12 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 Quick Attendance
             </Typography>
 
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                     label="Attendance Date"
                     value={date}
                     onChange={(newValue) => setDate(newValue)}
-                    format="dd/MM/yyyy"
+                    format="DD/MM/YYYY"
                     slotProps={{
                         textField: {
                             fullWidth: true,

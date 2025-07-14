@@ -12,8 +12,7 @@ import {
     Dialog,
     DialogTitle,
     DialogContent,
-    DialogActions,
-    Stack
+    DialogActions
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { getClassAttendanceStats } from '../../redux/studentRelated/studentHandle';
@@ -23,7 +22,6 @@ import DownloadIcon from '@mui/icons-material/Download';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { format } from 'date-fns';
 import axios from '../../api/axiosInstance';
 
 const AttendanceReports = () => {
@@ -158,10 +156,7 @@ const AttendanceReports = () => {
                                             label="Start Date"
                                             value={startDate}
                                             onChange={setStartDate}
-                                            format="dd/MM/yyyy"
-                                            slotProps={{
-                                                textField: { fullWidth: true }
-                                            }}
+                                            renderInput={(params) => <TextField {...params} fullWidth />}
                                         />
                                     </LocalizationProvider>
                                 </Grid>
@@ -171,10 +166,7 @@ const AttendanceReports = () => {
                                             label="End Date"
                                             value={endDate}
                                             onChange={setEndDate}
-                                            format="dd/MM/yyyy"
-                                            slotProps={{
-                                                textField: { fullWidth: true }
-                                            }}
+                                            renderInput={(params) => <TextField {...params} fullWidth />}
                                             minDate={startDate}
                                         />
                                     </LocalizationProvider>

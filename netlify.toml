@@ -1,11 +1,12 @@
 [build]
-  command = "CI=false npm install --legacy-peer-deps && npm run build"
+  command = "CI=false npm install --legacy-peer-deps --force && npm run build"
   publish = "build"
 
 [build.environment]
   CI = "false"
   NODE_VERSION = "16"
-  NPM_FLAGS = "--legacy-peer-deps"
+  NPM_FLAGS = "--legacy-peer-deps --force"
+  NETLIFY_USE_YARN = "false"
 
 [context.production.environment]
   REACT_APP_API_BASE_URL = "https://backend-a2q3.onrender.com"
