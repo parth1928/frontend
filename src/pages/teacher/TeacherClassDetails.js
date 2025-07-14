@@ -28,85 +28,164 @@ const TeacherClassDetails = () => {
     const { sclassStudents, loading, error, getresponse } = useSelector((state) => state.sclass);
 
     const { currentUser } = useSelector((state) => state.user);
-    const [subjectDetails, setSubjectDetails] = useState(null);
-    const [classID, setClassID] = useState(null);
-    const [subjectID, setSubjectID] = useState(null);
-    const [selectedBatch, setSelectedBatch] = useState('');
+    const classID = currentUser?.teachSclass?._id;
+    const subjectID = currentUser?.teachSubjects?.[0]?._id; // Use first subject from teachSubjects array
+    
+    // If we're missing required IDs, show appropriate message
+    React.useEffect(() => {
+        if (!classID || !subjectID) {
+            console.warn('Missing required IDs:', { classID, subjectID });
+        } else {
+            console.log('TeacherClassDetails: Using IDs:', { classID, subjectID });
+        }
+    }, [classID, subjectID]);
+
+    const [showQuickAttendance, setShowQuickAttendance] = React.useState(false);
+    const [subjectDetails, setSubjectDetails] = useState({});
     const [batchList, setBatchList] = useState([]);
-    const [showQuickAttendance, setShowQuickAttendance] = useState(false);
+    const [selectedBatch, setSelectedBatch] = useState('');
 
-    // Set initial IDs from currentUser
-    useEffect(() => {
-        if (currentUser?.teachSclass?._id) {
-            setClassID(currentUser.teachSclass._id);
-        }
-        if (currentUser?.teachSubject?._id) {
-            setSubjectID(currentUser.teachSubject._id);
-        }
-    }, [currentUser]);
-
-    // Fetch subject details when subjectID changes
+    // Fetch subject details (with batches) on mount
     useEffect(() => {
         if (subjectID) {
-            fetch(`${process.env.REACT_APP_API_BASE_URL}/subject/${subjectID}`)
-                .then(res => res.json())
-                .then(data => {
-                    setSubjectDetails(data);
-                    if (data.isLab && Array.isArray(data.batches)) {
-                        setBatchList(data.batches);
-                    } else {
-                        setBatchList([]);
+            axios.get(`${process.env.REACT_APP_API_BASE_URL}/subject/${subjectID}`)
+                .then(res => {
+                    setSubjectDetails(res.data);
+                    if (res.data.isLab && Array.isArray(res.data.batches)) {
+                        setBatchList(res.data.batches);
                     }
-                })
-                .catch(err => {
-                    console.error('Error fetching subject details:', err);
-                    setSubjectDetails(null);
-                    setBatchList([]);
                 });
         }
     }, [subjectID]);
 
-    // Fetch students when classID changes
     useEffect(() => {
-        if (classID) {
-            const adminId = currentUser?.school?._id;
-            if (adminId) {
-                dispatch(getClassStudents(classID, adminId));
-            } else {
-                dispatch(getClassStudents(classID));
+        const fetchStudents = async () => {
+            try {
+                if (!classID) {
+                    console.warn('TeacherClassDetails: Missing classID');
+                    return;
+                }
+
+                // Get adminId from currentUser
+                const adminId = currentUser?.school?._id;
+
+                // Validate classID and adminId
+                if (typeof classID !== 'string' || classID === 'undefined' || classID === 'null') {
+                    console.warn('TeacherClassDetails: Invalid classID');
+                    return;
+                }
+
+                if (adminId && typeof adminId === 'string' && adminId.trim() && adminId !== 'undefined' && adminId !== 'null') {
+                    await dispatch(getClassStudents(classID, adminId));
+                } else {
+                    await dispatch(getClassStudents(classID));
+                }
+            } catch (error) {
+                console.error('TeacherClassDetails: Error fetching students:', error);
             }
-        }
+        };
+
+        fetchStudents();
     }, [dispatch, classID, currentUser]);
 
-    // Filter students based on selected batch
+    const [isDownloading, setIsDownloading] = React.useState(false);
+
+
+    // Filter students for selected batch if lab
     const filteredStudents = React.useMemo(() => {
-        if (subjectDetails?.isLab && selectedBatch) {
-            const batch = batchList.find(b => b.batchName === selectedBatch);
-            return batch ? sclassStudents.filter(student => 
-                batch.students.includes(student._id)
-            ) : [];
+        if (!Array.isArray(sclassStudents)) {
+            return [];
+        }
+        if (subjectDetails.isLab && selectedBatch) {
+            return sclassStudents.filter(student =>
+                batchList.find(b => b.batchName === selectedBatch)?.students?.includes(student._id)
+            );
         }
         return sclassStudents;
-    }, [sclassStudents, subjectDetails, selectedBatch, batchList]);
+    }, [subjectDetails.isLab, selectedBatch, sclassStudents, batchList]);
 
-    const handleBulkAttendance = () => {
+    const BACKEND_URL = process.env.REACT_APP_API_BASE_URL;
+    
+    const downloadExcel = async (batchName) => {
         if (!classID || !subjectID) {
-            alert('Missing required class or subject information');
+            alert('Class and Subject information is required');
             return;
         }
-        if (subjectDetails?.isLab && !selectedBatch) {
-            alert('Please select a batch to take bulk attendance for this lab subject.');
+        // For lab subjects, require batch selection
+        if (subjectDetails.isLab && batchList.length > 0 && !batchName) {
+            alert('Please select a batch to download attendance for this lab subject.');
             return;
         }
-        const batchParam = subjectDetails?.isLab && selectedBatch ? 
-            `?batch=${encodeURIComponent(selectedBatch)}` : '';
-        navigate(`/Teacher/class/student/bulk-attendance/${classID}/${subjectID}${batchParam}`);
+
+        setIsDownloading(true);
+        try {
+            const token = localStorage.getItem('token');
+            let url = `${BACKEND_URL}/attendance/download/${classID}/${subjectID}`;
+            if (subjectDetails.isLab && batchName) {
+                url += `?batch=${encodeURIComponent(batchName)}`;
+            }
+            const response = await fetch(
+                url,
+                {
+                    headers: {
+                        'Authorization': token || ''
+                    }
+                }
+            );
+            // Check if response is ok before trying to parse it
+            if (!response.ok) {
+                throw new Error('Failed to download attendance');
+            }
+            // Get the response as blob directly
+            const blob = await response.blob();
+            if (blob.type.includes('application/json')) {
+                // If we got JSON instead of an Excel file, there's an error
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const errorData = JSON.parse(reader.result);
+                    alert(errorData.message || 'Failed to generate Excel file');
+                };
+                reader.readAsText(blob);
+                return;
+            }
+            const urlObj = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = urlObj;
+            link.download = `attendance_${classID}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(urlObj);
+        } catch (error) {
+            console.error('Download failed:', error);
+            alert(error.message || 'Failed to download attendance');
+        } finally {
+            setIsDownloading(false);
+        }
     };
+
+    if (error) {
+        console.log(error)
+    }
 
     const studentColumns = [
         { id: 'name', label: 'Name', minWidth: 170 },
         { id: 'rollNum', label: 'Roll Number', minWidth: 100 },
-    ];
+    ]
+
+    // Debug: Log fetched students and create rows with validation
+    const studentRows = React.useMemo(() => {
+        if (!Array.isArray(filteredStudents)) {
+            console.warn('TeacherClassDetails: filteredStudents is not an array');
+            return [];
+        }
+        console.log('TeacherClassDetails: Processing students:', filteredStudents.length);
+        return filteredStudents.map((student) => ({
+            name: student.name || 'No Name',
+            rollNum: student.rollNum || 'No Roll Number',
+            id: student._id,
+        }));
+    }, [filteredStudents]);
 
     const StudentsButtonHaver = ({ row }) => {
         const options = ['Take Attendance', 'Provide Marks'];
@@ -138,8 +217,7 @@ const TeacherClassDetails = () => {
                 alert('Please select a batch to take bulk attendance for this lab subject.');
                 return;
             }
-            const batchParam = subjectDetails.isLab && selectedBatch ? `?batch=${encodeURIComponent(selectedBatch)}` : '';
-            navigate(`/Teacher/class/student/bulk-attendance/${classID}/${subjectID}${batchParam}`);
+            navigate(`/Teacher/class/student/bulk-attendance/${classID}/${subjectID}${subjectDetails.isLab && selectedBatch ? `?batch=${encodeURIComponent(selectedBatch)}` : ''}`);
         };
 
         const handleMenuItemClick = (event, index) => {
@@ -234,25 +312,20 @@ const TeacherClassDetails = () => {
                     <Typography variant="h4" align="center" gutterBottom>
                         Class Details
                     </Typography>
-                    
-                    {/* Batch selector for lab subjects */}
-                    {subjectDetails?.isLab && batchList.length > 0 && (
+                    {subjectDetails.isLab && batchList.length > 0 && (
                         <FormControl fullWidth sx={{ mb: 2 }}>
                             <InputLabel>Select Batch</InputLabel>
                             <Select
                                 value={selectedBatch}
                                 label="Select Batch"
-                                onChange={(e) => setSelectedBatch(e.target.value)}
+                                onChange={e => setSelectedBatch(e.target.value)}
                             >
                                 {batchList.map((batch, idx) => (
-                                    <MuiMenuItem key={idx} value={batch.batchName}>
-                                        {batch.batchName}
-                                    </MuiMenuItem>
+                                    <MuiMenuItem key={idx} value={batch.batchName}>{batch.batchName}</MuiMenuItem>
                                 ))}
                             </Select>
                         </FormControl>
                     )}
-
                     {getresponse ? (
                         <>
                             <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
@@ -261,47 +334,61 @@ const TeacherClassDetails = () => {
                         </>
                     ) : (
                         <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+                            <Typography variant="h5" gutterBottom>
+                                Students List:
+                            </Typography>
+
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                                 <Typography variant="h5">
                                     Students List:
                                 </Typography>
                                 <BlueButton
                                     variant="contained"
-                                    onClick={handleBulkAttendance}
-                                    disabled={subjectDetails?.isLab && !selectedBatch}
+                                    onClick={() => {
+                                        if (!classID || !subjectID) {
+                                            alert('Missing required class or subject information');
+                                            return;
+                                        }
+                                        if (subjectDetails.isLab && batchList.length > 0 && !selectedBatch) {
+                                            alert('Please select a batch to take bulk attendance for this lab subject.');
+                                            return;
+                                        }
+                                        navigate(`/Teacher/class/student/bulk-attendance/${classID}/${subjectID}${subjectDetails.isLab && selectedBatch ? `?batch=${encodeURIComponent(selectedBatch)}` : ''}`);
+                                    }}
                                 >
                                     Take Bulk Attendance
                                 </BlueButton>
                             </Box>
                             <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
                                 <BlueButton
+                                    onClick={() => navigate("/Teacher/class/addstudents")}
+                                >
+                                    Add Students
+                                </BlueButton>
+                                <BlueButton
+                                    onClick={() => downloadExcel(selectedBatch)}
+                                    disabled={isDownloading}
+                                >
+                                    {isDownloading ? 'Downloading...' : 'Download Attendance Excel'}
+                                </BlueButton>
+                                <BlueButton
                                     onClick={() => setShowQuickAttendance(!showQuickAttendance)}
-                                    disabled={subjectDetails?.isLab && !selectedBatch}
                                 >
                                     {showQuickAttendance ? 'Hide Quick Attendance' : 'Quick Attendance'}
                                 </BlueButton>
                             </Box>
                             {showQuickAttendance && (
                                 <Box sx={{ mb: 2 }}>
-                                    <QuickAttendance 
-                                        classID={classID} 
-                                        subjectID={subjectID} 
-                                        batchName={selectedBatch}
-                                        disabled={subjectDetails?.isLab && !selectedBatch} 
-                                    />
+                                    {(!subjectDetails.isLab || (subjectDetails.isLab && selectedBatch)) ? (
+                                        <QuickAttendance classID={classID} subjectID={subjectID} batchName={selectedBatch} />
+                                    ) : (
+                                        <Typography color="error">Please select a batch to take quick attendance for this lab subject.</Typography>
+                                    )}
                                 </Box>
                             )}
-                            {filteredStudents.length > 0 && (
-                                <TableTemplate 
-                                    buttonHaver={StudentsButtonHaver} 
-                                    columns={studentColumns} 
-                                    rows={filteredStudents.map(student => ({
-                                        name: student.name,
-                                        rollNum: student.rollNum,
-                                        id: student._id
-                                    }))} 
-                                />
-                            )}
+                            {Array.isArray(filteredStudents) && filteredStudents.length > 0 &&
+                                <TableTemplate buttonHaver={StudentsButtonHaver} columns={studentColumns} rows={studentRows} />
+                            }
                         </Paper>
                     )}
                 </>
