@@ -33,6 +33,7 @@ const TeacherClassDetails = () => {
     const [subjectID, setSubjectID] = useState(null);
     const [selectedBatch, setSelectedBatch] = useState('');
     const [batchList, setBatchList] = useState([]);
+    const [showQuickAttendance, setShowQuickAttendance] = useState(false);
 
     // Set initial IDs from currentUser
     useEffect(() => {
@@ -102,76 +103,10 @@ const TeacherClassDetails = () => {
         navigate(`/Teacher/class/student/bulk-attendance/${classID}/${subjectID}${batchParam}`);
     };
 
-    const [isDownloading, setIsDownloading] = React.useState(false);
-
-    const BACKEND_URL = process.env.REACT_APP_API_BASE_URL;
-    
-    const downloadExcel = async (batchName) => {
-        if (!classID || !subjectID) {
-            alert('Class and Subject information is required');
-            return;
-        }
-        // For lab subjects, require batch selection
-        if (subjectDetails.isLab && batchList.length > 0 && !batchName) {
-            alert('Please select a batch to download attendance for this lab subject.');
-            return;
-        }
-
-        setIsDownloading(true);
-        try {
-            const token = localStorage.getItem('token');
-            let url = `${BACKEND_URL}/attendance/download/${classID}/${subjectID}`;
-            if (subjectDetails.isLab && batchName) {
-                url += `?batch=${encodeURIComponent(batchName)}`;
-            }
-            const response = await fetch(
-                url,
-                {
-                    headers: {
-                        'Authorization': token || ''
-                    }
-                }
-            );
-            // Check if response is ok before trying to parse it
-            if (!response.ok) {
-                throw new Error('Failed to download attendance');
-            }
-            // Get the response as blob directly
-            const blob = await response.blob();
-            if (blob.type.includes('application/json')) {
-                // If we got JSON instead of an Excel file, there's an error
-                const reader = new FileReader();
-                reader.onload = () => {
-                    const errorData = JSON.parse(reader.result);
-                    alert(errorData.message || 'Failed to generate Excel file');
-                };
-                reader.readAsText(blob);
-                return;
-            }
-            const urlObj = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = urlObj;
-            link.download = `attendance_${classID}_${new Date().toISOString().slice(0,10)}.xlsx`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            window.URL.revokeObjectURL(urlObj);
-        } catch (error) {
-            console.error('Download failed:', error);
-            alert(error.message || 'Failed to download attendance');
-        } finally {
-            setIsDownloading(false);
-        }
-    };
-
-    if (error) {
-        console.log(error)
-    }
-
     const studentColumns = [
         { id: 'name', label: 'Name', minWidth: 170 },
         { id: 'rollNum', label: 'Roll Number', minWidth: 100 },
-    ]
+    ];
 
     const StudentsButtonHaver = ({ row }) => {
         const options = ['Take Attendance', 'Provide Marks'];
