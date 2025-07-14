@@ -39,22 +39,13 @@ const ShowStudents = () => {
 
     useEffect(() => {
         if (currentUser?._id) {
-            console.log('Fetching all students for admin:', currentUser._id);
+            console.log('Fetching students for admin:', currentUser._id);
             dispatch(getAllStudents(currentUser._id));
-            dispatch(getAllDtodStudents(currentUser._id, selectedClassId));
+            if (selectedClassId) {
+                dispatch(getAllDtodStudents(currentUser._id, selectedClassId));
+            }
         }
     }, [currentUser?._id, selectedClassId, dispatch]);
-
-    // Debug logging
-    useEffect(() => {
-        console.log('Component State:', {
-            studentsList,
-            dtodStudentsList,
-            loading,
-            error,
-            response
-        });
-    }, [studentsList, dtodStudentsList, loading, error, response]);
 
     const deleteHandler = (deleteID, type) => {
         setMessage("");
@@ -231,17 +222,20 @@ const ShowStudents = () => {
 
     const actions = [
         {
-            icon: <PersonAddAlt1Icon color="primary" />, name: 'Add New Student',
+            icon: <PersonAddAlt1Icon color="primary" />, 
+            name: 'Add New Student',
             action: () => navigate("/Admin/addstudents")
         },
         {
-            icon: <PersonAddAlt1Icon color="primary" />, name: 'Bulk Upload Students',
+            icon: <PersonAddAlt1Icon color="primary" />, 
+            name: 'Bulk Upload Students',
             action: () => navigate("/Admin/students/bulkupload")
         },
         {
-            icon: <PersonRemoveIcon color="error" />, name: 'Delete All Students',
-            action: () => deleteHandler(currentUser._id, "Students")
-        },
+            icon: <AddIcon color="primary" />,
+            name: 'Add D2D Students',
+            action: () => navigate('/Admin/students/dtodbulkupload')
+        }
     ];
 
     if (loading) {
@@ -253,21 +247,76 @@ const ShowStudents = () => {
         );
     }
 
+    // Show error with retry button
     if (error) {
         return (
             <Box sx={{ p: 2 }}>
                 <Alert severity="error" sx={{ mb: 2 }}>
-                    Error loading students: {error}
+                    {error}
                 </Alert>
                 <Button
                     variant="contained"
                     onClick={() => {
-                        dispatch(getAllStudents(currentUser._id));
-                        dispatch(getAllDtodStudents(currentUser._id, selectedClassId));
+                        if (currentUser?._id) {
+                            dispatch(getAllStudents(currentUser._id));
+                            if (selectedClassId) {
+                                dispatch(getAllDtodStudents(currentUser._id, selectedClassId));
+                            }
+                        }
                     }}
                 >
                     Retry Loading
                 </Button>
+                <SpeedDialTemplate actions={actions} />
+            </Box>
+        );
+    }
+
+    // Show empty state with actions
+    if (!studentsList || (Array.isArray(studentsList) && studentsList.length === 0)) {
+        return (
+            <Box sx={{ p: 2 }}>
+                <Paper sx={{ p: 3, textAlign: 'center' }}>
+                    <Typography variant="h6" gutterBottom>
+                        No Students Found
+                    </Typography>
+                    <Typography color="textSecondary" sx={{ mb: 3 }}>
+                        Get started by adding students using one of these options:
+                    </Typography>
+                    <Grid container spacing={2} justifyContent="center">
+                        <Grid item>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={<PersonAddAlt1Icon />}
+                                onClick={() => navigate("/Admin/addstudents")}
+                            >
+                                Add Individual Student
+                            </Button>
+                        </Grid>
+                        <Grid item>
+                            <Button
+                                variant="contained"
+                                color="secondary"
+                                startIcon={<PersonAddAlt1Icon />}
+                                onClick={() => navigate("/Admin/students/bulkupload")}
+                            >
+                                Bulk Upload Students
+                            </Button>
+                        </Grid>
+                        <Grid item>
+                            <Button
+                                variant="contained"
+                                color="info"
+                                startIcon={<AddIcon />}
+                                onClick={() => navigate('/Admin/students/dtodbulkupload')}
+                            >
+                                Add D2D Students
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Paper>
+                <SpeedDialTemplate actions={actions} />
             </Box>
         );
     }

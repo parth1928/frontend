@@ -10,16 +10,16 @@ import {
 
 export const getAllStudents = (id) => async (dispatch) => {
     dispatch(getRequest());
-    console.log('Fetching students for:', id);
+    console.log('Fetching students for admin:', id);
 
     try {
         // Don't make the API call if id is undefined/null/empty
         if (!id || id === 'undefined' || id === 'null') {
-            dispatch(getFailed('Invalid ID'));
+            dispatch(getFailed('Invalid admin ID'));
             return;
         }
 
-        const result = await axios.get(`/StudentList/${id}`);
+        const result = await axios.get(`/Students/${id}`);
         console.log('Students API response:', result.data);
 
         if (result.data.message) {
@@ -44,7 +44,7 @@ export const getStudentList = (classId) => async (dispatch) => {
             return;
         }
 
-        const result = await axios.get(`/StudentList/${classId}`);
+        const result = await axios.get(`/Sclass/Students/${classId}`);
         console.log('Class students API response:', result.data);
 
         if (result.data.message) {
