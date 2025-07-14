@@ -1,0 +1,23 @@
+[build]
+  base = "frontend"
+  command = "CI=false npm install --legacy-peer-deps && npm run build"
+  publish = "build"
+
+[build.environment]
+  CI = "false"
+  NODE_VERSION = "16"
+  NPM_FLAGS = "--legacy-peer-deps"
+
+[context.production.environment]
+  REACT_APP_API_BASE_URL = "https://backend-a2q3.onrender.com"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Access-Control-Allow-Origin = "*"
