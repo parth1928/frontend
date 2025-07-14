@@ -11,6 +11,7 @@ const initialState = {
     error: null,
     response: null,
     getresponse: null,
+    status: 'idle'
 };
 
 const sclassSlice = createSlice({
@@ -19,6 +20,7 @@ const sclassSlice = createSlice({
     reducers: {
         getRequest: (state) => {
             state.loading = true;
+            state.status = 'loading';
         },
         getSubDetailsRequest: (state) => {
             state.subloading = true;
@@ -28,6 +30,14 @@ const sclassSlice = createSlice({
             state.loading = false;
             state.error = null;
             state.getresponse = null;
+            state.status = 'succeeded';
+        },
+        addClass: (state, action) => {
+            state.sclassesList = [...state.sclassesList, action.payload];
+            state.loading = false;
+            state.error = null;
+            state.response = null;
+            state.status = 'added';
         },
         getStudentsSuccess: (state, action) => {
             state.sclassStudents = action.payload;
@@ -42,10 +52,10 @@ const sclassSlice = createSlice({
             state.response = null;
         },
         getFailed: (state, action) => {
-            state.subjectsList = [];
             state.response = action.payload;
             state.loading = false;
             state.error = null;
+            state.status = 'failed';
         },
         getFailedTwo: (state, action) => {
             state.sclassesList = [];
@@ -53,10 +63,12 @@ const sclassSlice = createSlice({
             state.getresponse = action.payload;
             state.loading = false;
             state.error = null;
+            state.status = 'failed';
         },
         getError: (state, action) => {
             state.loading = false;
             state.error = action.payload;
+            state.status = 'failed';
         },
         detailsSuccess: (state, action) => {
             state.sclassDetails = action.payload;
@@ -86,7 +98,8 @@ export const {
     getFailedTwo,
     resetSubjects,
     getSubDetailsSuccess,
-    getSubDetailsRequest
+    getSubDetailsRequest,
+    addClass
 } = sclassSlice.actions;
 
 export const sclassReducer = sclassSlice.reducer;

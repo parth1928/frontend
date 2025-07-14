@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Box, Button, CircularProgress, Stack, TextField } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { addStuff } from '../../../redux/userRelated/userHandle';
-import { underControl } from '../../../redux/userRelated/userSlice';
+import { addSclass } from '../../../redux/sclassRelated/sclassHandle';
 import { BlueButton } from "../../../components/buttonStyles";
 import Popup from "../../../components/Popup";
 import Classroom from "../../../assets/classroom.png";
@@ -15,13 +14,11 @@ const AddClass = () => {
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
-    const userState = useSelector(state => state.user);
-    const { status, currentUser, response, error, tempDetails } = userState;
+    const { status, currentUser, error } = useSelector(state => state.user);
+    const { loading, response } = useSelector(state => state.sclass);
 
     const adminID = currentUser._id
-    const address = "Sclass"
 
-    const [loader, setLoader] = useState(false)
     const [message, setMessage] = useState("");
     const [showPopup, setShowPopup] = useState(false);
 
@@ -30,29 +27,21 @@ const AddClass = () => {
         adminID,
     };
 
-    const submitHandler = (event) => {
-        event.preventDefault()
-        setLoader(true)
-        dispatch(addStuff(fields, address))
+    const submitHandler = async (event) => {
+        event.preventDefault();
+        await dispatch(addSclass(fields));
     };
 
     useEffect(() => {
-        if (status === 'added' && tempDetails) {
-            navigate("/Admin/classes/class/" + tempDetails._id)
-            dispatch(underControl())
-            setLoader(false)
+        if (status === 'failed' || (response && response.includes("already exists"))) {
+            setMessage(response || "Failed to create class");
+            setShowPopup(true);
+        } else if (status === 'error') {
+            setMessage("Network Error");
+            setShowPopup(true);
         }
-        else if (status === 'failed') {
-            setMessage(response)
-            setShowPopup(true)
-            setLoader(false)
-        }
-        else if (status === 'error') {
-            setMessage("Network Error")
-            setShowPopup(true)
-            setLoader(false)
-        }
-    }, [status, navigate, error, response, dispatch, tempDetails]);
+    }, [status, navigate, error, response]);
+
     return (
         <>
             <StyledContainer>
@@ -84,9 +73,9 @@ const AddClass = () => {
                                 sx={{ mt: 3 }}
                                 variant="contained"
                                 type="submit"
-                                disabled={loader}
+                                disabled={loading}
                             >
-                                {loader ? <CircularProgress size={24} color="inherit" /> : "Create"}
+                                {loading ? <CircularProgress size={24} color="inherit" /> : "Create"}
                             </BlueButton>
                             <Button variant="outlined" onClick={() => navigate(-1)}>
                                 Go Back

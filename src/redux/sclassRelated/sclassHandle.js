@@ -9,18 +9,36 @@ import {
     getFailedTwo,
     getSubjectsSuccess,
     getSubDetailsSuccess,
-    getSubDetailsRequest
+    getSubDetailsRequest,
+    addClass
 } from './sclassSlice';
 
 export const getAllSclasses = (id, address) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`/${address}/${id}`);
+        const result = await axios.get(`/SclassList/${id}`);
         if (result.data.message) {
             dispatch(getFailedTwo(result.data.message));
         } else {
             dispatch(getSuccess(result.data));
+        }
+    } catch (error) {
+        dispatch(getError(error));
+    }
+}
+
+export const addSclass = (classData) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.post('/SclassCreate', classData);
+        if (result.data.message) {
+            dispatch(getFailed(result.data.message));
+        } else {
+            dispatch(addClass(result.data));
+            // After adding class successfully, refresh the list
+            dispatch(getAllSclasses(classData.adminID, 'Sclass'));
         }
     } catch (error) {
         dispatch(getError(error));
