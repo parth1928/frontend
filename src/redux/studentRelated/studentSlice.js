@@ -42,6 +42,11 @@ const studentSlice = createSlice({
         underStudentControl: (state) => {
             state.underControl = !state.underControl;
         },
+        stuffDone: (state) => {
+            state.loading = false;
+            state.error = null;
+            state.response = "Operation completed successfully";
+        },
         clearErrors: (state) => {
             state.error = null;
             state.response = null;
@@ -64,6 +69,7 @@ export const {
     getError,
     getAttendanceSuccess,
     underStudentControl,
+    stuffDone,
     clearErrors,
     clearData
 } = studentSlice.actions;
