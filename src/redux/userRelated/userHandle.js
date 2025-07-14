@@ -18,6 +18,15 @@ export const loginUser = (fields, role) => async (dispatch) => {
     console.log('Attempting login for role:', role, 'with fields:', fields);
 
     try {
+        if (!role) {
+            dispatch(authFailed('Role is required'));
+            return;
+        }
+
+        // Log the complete request URL
+        console.log('Making login request to:', `/${role}Login`);
+        console.log('With data:', fields);
+
         const result = await axios.post(`/${role}Login`, fields);
         console.log('Login response:', result.data);
 
@@ -26,20 +35,50 @@ export const loginUser = (fields, role) => async (dispatch) => {
             return;
         }
 
-        if (result.data.message) {
+        // Handle various response formats
+        if (result.data.error) {
+            dispatch(authFailed(result.data.error));
+            return;
+        }
+
+        if (result.data.message && !result.data._id) {
             dispatch(authFailed(result.data.message));
             return;
         }
 
-        if (!result.data.role) {
-            result.data.role = role; // Ensure role is set
+        // Ensure we have the required user data
+        if (!result.data._id) {
+            dispatch(authFailed('Invalid user data received'));
+            return;
         }
 
-        dispatch(authSuccess(result.data));
+        // Create a proper user object with all required fields
+        const userData = {
+            ...result.data,
+            role: result.data.role || role,
+            token: result.data.token // If your backend sends a token
+        };
+
+        console.log('Login successful, dispatching user data:', userData);
+        dispatch(authSuccess(userData));
     } catch (error) {
-        console.error('Login error:', error);
-        const errorMessage = error.response?.data?.message || error.message || 'Login failed';
-        dispatch(authError(errorMessage));
+        console.error('Login error details:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
+        });
+
+        if (error.code === 'ECONNABORTED') {
+            dispatch(authError('Server is taking longer than usual to respond. Please try again.'));
+        } else if (!error.response) {
+            dispatch(authError('Unable to reach the server. Please check your connection.'));
+        } else {
+            const errorMessage = error.response?.data?.message 
+                || error.response?.data?.error 
+                || error.message 
+                || 'Login failed. Please try again.';
+            dispatch(authError(errorMessage));
+        }
     }
 };
 

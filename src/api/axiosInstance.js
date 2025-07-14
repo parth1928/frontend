@@ -1,8 +1,9 @@
 import axios from 'axios';
 
 const instance = axios.create({
-    baseURL: process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com',
+    baseURL: 'https://backend-a2q3.onrender.com',
     withCredentials: true,
+    timeout: 20000, // Increasing timeout to 20 seconds since Render free tier can be slow
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json'
@@ -12,6 +13,7 @@ const instance = axios.create({
 // Add a request interceptor
 instance.interceptors.request.use(
     (config) => {
+        console.log('Making request to:', config.url);
         const user = JSON.parse(localStorage.getItem('user'));
         if (user && user.token) {
             config.headers.Authorization = `Bearer ${user.token}`;
@@ -27,32 +29,40 @@ instance.interceptors.request.use(
 // Add a response interceptor
 instance.interceptors.response.use(
     (response) => {
+        console.log('Response received:', response.status);
         return response;
     },
     (error) => {
-        if (error.response) {
-            console.error('Response error:', error.response);
-            // Handle specific error cases
-            switch (error.response.status) {
-                case 401:
-                    // Handle unauthorized
-                    localStorage.removeItem('user');
-                    window.location.href = '/';
-                    break;
-                case 403:
-                    // Handle forbidden
-                    console.error('Forbidden access:', error.response.data);
-                    break;
-                case 404:
-                    // Handle not found
-                    console.error('Resource not found:', error.response.data);
-                    break;
-                default:
-                    console.error('Server error:', error.response.data);
-                    break;
-            }
+        if (error.code === 'ECONNABORTED') {
+            console.error('Request timeout - server might be starting up (common with free tier)');
+            return Promise.reject(new Error('The server is taking longer than usual to respond. Please try again in a few moments.'));
         }
-        return Promise.reject(error);
+
+        if (!error.response) {
+            console.error('Network error:', error);
+            return Promise.reject(new Error('Unable to reach the server. Please check your connection and try again.'));
+        }
+
+        console.error('Response error:', {
+            status: error.response?.status,
+            data: error.response?.data,
+            url: error.config?.url
+        });
+
+        switch (error.response.status) {
+            case 401:
+                localStorage.removeItem('user');
+                window.location.href = '/';
+                return Promise.reject(new Error('Session expired. Please login again.'));
+            case 403:
+                return Promise.reject(new Error('Access denied. Please check your credentials.'));
+            case 404:
+                return Promise.reject(new Error('Service not found. Please try again later.'));
+            case 500:
+                return Promise.reject(new Error('Server error. Our team has been notified.'));
+            default:
+                return Promise.reject(new Error(error.response?.data?.message || 'Something went wrong. Please try again.'));
+        }
     }
 );
 

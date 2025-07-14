@@ -30,6 +30,25 @@ const LoginPage = ({ role }) => {
     const [rollNumberError, setRollNumberError] = useState(false);
     const [studentNameError, setStudentNameError] = useState(false);
 
+    // Add loading timeout cleanup
+    useEffect(() => {
+        let loadingTimeout;
+        
+        if (loader) {
+            loadingTimeout = setTimeout(() => {
+                setLoader(false);
+                setMessage("Request is taking longer than expected. Please try again.");
+                setShowPopup(true);
+            }, 20000); // 20 second timeout
+        }
+
+        return () => {
+            if (loadingTimeout) {
+                clearTimeout(loadingTimeout);
+            }
+        };
+    }, [loader]);
+
     const handleSubmit = (event) => {
         event.preventDefault();
         console.log('Login attempt for role:', role);
@@ -105,7 +124,7 @@ const LoginPage = ({ role }) => {
     }
 
     useEffect(() => {
-        console.log('Login state:', { status, currentUser, currentRole, error, response });
+        console.log('Login state update:', { status, currentUser, currentRole, error, response });
         
         if (status === 'success' || currentUser !== null) {
             if (currentRole === 'Admin') {
@@ -124,13 +143,13 @@ const LoginPage = ({ role }) => {
             setGuestLoader(false);
         }
         else if (status === 'failed') {
-            setMessage(response || 'Login failed')
+            setMessage(response || 'Login failed. Please check your credentials.')
             setShowPopup(true)
             setLoader(false)
             setGuestLoader(false);
         }
         else if (status === 'error') {
-            setMessage(error || "Network Error")
+            setMessage(error || "Network error. Please try again.")
             setShowPopup(true)
             setLoader(false)
             setGuestLoader(false)
