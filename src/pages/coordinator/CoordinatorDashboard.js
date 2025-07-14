@@ -25,27 +25,41 @@ const CoordinatorDashboard = () => {
     const dispatch = useDispatch();
     const { currentUser } = useSelector((state) => state.user);
     const { currentClass, loading: classLoading } = useSelector((state) => state.sclass);
-    const { userDetails: students, loading: studentsLoading } = useSelector((state) => state.user);
+    const { userDetails: students, loading: studentsLoading } = useSelector((state) => state.student);
 
     useEffect(() => {
-        if (currentUser?.assignedClass) {
+        if (currentUser?.assignedClass?._id) {
+            console.log('Fetching class details for:', currentUser.assignedClass);
             dispatch(getClassDetails(currentUser.assignedClass));
+        } else {
+            console.log('No assigned class found:', currentUser?.assignedClass);
         }
     }, [dispatch, currentUser]);
 
     useEffect(() => {
         if (currentClass?._id) {
+            console.log('Fetching students for class:', currentClass._id);
             dispatch(getAllStudents(currentClass._id));
+        } else {
+            console.log('No current class found:', currentClass);
         }
     }, [dispatch, currentClass]);
 
     const calculateStats = () => {
-        if (!students) return null;
+        if (!students || students.length === 0) {
+            console.log('No students data available');
+            return {
+                totalStudents: 0,
+                activeStudents: 0,
+                averageAttendance: 0,
+                monthlyAverages: []
+            };
+        }
 
         const totalStudents = students.length;
         const activeStudents = students.filter(s => s.status === 'active').length;
         const averageAttendance = students.reduce((acc, student) => 
-            acc + (student.attendance?.overallPercentage || 0), 0) / totalStudents;
+            acc + (student.attendance?.overallPercentage || 0), 0) / totalStudents || 0;
 
         const monthlyData = {};
         students.forEach(student => {
@@ -72,6 +86,19 @@ const CoordinatorDashboard = () => {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
                 <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (!currentUser?.assignedClass) {
+        return (
+            <Box sx={{ display: 'flex' }}>
+                <CoordinatorSideBar />
+                <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+                    <Typography variant="h6" color="error">
+                        No class has been assigned to you yet. Please contact the administrator.
+                    </Typography>
+                </Box>
             </Box>
         );
     }

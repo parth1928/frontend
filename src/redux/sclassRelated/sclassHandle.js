@@ -71,16 +71,28 @@ export const getClassStudents = (id, adminId) => async (dispatch) => {
     }
 }
 
-export const getClassDetails = (id, address) => async (dispatch) => {
+export const getClassDetails = (classInfo) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`/${address}/${id}`);
-        if (result.data) {
+        // Handle case where classInfo is an object (from coordinator's assignedClass)
+        const classId = typeof classInfo === 'object' ? classInfo._id : classInfo;
+        
+        // Don't make the API call if classId is undefined/null/empty
+        if (!classId || classId === 'undefined' || classId === 'null') {
+            dispatch(getFailed('Invalid class ID'));
+            return;
+        }
+
+        const result = await axios.get(`/Sclass/${classId}`);
+        if (result.data.message) {
+            dispatch(getFailed(result.data.message));
+        } else {
             dispatch(detailsSuccess(result.data));
         }
     } catch (error) {
-        dispatch(getError(error));
+        console.error('Error fetching class details:', error);
+        dispatch(getError(error.response?.data?.message || error.message));
     }
 }
 
