@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { KeyboardArrowDown, KeyboardArrowUp } from '@mui/icons-material';
-import { BottomNavigation, BottomNavigationAction, Box, Button, Collapse, Paper, Table, TableBody, TableHead, Typography } from '@mui/material';
+import { BottomNavigation, BottomNavigationAction, Box, Button, Card, CardContent, Collapse, Grid, Paper, Table, TableBody, TableHead, Typography } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserDetails } from '../../redux/userRelated/userHandle';
 import { calculateOverallAttendancePercentage, calculateSubjectAttendancePercentage, groupAttendanceBySubject } from '../../components/attendanceCalculator';
 
 import CustomBarChart from '../../components/CustomBarChart'
-
 import InsertChartIcon from '@mui/icons-material/InsertChart';
 import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
 import TableChartIcon from '@mui/icons-material/TableChart';
@@ -45,8 +44,6 @@ const ViewStdAttendance = () => {
 
     const attendanceBySubject = groupAttendanceBySubject(subjectAttendance)
 
-    const overallAttendancePercentage = calculateOverallAttendancePercentage(subjectAttendance);
-
     const subjectData = Object.entries(attendanceBySubject).map(([subName, { subCode, present, sessions }]) => {
         const subjectAttendancePercentage = calculateSubjectAttendancePercentage(present, sessions);
         return {
@@ -64,8 +61,24 @@ const ViewStdAttendance = () => {
     const renderTableSection = () => {
         return (
             <>
-                <Typography variant="h4" align="center" gutterBottom>
-                    Attendance
+                <Box mb={3}>
+                    <Card variant="outlined">
+                        <CardContent>
+                            <Typography variant="h5" gutterBottom>
+                                Overall Attendance
+                            </Typography>
+                            <Typography variant="h3" color={overallAttendancePercentage >= 75 ? "primary" : "error"}>
+                                {overallAttendancePercentage.toFixed(1)}%
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary">
+                                {overallAttendancePercentage >= 75 ? "Good standing" : "Needs improvement"}
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </Box>
+
+                <Typography variant="h5" gutterBottom>
+                    Subject-wise Attendance
                 </Typography>
                 <Table>
                     <TableHead>
@@ -79,6 +92,7 @@ const ViewStdAttendance = () => {
                     </TableHead>
                     {Object.entries(attendanceBySubject).map(([subName, { present, allData, subId, sessions }], index) => {
                         const subjectAttendancePercentage = calculateSubjectAttendancePercentage(present, sessions);
+                        const isLowAttendance = subjectAttendancePercentage < 75;
 
                         return (
                             <TableBody key={index}>
@@ -86,7 +100,11 @@ const ViewStdAttendance = () => {
                                     <StyledTableCell>{subName}</StyledTableCell>
                                     <StyledTableCell>{present}</StyledTableCell>
                                     <StyledTableCell>{sessions}</StyledTableCell>
-                                    <StyledTableCell>{subjectAttendancePercentage}%</StyledTableCell>
+                                    <StyledTableCell>
+                                        <Typography color={isLowAttendance ? "error" : "primary"}>
+                                            {subjectAttendancePercentage.toFixed(1)}%
+                                        </Typography>
+                                    </StyledTableCell>
                                     <StyledTableCell align="center">
                                         <Button variant="contained"
                                             onClick={() => handleOpen(subId)}>
@@ -117,7 +135,11 @@ const ViewStdAttendance = () => {
                                                                     <StyledTableCell component="th" scope="row">
                                                                         {dateString}
                                                                     </StyledTableCell>
-                                                                    <StyledTableCell align="right">{data.status}</StyledTableCell>
+                                                                    <StyledTableCell align="right">
+                                                                        <Typography color={data.status === 'Present' ? 'primary' : 'error'}>
+                                                                            {data.status}
+                                                                        </Typography>
+                                                                    </StyledTableCell>
                                                                 </StyledTableRow>
                                                             )
                                                         })}
@@ -132,9 +154,6 @@ const ViewStdAttendance = () => {
                     }
                     )}
                 </Table>
-                <div>
-                    Overall Attendance Percentage: {overallAttendancePercentage.toFixed(2)}%
-                </div>
             </>
         )
     }
@@ -142,6 +161,21 @@ const ViewStdAttendance = () => {
     const renderChartSection = () => {
         return (
             <>
+                <Box mb={3}>
+                    <Card variant="outlined">
+                        <CardContent>
+                            <Typography variant="h5" gutterBottom>
+                                Overall Attendance
+                            </Typography>
+                            <Typography variant="h3" color={overallAttendancePercentage >= 75 ? "primary" : "error"}>
+                                {overallAttendancePercentage.toFixed(1)}%
+                            </Typography>
+                        </CardContent>
+                    </Card>
+                </Box>
+                <Typography variant="h5" gutterBottom>
+                    Subject-wise Analysis
+                </Typography>
                 <CustomBarChart chartData={subjectData} dataKey="attendancePercentage" />
             </>
         )
@@ -149,13 +183,11 @@ const ViewStdAttendance = () => {
 
     return (
         <>
-            {loading
-                ? (
-                    <div>Loading...</div>
-                )
-                :
+            {loading ? (
+                <div>Loading...</div>
+            ) : (
                 <div>
-                    {subjectAttendance && Array.isArray(subjectAttendance) && subjectAttendance.length > 0 ?
+                    {subjectAttendance && Array.isArray(subjectAttendance) && subjectAttendance.length > 0 ? (
                         <>
                             {selectedSection === 'table' && renderTableSection()}
                             {selectedSection === 'chart' && renderChartSection()}
@@ -168,22 +200,22 @@ const ViewStdAttendance = () => {
                                         icon={selectedSection === 'table' ? <TableChartIcon /> : <TableChartOutlinedIcon />}
                                     />
                                     <BottomNavigationAction
-                                        label="Chart"
+                                        label="Subject Analysis"
                                         value="chart"
                                         icon={selectedSection === 'chart' ? <InsertChartIcon /> : <InsertChartOutlinedIcon />}
                                     />
                                 </BottomNavigation>
                             </Paper>
                         </>
-                        :
+                    ) : (
                         <>
                             <Typography variant="h6" gutterBottom component="div">
                                 Currently You Have No Attendance Details
                             </Typography>
                         </>
-                    }
+                    )}
                 </div>
-            }
+            )}
         </>
     )
 }
