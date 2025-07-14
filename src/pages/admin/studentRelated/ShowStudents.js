@@ -5,17 +5,21 @@ import { getAllStudents } from '../../../redux/studentRelated/studentHandle';
 import { getAllDtodStudents } from '../../../redux/dtodRelated/dtodHandle';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import {
-    Paper, Box, IconButton, Button
+    Paper,
+    Box,
+    IconButton,
+    Button,
+    Grid,
+    CircularProgress,
+    Typography,
+    Alert,
+    ButtonGroup
 } from '@mui/material';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import { BlackButton, BlueButton, GreenButton } from '../../../components/buttonStyles';
 import TableTemplate from '../../../components/TableTemplate';
 import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import SpeedDialTemplate from '../../../components/SpeedDialTemplate';
-
-import * as React from 'react';
-import ButtonGroup from '@mui/material/ButtonGroup';
-// import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { KeyboardArrowUp, KeyboardArrowDown } from '@mui/icons-material';
 import ClickAwayListener from '@mui/material/ClickAwayListener';
 import Grow from '@mui/material/Grow';
@@ -24,7 +28,6 @@ import MenuItem from '@mui/material/MenuItem';
 import MenuList from '@mui/material/MenuList';
 import Popup from '../../../components/Popup';
 import AddIcon from '@mui/icons-material/Add';
-import { CircularProgress, Typography, Alert } from '@mui/material';
 
 const ShowStudents = () => {
     const navigate = useNavigate()
@@ -79,42 +82,29 @@ const ShowStudents = () => {
         });
     }
 
+    const actions = [
+        {
+            icon: <PersonAddAlt1Icon color="primary" />,
+            name: 'Add New Student',
+            action: () => navigate("/Admin/addstudents")
+        },
+        {
+            icon: <PersonAddAlt1Icon color="primary" />,
+            name: 'Bulk Upload Students',
+            action: () => navigate("/Admin/students/bulkupload")
+        },
+        {
+            icon: <AddIcon color="primary" />,
+            name: 'Add D2D Students',
+            action: () => navigate('/Admin/students/dtodbulkupload')
+        }
+    ];
+
     const studentColumns = [
         { id: 'name', label: 'Name', minWidth: 170 },
         { id: 'rollNum', label: 'Roll Number', minWidth: 100 },
         { id: 'sclassName', label: 'Class', minWidth: 170 },
     ];
-
-    // Merge and process student lists
-    const allStudents = React.useMemo(() => {
-        console.log('Processing student lists:', {
-            regular: studentsList,
-            dtod: dtodStudentsList
-        });
-
-        return [
-            ...(Array.isArray(studentsList) ? studentsList : []),
-            ...(Array.isArray(dtodStudentsList) ? dtodStudentsList.map(s => ({ ...s, type: 'D2D' })) : [])
-        ];
-    }, [studentsList, dtodStudentsList]);
-
-    const studentRows = React.useMemo(() => {
-        return allStudents.map((student) => {
-            let className = '';
-            if (student.sclassName && typeof student.sclassName === 'object' && student.sclassName.sclassName) {
-                className = student.sclassName.sclassName;
-            } else if (typeof student.sclassName === 'string') {
-                className = student.sclassName;
-            }
-            return {
-                name: student.name,
-                rollNum: student.rollNum,
-                sclassName: className,
-                id: student._id,
-                type: student.type || 'Regular',
-            };
-        });
-    }, [allStudents]);
 
     const StudentButtonHaver = ({ row }) => {
         const options = ['Take Attendance', 'Provide Marks'];
@@ -220,34 +210,17 @@ const ShowStudents = () => {
         );
     };
 
-    const actions = [
-        {
-            icon: <PersonAddAlt1Icon color="primary" />, 
-            name: 'Add New Student',
-            action: () => navigate("/Admin/addstudents")
-        },
-        {
-            icon: <PersonAddAlt1Icon color="primary" />, 
-            name: 'Bulk Upload Students',
-            action: () => navigate("/Admin/students/bulkupload")
-        },
-        {
-            icon: <AddIcon color="primary" />,
-            name: 'Add D2D Students',
-            action: () => navigate('/Admin/students/dtodbulkupload')
-        }
-    ];
-
     if (loading) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-                <CircularProgress />
-                <Typography sx={{ ml: 2 }}>Loading students...</Typography>
+            <Box sx={{ p: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+                    <CircularProgress />
+                    <Typography sx={{ ml: 2 }}>Loading students...</Typography>
+                </Box>
             </Box>
         );
     }
 
-    // Show error with retry button
     if (error) {
         return (
             <Box sx={{ p: 2 }}>
@@ -272,7 +245,6 @@ const ShowStudents = () => {
         );
     }
 
-    // Show empty state with actions
     if (!studentsList || (Array.isArray(studentsList) && studentsList.length === 0)) {
         return (
             <Box sx={{ p: 2 }}>
@@ -283,92 +255,79 @@ const ShowStudents = () => {
                     <Typography color="textSecondary" sx={{ mb: 3 }}>
                         Get started by adding students using one of these options:
                     </Typography>
-                    <Grid container spacing={2} justifyContent="center">
-                        <Grid item>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                startIcon={<PersonAddAlt1Icon />}
-                                onClick={() => navigate("/Admin/addstudents")}
-                            >
-                                Add Individual Student
-                            </Button>
-                        </Grid>
-                        <Grid item>
-                            <Button
-                                variant="contained"
-                                color="secondary"
-                                startIcon={<PersonAddAlt1Icon />}
-                                onClick={() => navigate("/Admin/students/bulkupload")}
-                            >
-                                Bulk Upload Students
-                            </Button>
-                        </Grid>
-                        <Grid item>
-                            <Button
-                                variant="contained"
-                                color="info"
-                                startIcon={<AddIcon />}
-                                onClick={() => navigate('/Admin/students/dtodbulkupload')}
-                            >
-                                Add D2D Students
-                            </Button>
-                        </Grid>
-                    </Grid>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            startIcon={<PersonAddAlt1Icon />}
+                            onClick={() => navigate("/Admin/addstudents")}
+                        >
+                            Add Individual Student
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="secondary"
+                            startIcon={<PersonAddAlt1Icon />}
+                            onClick={() => navigate("/Admin/students/bulkupload")}
+                        >
+                            Bulk Upload Students
+                        </Button>
+                        <Button
+                            variant="contained"
+                            color="info"
+                            startIcon={<AddIcon />}
+                            onClick={() => navigate('/Admin/students/dtodbulkupload')}
+                        >
+                            Add D2D Students
+                        </Button>
+                    </Box>
                 </Paper>
                 <SpeedDialTemplate actions={actions} />
             </Box>
         );
     }
 
+    // If there are students, show the table
     return (
         <Box sx={{ p: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                 <Typography variant="h5" component="h1">
                     Students Management
                 </Typography>
-                <Button
-                    variant="contained"
-                    color="secondary"
-                    startIcon={<AddIcon />}
-                    onClick={() => navigate('/Admin/students/dtodbulkupload')}
-                >
-                    Add D2D Students
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        startIcon={<PersonAddAlt1Icon />}
+                        onClick={() => navigate("/Admin/addstudents")}
+                    >
+                        Add Student
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        startIcon={<AddIcon />}
+                        onClick={() => navigate('/Admin/students/dtodbulkupload')}
+                    >
+                        Add D2D Students
+                    </Button>
+                </Box>
             </Box>
 
-            {response ? (
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                    <GreenButton variant="contained" onClick={() => navigate("/Admin/addstudents")}>
-                        Add Students
-                    </GreenButton>
-                </Box>
-            ) : (
-                <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                    {studentRows.length > 0 ? (
-                        <TableTemplate
-                            buttonHaver={StudentButtonHaver}
-                            columns={studentColumns.concat([{ id: 'type', label: 'Type', minWidth: 80 }])}
-                            rows={studentRows}
-                        />
-                    ) : (
-                        <Box sx={{ p: 2, textAlign: 'center' }}>
-                            <Typography variant="h6" color="textSecondary">
-                                No students found
-                            </Typography>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                sx={{ mt: 2 }}
-                                onClick={() => navigate("/Admin/addstudents")}
-                            >
-                                Add Your First Student
-                            </Button>
-                        </Box>
-                    )}
-                    <SpeedDialTemplate actions={actions} />
-                </Paper>
-            )}
+            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+                <TableTemplate
+                    buttonHaver={StudentButtonHaver}
+                    columns={studentColumns.concat([{ id: 'type', label: 'Type', minWidth: 80 }])}
+                    rows={studentsList.map(student => ({
+                        name: student.name,
+                        rollNum: student.rollNum,
+                        sclassName: typeof student.sclassName === 'object' ? student.sclassName.sclassName : student.sclassName,
+                        id: student._id,
+                        type: student.type || 'Regular'
+                    }))}
+                />
+            </Paper>
+            <SpeedDialTemplate actions={actions} />
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
         </Box>
     );
