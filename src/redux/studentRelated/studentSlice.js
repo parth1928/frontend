@@ -5,7 +5,8 @@ const initialState = {
     loading: false,
     error: null,
     response: null,
-    studentsAttendance: null
+    studentsAttendance: null,
+    underControl: false
 };
 
 const studentSlice = createSlice({
@@ -38,6 +39,9 @@ const studentSlice = createSlice({
             state.error = null;
             state.response = null;
         },
+        underStudentControl: (state) => {
+            state.underControl = !state.underControl;
+        },
         clearErrors: (state) => {
             state.error = null;
             state.response = null;
@@ -48,6 +52,7 @@ const studentSlice = createSlice({
             state.error = null;
             state.response = null;
             state.loading = false;
+            state.underControl = false;
         }
     },
 });
@@ -58,6 +63,7 @@ export const {
     getFailed,
     getError,
     getAttendanceSuccess,
+    underStudentControl,
     clearErrors,
     clearData
 } = studentSlice.actions;
