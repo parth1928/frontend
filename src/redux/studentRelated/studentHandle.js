@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios from '../../api/axiosInstance';
 import {
     getRequest,
     getSuccess,
@@ -6,13 +6,12 @@ import {
     getError,
     stuffDone
 } from './studentSlice';
-const REACT_APP_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 
 export const getAllStudents = (id) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/Students/${id}`);
+        const result = await axios.get(`/Coordinator/students/${id}`);
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
@@ -21,7 +20,7 @@ export const getAllStudents = (id) => async (dispatch) => {
     } catch (error) {
         dispatch(getError(error));
     }
-}
+};
 
 export const getStudentList = (classId) => async (dispatch) => {
     dispatch(getRequest());
@@ -36,7 +35,7 @@ export const getStudentList = (classId) => async (dispatch) => {
     } catch (error) {
         dispatch(getError(error));
     }
-}
+};
 
 export const updateStudentFields = (id, fields, address) => async (dispatch) => {
     dispatch(getRequest());
@@ -53,7 +52,7 @@ export const updateStudentFields = (id, fields, address) => async (dispatch) => 
     } catch (error) {
         dispatch(getError(error));
     }
-}
+};
 
 export const removeStuff = (id, address) => async (dispatch) => {
     dispatch(getRequest());
@@ -68,13 +67,13 @@ export const removeStuff = (id, address) => async (dispatch) => {
     } catch (error) {
         dispatch(getError(error));
     }
-}
+};
 
 export const getStudentAttendance = (classId) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/StudentAttendance/${classId}`);
+        const result = await axios.get(`/Coordinator/attendance/${classId}`);
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
@@ -83,4 +82,4 @@ export const getStudentAttendance = (classId) => async (dispatch) => {
     } catch (error) {
         dispatch(getError(error));
     }
-}
+};
