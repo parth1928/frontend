@@ -9,17 +9,19 @@ import {
     TableContainer,
     TableHead,
     TableRow,
-    CircularProgress
+    CircularProgress,
+    Button
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { getClassDetails } from '../../redux/sclassRelated/sclassHandle';
-import { getStudentList } from '../../redux/studentRelated/studentHandle';
+import { getAllStudents } from '../../redux/studentRelated/studentHandle';
+import CoordinatorSideBar from './CoordinatorSideBar';
 
 const CoordinatorStudents = () => {
     const dispatch = useDispatch();
     const { currentUser } = useSelector((state) => state.user);
     const { currentClass, loading: classLoading } = useSelector((state) => state.sclass);
-    const { studentsList, loading: studentsLoading } = useSelector((state) => state.student);
+    const { userDetails: students, loading: studentsLoading } = useSelector((state) => state.user);
 
     useEffect(() => {
         if (currentUser?.assignedClass) {
@@ -29,7 +31,7 @@ const CoordinatorStudents = () => {
 
     useEffect(() => {
         if (currentClass?._id) {
-            dispatch(getStudentList(currentClass._id));
+            dispatch(getAllStudents(currentClass._id));
         }
     }, [dispatch, currentClass]);
 
@@ -42,37 +44,59 @@ const CoordinatorStudents = () => {
     }
 
     return (
-        <Box sx={{ p: 3 }}>
-            <Typography variant="h4" gutterBottom>
-                {currentClass?.sclassName} Students
-            </Typography>
+        <Box sx={{ display: 'flex' }}>
+            <CoordinatorSideBar />
+            <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+                <Typography variant="h4" gutterBottom>
+                    Students in {currentClass?.sclassName}
+                </Typography>
 
-            <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                <TableContainer>
-                    <Table stickyHeader aria-label="students table">
+                <Paper sx={{ p: 2, mb: 2 }}>
+                    <Box sx={{ mb: 2 }}>
+                        <Typography variant="h6" gutterBottom>
+                            Class Statistics
+                        </Typography>
+                        <Box sx={{ display: 'flex', gap: 4 }}>
+                            <Typography>
+                                Total Students: {students?.length || 0}
+                            </Typography>
+                            <Typography>
+                                Active Students: {students?.filter(s => s.status === 'active')?.length || 0}
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Paper>
+
+                <TableContainer component={Paper}>
+                    <Table>
                         <TableHead>
                             <TableRow>
                                 <TableCell>Roll Number</TableCell>
                                 <TableCell>Name</TableCell>
                                 <TableCell>Email</TableCell>
-                                <TableCell align="center">Overall Attendance</TableCell>
+                                <TableCell>Status</TableCell>
+                                <TableCell>Overall Attendance</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody>
-                            {studentsList.map((student) => (
+                            {students?.map((student) => (
                                 <TableRow key={student._id}>
                                     <TableCell>{student.rollNum}</TableCell>
                                     <TableCell>{student.name}</TableCell>
                                     <TableCell>{student.email}</TableCell>
-                                    <TableCell align="center">
-                                        {student.attendance?.overallPercentage || 0}%
+                                    <TableCell>{student.status || 'active'}</TableCell>
+                                    <TableCell>
+                                        {student.attendance?.overallPercentage 
+                                            ? `${student.attendance.overallPercentage}%`
+                                            : 'N/A'
+                                        }
                                     </TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                     </Table>
                 </TableContainer>
-            </Paper>
+            </Box>
         </Box>
     );
 };

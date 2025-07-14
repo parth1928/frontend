@@ -1,141 +1,74 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import {
     Box,
-    CssBaseline,
-    IconButton,
-    Toolbar,
-    List,
-    Typography,
-    Divider,
-    ListItem,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText,
     Paper,
-    Button,
-    Table,
-    TableBody,
-    TableCell,
-    TableContainer,
-    TableHead,
-    TableRow,
-    CircularProgress
+    Typography,
+    Grid,
+    CircularProgress,
+    Card,
+    CardContent,
+    Button
 } from '@mui/material';
-import { styled } from '@mui/material/styles';
-import MuiDrawer from '@mui/material/Drawer';
-import MuiAppBar from '@mui/material/AppBar';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import PersonIcon from '@mui/icons-material/Person';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import DownloadIcon from '@mui/icons-material/Download';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { logoutUser } from "../../redux/userRelated/userHandle";
 import { getClassDetails } from '../../redux/sclassRelated/sclassHandle';
-import { getStudentList, getStudentAttendance } from '../../redux/studentRelated/studentHandle';
-import { getSubjectList } from '../../redux/subjectRelated/subjectHandle';
-
-const drawerWidth = 240;
-
-const AppBar = styled(MuiAppBar, {
-    shouldForwardProp: (prop) => prop !== 'open',
-})(({ theme, open }) => ({
-    zIndex: theme.zIndex.drawer + 1,
-    transition: theme.transitions.create(['width', 'margin'], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-    }),
-    ...(open && {
-        marginLeft: drawerWidth,
-        width: `calc(100% - ${drawerWidth}px)`,
-        transition: theme.transitions.create(['width', 'margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-    }),
-}));
-
-const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-    ({ theme, open }) => ({
-        '& .MuiDrawer-paper': {
-            position: 'relative',
-            whiteSpace: 'nowrap',
-            width: drawerWidth,
-            transition: theme.transitions.create('width', {
-                easing: theme.transitions.easing.sharp,
-                duration: theme.transitions.duration.enteringScreen,
-            }),
-            boxSizing: 'border-box',
-            ...(!open && {
-                overflowX: 'hidden',
-                transition: theme.transitions.create('width', {
-                    easing: theme.transitions.easing.sharp,
-                    duration: theme.transitions.duration.leavingScreen,
-                }),
-                width: theme.spacing(7),
-                [theme.breakpoints.up('sm')]: {
-                    width: theme.spacing(9),
-                },
-            }),
-        },
-    }),
-);
-
-const getAttendanceColor = (percentage) => {
-    if (percentage >= 75) return '#4caf50';  // Green
-    if (percentage >= 60) return '#ff9800';  // Orange
-    return '#f44336';  // Red
-};
+import { getAllStudents } from '../../redux/studentRelated/studentHandle';
+import CoordinatorSideBar from './CoordinatorSideBar';
+import CustomBarChart from '../../components/CustomBarChart';
+import CustomPieChart from '../../components/CustomPieChart';
+import PeopleIcon from '@mui/icons-material/People';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import DescriptionIcon from '@mui/icons-material/Description';
 
 const CoordinatorDashboard = () => {
-    const [open, setOpen] = useState(true);
-    const dispatch = useDispatch();
     const navigate = useNavigate();
+    const dispatch = useDispatch();
     const { currentUser } = useSelector((state) => state.user);
     const { currentClass, loading: classLoading } = useSelector((state) => state.sclass);
-    const { subjectsList } = useSelector((state) => state.subject);
-    const { studentsAttendance, loading: attendanceLoading } = useSelector((state) => state.student);
+    const { userDetails: students, loading: studentsLoading } = useSelector((state) => state.user);
 
     useEffect(() => {
         if (currentUser?.assignedClass) {
             dispatch(getClassDetails(currentUser.assignedClass));
-            dispatch(getSubjectList({ classId: currentUser.assignedClass }));
         }
     }, [dispatch, currentUser]);
 
     useEffect(() => {
         if (currentClass?._id) {
-            dispatch(getStudentAttendance(currentClass._id));
+            dispatch(getAllStudents(currentClass._id));
         }
     }, [dispatch, currentClass]);
 
-    const toggleDrawer = () => {
-        setOpen(!open);
+    const calculateStats = () => {
+        if (!students) return null;
+
+        const totalStudents = students.length;
+        const activeStudents = students.filter(s => s.status === 'active').length;
+        const averageAttendance = students.reduce((acc, student) => 
+            acc + (student.attendance?.overallPercentage || 0), 0) / totalStudents;
+
+        const monthlyData = {};
+        students.forEach(student => {
+            if (student.attendance?.monthly) {
+                Object.entries(student.attendance.monthly).forEach(([month, value]) => {
+                    if (!monthlyData[month]) monthlyData[month] = [];
+                    monthlyData[month].push(value);
+                });
+            }
+        });
+
+        return {
+            totalStudents,
+            activeStudents,
+            averageAttendance,
+            monthlyAverages: Object.entries(monthlyData).map(([month, values]) => ({
+                month,
+                average: values.reduce((a, b) => a + b, 0) / values.length
+            }))
+        };
     };
 
-    const downloadAttendanceReport = async () => {
-        try {
-            const response = await fetch(`/Coordinator/attendance/download/${currentUser._id}`, {
-                headers: {
-                    'Authorization': `Bearer ${currentUser.token}`
-                }
-            });
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${currentClass.sclassName}_attendance.csv`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-        } catch (error) {
-            console.error('Error downloading attendance:', error);
-        }
-    };
-
-    if (classLoading || attendanceLoading) {
+    if (classLoading || studentsLoading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
                 <CircularProgress />
@@ -143,149 +76,139 @@ const CoordinatorDashboard = () => {
         );
     }
 
+    const stats = calculateStats();
+
     return (
         <Box sx={{ display: 'flex' }}>
-            <CssBaseline />
-            <AppBar position="absolute" open={open}>
-                <Toolbar sx={{ pr: '24px' }}>
-                    <IconButton
-                        edge="start"
-                        color="inherit"
-                        aria-label="open drawer"
-                        onClick={toggleDrawer}
-                        sx={{
-                            marginRight: '36px',
-                            ...(open && { display: 'none' }),
-                        }}
-                    >
-                        <MenuIcon />
-                    </IconButton>
-                    <Typography
-                        component="h1"
-                        variant="h6"
-                        color="inherit"
-                        noWrap
-                        sx={{ flexGrow: 1 }}
-                    >
-                        Class Coordinator Dashboard
-                    </Typography>
-                </Toolbar>
-            </AppBar>
-            <Drawer variant="permanent" open={open}>
-                <Toolbar
-                    sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'flex-end',
-                        px: [1],
-                    }}
-                >
-                    <IconButton onClick={toggleDrawer}>
-                        <ChevronLeftIcon />
-                    </IconButton>
-                </Toolbar>
-                <Divider />
-                <List component="nav">
-                    <ListItem>
-                        <ListItemButton onClick={() => navigate("/Coordinator/dashboard")}>
-                            <ListItemIcon>
-                                <DashboardIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="Dashboard" />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem>
-                        <ListItemButton onClick={() => navigate("/Coordinator/profile")}>
-                            <ListItemIcon>
-                                <PersonIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="Profile" />
-                        </ListItemButton>
-                    </ListItem>
-                    <ListItem>
-                        <ListItemButton onClick={() => dispatch(logoutUser())}>
-                            <ListItemIcon>
-                                <ExitToAppIcon />
-                            </ListItemIcon>
-                            <ListItemText primary="Logout" />
-                        </ListItemButton>
-                    </ListItem>
-                </List>
-            </Drawer>
-            <Box
-                component="main"
-                sx={{
-                    backgroundColor: (theme) =>
-                        theme.palette.mode === 'light'
-                            ? theme.palette.grey[100]
-                            : theme.palette.grey[900],
-                    flexGrow: 1,
-                    height: '100vh',
-                    overflow: 'auto',
-                    pt: 8
-                }}
-            >
-                <Box sx={{ p: 3 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                        <Typography variant="h4" gutterBottom>
-                            Class {currentClass?.sclassName} Dashboard
-                        </Typography>
-                        <Button
-                            variant="contained"
-                            startIcon={<DownloadIcon />}
-                            onClick={downloadAttendanceReport}
-                        >
-                            Download Attendance Report
-                        </Button>
-                    </Box>
+            <CoordinatorSideBar />
+            <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+                <Typography variant="h4" gutterBottom>
+                    Welcome, {currentUser?.name}
+                </Typography>
+                
+                <Typography variant="h6" gutterBottom color="textSecondary">
+                    Class Coordinator - {currentClass?.sclassName}
+                </Typography>
 
-                    <Paper sx={{ p: 2 }}>
-                        <TableContainer>
-                            <Table>
-                                <TableHead>
-                                    <TableRow>
-                                        <TableCell>Student Name</TableCell>
-                                        {subjectsList.map((subject) => (
-                                            <TableCell key={subject._id} align="center">
-                                                {subject.subjectName}
-                                            </TableCell>
-                                        ))}
-                                        <TableCell align="center">Overall</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    {studentsAttendance.map((student) => (
-                                        <TableRow key={student._id}>
-                                            <TableCell>{student.name}</TableCell>
-                                            {subjectsList.map((subject) => {
-                                                const attendance = student.attendance[subject._id] || 0;
-                                                return (
-                                                    <TableCell
-                                                        key={subject._id}
-                                                        align="center"
-                                                        sx={{
-                                                            color: getAttendanceColor(attendance)
-                                                        }}
-                                                    >
-                                                        {attendance}%
-                                                    </TableCell>
-                                                );
-                                            })}
-                                            <TableCell
-                                                align="center"
-                                                sx={{
-                                                    color: getAttendanceColor(student.overallAttendance)
-                                                }}
-                                            >
-                                                {student.overallAttendance}%
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                                </TableBody>
-                            </Table>
-                        </TableContainer>
-                    </Paper>
-                </Box>
+                <Grid container spacing={3}>
+                    {/* Quick Stats Cards */}
+                    <Grid item xs={12} md={4}>
+                        <Card>
+                            <CardContent>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Box>
+                                        <Typography color="textSecondary" gutterBottom>
+                                            Total Students
+                                        </Typography>
+                                        <Typography variant="h4">
+                                            {stats?.totalStudents || 0}
+                                        </Typography>
+                                    </Box>
+                                    <PeopleIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+                                </Box>
+                                <Button 
+                                    sx={{ mt: 2 }} 
+                                    variant="outlined" 
+                                    fullWidth
+                                    onClick={() => navigate('/coordinator/students')}
+                                >
+                                    View Students
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+
+                    <Grid item xs={12} md={4}>
+                        <Card>
+                            <CardContent>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Box>
+                                        <Typography color="textSecondary" gutterBottom>
+                                            Average Attendance
+                                        </Typography>
+                                        <Typography variant="h4">
+                                            {stats?.averageAttendance.toFixed(1)}%
+                                        </Typography>
+                                    </Box>
+                                    <AssessmentIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+                                </Box>
+                                <Button 
+                                    sx={{ mt: 2 }} 
+                                    variant="outlined" 
+                                    fullWidth
+                                    onClick={() => navigate('/coordinator/attendance-analysis')}
+                                >
+                                    View Analysis
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+
+                    <Grid item xs={12} md={4}>
+                        <Card>
+                            <CardContent>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Box>
+                                        <Typography color="textSecondary" gutterBottom>
+                                            Generate Reports
+                                        </Typography>
+                                        <Typography variant="h4">
+                                            Quick Access
+                                        </Typography>
+                                    </Box>
+                                    <DescriptionIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+                                </Box>
+                                <Button 
+                                    sx={{ mt: 2 }} 
+                                    variant="outlined" 
+                                    fullWidth
+                                    onClick={() => navigate('/coordinator/attendance-reports')}
+                                >
+                                    Generate Reports
+                                </Button>
+                            </CardContent>
+                        </Card>
+                    </Grid>
+
+                    {/* Charts */}
+                    <Grid item xs={12} md={6}>
+                        <Paper sx={{ p: 2 }}>
+                            <Typography variant="h6" gutterBottom>
+                                Monthly Attendance Trends
+                            </Typography>
+                            {stats?.monthlyAverages && (
+                                <CustomBarChart
+                                    data={stats.monthlyAverages}
+                                    XAxisKey="month"
+                                    YAxisKey="average"
+                                    barKey="average"
+                                    tooltip="Average Attendance %"
+                                />
+                            )}
+                        </Paper>
+                    </Grid>
+
+                    <Grid item xs={12} md={6}>
+                        <Paper sx={{ p: 2 }}>
+                            <Typography variant="h6" gutterBottom>
+                                Recent Attendance Overview
+                            </Typography>
+                            <Box sx={{ minHeight: 300, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                {students?.slice(0, 5).map(student => (
+                                    <Box key={student._id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <Typography>{student.name}</Typography>
+                                        <Typography>
+                                            {student.attendance?.overallPercentage 
+                                                ? `${student.attendance.overallPercentage}%`
+                                                : 'N/A'
+                                            }
+                                        </Typography>
+                                    </Box>
+                                ))}
+                            </Box>
+                        </Paper>
+                    </Grid>
+                </Grid>
             </Box>
         </Box>
     );
