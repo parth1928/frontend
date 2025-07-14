@@ -6,6 +6,21 @@ import {
     getError,
 } from '../userRelated/userSlice';
 
+export const getAllCoordinators = (adminId) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.get(`/ClassCoordinators/${adminId}`);
+        if (result.data.message) {
+            dispatch(getFailed(result.data.message));
+        } else {
+            dispatch(doneSuccess(result.data));
+        }
+    } catch (error) {
+        dispatch(getError(error));
+    }
+};
+
 export const getClassDetails = (id) => async (dispatch) => {
     dispatch(getRequest());
 
