@@ -21,7 +21,7 @@ import {
     ListItem,
     ListItemText
 } from '@mui/material';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
@@ -239,7 +239,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 Quick Attendance
             </Typography>
 
-            <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
                 <DatePicker
                     label="Attendance Date"
                     value={date}
