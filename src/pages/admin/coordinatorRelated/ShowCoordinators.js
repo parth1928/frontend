@@ -25,14 +25,17 @@ const ShowCoordinators = () => {
 
     const [coordinators, setCoordinators] = useState([]);
 
+    const { response, loading, error } = useSelector((state) => state.user);
+
     useEffect(() => {
-        dispatch(getClassCoordinators(currentUser._id))
-            .then((result) => {
-                if (result.success) {
-                    setCoordinators(result.data);
-                }
-            });
+        dispatch(getClassCoordinators(currentUser._id));
     }, [dispatch, currentUser._id]);
+
+    useEffect(() => {
+        if (response) {
+            setCoordinators(response);
+        }
+    }, [response]);
 
     const deleteHandler = (id) => {
         setMessage("Sorry, the delete function has been disabled for now.");
