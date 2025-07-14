@@ -9,18 +9,23 @@ import {
     TableHead,
     TableRow,
     IconButton,
-    Tooltip
+    Tooltip,
+    Button,
+    Typography
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from "@mui/icons-material/Delete";
 import { useDispatch, useSelector } from 'react-redux';
 import { getClassCoordinators } from '../../../redux/userRelated/userHandle';
 import { BlueButton } from '../../../components/buttonStyles';
 import Popup from '../../../components/Popup';
+import AddCoordinator from './AddCoordinator';
 
 const ShowCoordinators = () => {
     const dispatch = useDispatch();
     const { currentUser } = useSelector((state) => state.user);
     const [showPopup, setShowPopup] = useState(false);
+    const [showAddDialog, setShowAddDialog] = useState(false);
     const [message, setMessage] = useState("");
 
     const [coordinators, setCoordinators] = useState([]);
@@ -44,6 +49,17 @@ const ShowCoordinators = () => {
 
     return (
         <Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="h5">Class Coordinators</Typography>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    startIcon={<AddIcon />}
+                    onClick={() => setShowAddDialog(true)}
+                >
+                    Add Coordinator
+                </Button>
+            </Box>
             <Paper sx={{ p: 3 }}>
                 <TableContainer>
                     <Table>
@@ -86,6 +102,10 @@ const ShowCoordinators = () => {
                 message={message}
                 setShowPopup={setShowPopup}
                 showPopup={showPopup}
+            />
+            <AddCoordinator
+                open={showAddDialog}
+                handleClose={() => setShowAddDialog(false)}
             />
         </Box>
     );
