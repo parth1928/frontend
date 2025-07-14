@@ -4,6 +4,7 @@ import { BottomNavigation, BottomNavigationAction, Box, Button, Collapse, Paper,
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserDetails } from '../../redux/userRelated/userHandle';
 import { calculateOverallAttendancePercentage, calculateSubjectAttendancePercentage, groupAttendanceBySubject } from '../../components/attendanceCalculator';
+import { format } from 'date-fns';
 
 import CustomBarChart from '../../components/CustomBarChart'
 
@@ -111,7 +112,7 @@ const ViewStdAttendance = () => {
                                                     <TableBody>
                                                         {allData.map((data, index) => {
                                                             const date = new Date(data.date);
-                                                            const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
+                                                            const dateString = date.toString() !== "Invalid Date" ? format(date, 'dd/MM/yyyy') : "Invalid Date";
                                                             return (
                                                                 <StyledTableRow key={index}>
                                                                     <StyledTableCell component="th" scope="row">

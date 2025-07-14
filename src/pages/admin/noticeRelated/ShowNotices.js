@@ -11,6 +11,7 @@ import { deleteUser } from '../../../redux/userRelated/userHandle';
 import TableTemplate from '../../../components/TableTemplate';
 import { GreenButton } from '../../../components/buttonStyles';
 import SpeedDialTemplate from '../../../components/SpeedDialTemplate';
+import { format } from 'date-fns';
 
 const ShowNotices = () => {
 
@@ -42,7 +43,7 @@ const ShowNotices = () => {
 
     const noticeRows = noticesList && noticesList.length > 0 && noticesList.map((notice) => {
         const date = new Date(notice.date);
-        const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
+        const dateString = date.toString() !== "Invalid Date" ? format(date, 'dd/MM/yyyy') : "Invalid Date";
         return {
             title: notice.title,
             details: notice.details,

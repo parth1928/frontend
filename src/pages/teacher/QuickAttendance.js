@@ -24,7 +24,7 @@ import {
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import dayjs from 'dayjs';
+import { format } from 'date-fns';
 
 const QuickAttendance = ({ classID, subjectID }) => {
     const dispatch = useDispatch();
@@ -47,7 +47,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
             setBatchStudents([]);
         }
     }, [subjectDetails, selectedBatch]);
-    const [date, setDate] = useState(dayjs());
+    const [date, setDate] = useState(new Date());
     const [mode, setMode] = useState('present');
     const [rollInput, setRollInput] = useState('');
     const [markedStudents, setMarkedStudents] = useState([]);
@@ -101,7 +101,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
                         body: JSON.stringify({
                             classId: classID,
                             subjectId: subjectID,
-                            date: date.format('YYYY-MM-DD'),
+                            date: format(date, 'dd/MM/yyyy'),
                             rollSuffix: rollSuffixToSend,
                             mode: mode,
                             preview: true,
@@ -134,7 +134,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 body: JSON.stringify({
                     classId: classID,
                     subjectId: subjectID,
-                    date: date.format('YYYY-MM-DD'),
+                    date: format(date, 'yyyy-MM-dd'),
                     rollSuffix: selectedStudent.rollNum.toString(), // Use full roll number
                     mode: mode
                 })
@@ -196,7 +196,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 body: JSON.stringify({
                     classId: classID,
                     subjectId: subjectID,
-                    date: date.format('YYYY-MM-DD'),
+                    date: format(date, 'yyyy-MM-dd'),
                     markedStudents: markedStudents,
                     mode: mode
                 })
@@ -244,7 +244,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
                     label="Attendance Date"
                     value={date}
                     onChange={(newValue) => setDate(newValue)}
-                    format="DD/MM/YYYY"
+                    format="dd/MM/yyyy"
                     slotProps={{
                         textField: {
                             fullWidth: true,

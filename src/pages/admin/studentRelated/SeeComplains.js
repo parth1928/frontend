@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import { getAllComplains } from '../../../redux/complainRelated/complainHandle';
 import TableTemplate from '../../../components/TableTemplate';
+import { format } from 'date-fns';
 
 const SeeComplains = () => {
 
@@ -28,7 +29,7 @@ const SeeComplains = () => {
 
   const complainRows = complainsList && complainsList.length > 0 && complainsList.map((complain) => {
     const date = new Date(complain.date);
-    const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
+    const dateString = date.toString() !== "Invalid Date" ? format(date, 'dd/MM/yyyy') : "Invalid Date";
     return {
       user: complain.user.name,
       complaint: complain.complaint,

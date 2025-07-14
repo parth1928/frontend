@@ -19,6 +19,7 @@ import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
 import Popup from '../../../components/Popup';
+import { format } from 'date-fns';
 
 const ViewStudent = () => {
     const [showTab, setShowTab] = useState(false);
@@ -205,7 +206,7 @@ const ViewStudent = () => {
                                                         <TableBody>
                                                             {allData.map((data, index) => {
                                                                 const date = new Date(data.date);
-                                                                const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
+                                                                const dateString = date.toString() !== "Invalid Date" ? format(date, 'dd/MM/yyyy') : "Invalid Date";
                                                                 return (
                                                                     <StyledTableRow key={index}>
                                                                         <StyledTableCell component="th" scope="row">

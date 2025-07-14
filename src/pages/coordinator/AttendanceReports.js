@@ -158,7 +158,10 @@ const AttendanceReports = () => {
                                             label="Start Date"
                                             value={startDate}
                                             onChange={setStartDate}
-                                            renderInput={(params) => <TextField {...params} fullWidth />}
+                                            format="dd/MM/yyyy"
+                                            slotProps={{
+                                                textField: { fullWidth: true }
+                                            }}
                                         />
                                     </LocalizationProvider>
                                 </Grid>
@@ -168,7 +171,10 @@ const AttendanceReports = () => {
                                             label="End Date"
                                             value={endDate}
                                             onChange={setEndDate}
-                                            renderInput={(params) => <TextField {...params} fullWidth />}
+                                            format="dd/MM/yyyy"
+                                            slotProps={{
+                                                textField: { fullWidth: true }
+                                            }}
                                             minDate={startDate}
                                         />
                                     </LocalizationProvider>

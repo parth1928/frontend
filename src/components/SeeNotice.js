@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getAllNotices } from '../redux/noticeRelated/noticeHandle';
 import { Paper } from '@mui/material';
 import TableViewTemplate from './TableViewTemplate';
+import { format } from 'date-fns';
 
 const SeeNotice = () => {
     const dispatch = useDispatch();
@@ -33,7 +34,7 @@ const SeeNotice = () => {
 
     const noticeRows = noticesList && noticesList.length > 0 ? noticesList.map((notice) => {
         const date = new Date(notice.date);
-        const dateString = date.toString() !== "Invalid Date" ? date.toISOString().substring(0, 10) : "Invalid Date";
+        const dateString = date.toString() !== "Invalid Date" ? format(date, 'dd/MM/yyyy') : "Invalid Date";
         return {
             title: notice.title,
             details: notice.details,
