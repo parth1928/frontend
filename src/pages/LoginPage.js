@@ -32,6 +32,7 @@ const LoginPage = ({ role }) => {
 
     const handleSubmit = (event) => {
         event.preventDefault();
+        console.log('Login attempt for role:', role);
 
         if (role === "Student") {
             const rollNum = event.target.rollNumber.value;
@@ -95,26 +96,41 @@ const LoginPage = ({ role }) => {
             setGuestLoader(true)
             dispatch(loginUser(fields, role))
         }
+        else if (role === "Coordinator") {
+            const email = "coordinator@12"
+            const fields = { email, password }
+            setGuestLoader(true)
+            dispatch(loginUser(fields, role))
+        }
     }
 
     useEffect(() => {
+        console.log('Login state:', { status, currentUser, currentRole, error, response });
+        
         if (status === 'success' || currentUser !== null) {
             if (currentRole === 'Admin') {
                 navigate('/Admin/dashboard');
             }
             else if (currentRole === 'Student') {
                 navigate('/Student/dashboard');
-            } else if (currentRole === 'Teacher') {
+            }
+            else if (currentRole === 'Teacher') {
                 navigate('/Teacher/dashboard');
             }
+            else if (currentRole === 'Coordinator') {
+                navigate('/Coordinator/dashboard');
+            }
+            setLoader(false);
+            setGuestLoader(false);
         }
         else if (status === 'failed') {
-            setMessage(response)
+            setMessage(response || 'Login failed')
             setShowPopup(true)
             setLoader(false)
+            setGuestLoader(false);
         }
         else if (status === 'error') {
-            setMessage("Network Error")
+            setMessage(error || "Network Error")
             setShowPopup(true)
             setLoader(false)
             setGuestLoader(false)

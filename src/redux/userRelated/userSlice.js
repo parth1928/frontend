@@ -18,10 +18,13 @@ const userSlice = createSlice({
     reducers: {
         authRequest: (state) => {
             state.status = 'loading';
+            state.error = null;
+            state.response = null;
         },
         underControl: (state) => {
             state.status = 'idle';
             state.response = null;
+            state.error = null;
         },
         stuffAdded: (state, action) => {
             state.status = 'added';
@@ -36,21 +39,33 @@ const userSlice = createSlice({
             localStorage.setItem('user', JSON.stringify(action.payload));
             state.response = null;
             state.error = null;
+            console.log('Auth success:', action.payload); // Add debug logging
         },
         authFailed: (state, action) => {
             state.status = 'failed';
             state.response = action.payload;
+            state.error = null;
+            state.currentUser = null;
+            state.currentRole = null;
+            localStorage.removeItem('user');
+            console.log('Auth failed:', action.payload); // Add debug logging
         },
         authError: (state, action) => {
             state.status = 'error';
             state.error = action.payload;
+            state.response = null;
+            state.currentUser = null;
+            state.currentRole = null;
+            localStorage.removeItem('user');
+            console.log('Auth error:', action.payload); // Add debug logging
         },
         authLogout: (state) => {
             localStorage.removeItem('user');
             state.currentUser = null;
             state.status = 'idle';
             state.error = null;
-            state.currentRole = null
+            state.response = null;
+            state.currentRole = null;
         },
 
         doneSuccess: (state, action) => {

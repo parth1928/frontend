@@ -13,15 +13,14 @@ import {
     getError,
 } from './userSlice';
 
-
 export const loginUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
+    console.log('Attempting login for role:', role, 'with fields:', fields);
 
     try {
-        const result = await axios.post(`/${role}Login`, fields, {
-            headers: { 'Content-Type': 'application/json' },
-        });
-        
+        const result = await axios.post(`/${role}Login`, fields);
+        console.log('Login response:', result.data);
+
         if (!result.data) {
             dispatch(authFailed('No response from server'));
             return;
@@ -32,36 +31,47 @@ export const loginUser = (fields, role) => async (dispatch) => {
             return;
         }
 
-        if (role === 'Coordinator' && (!result.data.role || result.data.role !== 'Coordinator')) {
-            dispatch(authFailed('Invalid coordinator account'));
-            return;
+        if (!result.data.role) {
+            result.data.role = role; // Ensure role is set
         }
 
         dispatch(authSuccess(result.data));
     } catch (error) {
         console.error('Login error:', error);
-        dispatch(authError(error.response?.data?.message || error.message || 'Login failed'));
+        const errorMessage = error.response?.data?.message || error.message || 'Login failed';
+        dispatch(authError(errorMessage));
     }
 };
 
 export const registerUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
+    console.log('Attempting registration for role:', role, 'with fields:', fields);
 
     try {
-        const result = await axios.post(`/${role}Reg`, fields, {
-            headers: { 'Content-Type': 'application/json' },
-        });
-        if (result.data.schoolName) {
-            dispatch(authSuccess(result.data));
+        const result = await axios.post(`/${role}Reg`, fields);
+        console.log('Registration response:', result.data);
+
+        if (!result.data) {
+            dispatch(authFailed('No response from server'));
+            return;
         }
-        else if (result.data.school) {
-            dispatch(stuffAdded());
-        }
-        else {
+
+        if (result.data.message) {
             dispatch(authFailed(result.data.message));
+            return;
+        }
+
+        if (result.data.schoolName || (role === 'Admin' && result.data)) {
+            dispatch(authSuccess(result.data));
+        } else if (result.data.school) {
+            dispatch(stuffAdded(result.data));
+        } else {
+            dispatch(authFailed('Registration failed'));
         }
     } catch (error) {
-        dispatch(authError(error.message));
+        console.error('Registration error:', error);
+        const errorMessage = error.response?.data?.message || error.message || 'Registration failed';
+        dispatch(authError(errorMessage));
     }
 };
 
