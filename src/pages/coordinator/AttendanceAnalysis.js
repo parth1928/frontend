@@ -32,7 +32,7 @@ const AttendanceAnalysis = () => {
     }, [dispatch, currentClass]);
 
     const calculateAttendanceStats = () => {
-        if (!students) return null;
+        if (!students || !Array.isArray(students) || students.length === 0) return null;
 
         const attendanceRanges = {
             '90-100%': 0,
@@ -45,6 +45,8 @@ const AttendanceAnalysis = () => {
         const monthlyData = {};
 
         students.forEach(student => {
+            if (!student) return;
+
             // Overall attendance calculation
             const attendance = student.attendance?.overallPercentage || 0;
             if (attendance >= 90) attendanceRanges['90-100%']++;
@@ -62,12 +64,16 @@ const AttendanceAnalysis = () => {
             }
         });
 
+        const monthlyAverages = Object.entries(monthlyData).map(([month, values]) => ({
+            subject: month.charAt(0).toUpperCase() + month.slice(1), // Capitalize first letter
+            attendancePercentage: Math.round(values.reduce((a, b) => a + b, 0) / values.length),
+            totalClasses: values.length,
+            attendedClasses: values.filter(v => v > 0).length
+        }));
+
         return {
             attendanceRanges,
-            monthlyAverages: Object.entries(monthlyData).map(([month, values]) => ({
-                month,
-                average: values.reduce((a, b) => a + b, 0) / values.length
-            }))
+            monthlyAverages
         };
     };
 
@@ -80,6 +86,25 @@ const AttendanceAnalysis = () => {
     }
 
     const stats = calculateAttendanceStats();
+
+    // Don't render if no stats available
+    if (!stats) {
+        return (
+            <Box sx={{ display: 'flex' }}>
+                <CoordinatorSideBar />
+                <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+                    <Typography variant="h4" gutterBottom>
+                        Attendance Analysis - {currentClass?.sclassName}
+                    </Typography>
+                    <Paper sx={{ p: 2 }}>
+                        <Typography>
+                            No attendance data available.
+                        </Typography>
+                    </Paper>
+                </Box>
+            </Box>
+        );
+    }
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -95,14 +120,12 @@ const AttendanceAnalysis = () => {
                             <Typography variant="h6" gutterBottom>
                                 Attendance Distribution
                             </Typography>
-                            {stats && (
-                                <CustomPieChart
-                                    data={Object.entries(stats.attendanceRanges).map(([range, count]) => ({
-                                        name: range,
-                                        value: count
-                                    }))}
-                                />
-                            )}
+                            <CustomPieChart
+                                data={Object.entries(stats.attendanceRanges).map(([range, count]) => ({
+                                    name: range,
+                                    value: count
+                                }))}
+                            />
                         </Paper>
                     </Grid>
 
@@ -111,15 +134,10 @@ const AttendanceAnalysis = () => {
                             <Typography variant="h6" gutterBottom>
                                 Monthly Attendance Trends
                             </Typography>
-                            {stats && (
-                                <CustomBarChart
-                                    data={stats.monthlyAverages}
-                                    XAxisKey="month"
-                                    YAxisKey="average"
-                                    barKey="average"
-                                    tooltip="Average Attendance %"
-                                />
-                            )}
+                            <CustomBarChart
+                                chartData={stats.monthlyAverages}
+                                dataKey="attendancePercentage"
+                            />
                         </Paper>
                     </Grid>
 
@@ -128,19 +146,17 @@ const AttendanceAnalysis = () => {
                             <Typography variant="h6" gutterBottom>
                                 Key Insights
                             </Typography>
-                            {stats && (
-                                <Box>
-                                    <Typography>
-                                        • {stats.attendanceRanges['90-100%']} students have excellent attendance (90-100%)
-                                    </Typography>
-                                    <Typography>
-                                        • {stats.attendanceRanges['Below 60%']} students need attendance improvement (Below 60%)
-                                    </Typography>
-                                    <Typography>
-                                        • Total students analyzed: {students.length}
-                                    </Typography>
-                                </Box>
-                            )}
+                            <Box>
+                                <Typography>
+                                    • {stats.attendanceRanges['90-100%']} students have excellent attendance (90-100%)
+                                </Typography>
+                                <Typography>
+                                    • {stats.attendanceRanges['Below 60%']} students need attendance improvement (Below 60%)
+                                </Typography>
+                                <Typography>
+                                    • Total students analyzed: {students.length}
+                                </Typography>
+                            </Box>
                         </Paper>
                     </Grid>
                 </Grid>

@@ -1,173 +1,99 @@
-// import React from "react";
-// import { BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
-
-// const chartData = [
-//     {
-//         name: "Amphibians",
-//         value: 2488,
-//     },
-//     {
-//         name: "Birds",
-//         value: 1445,
-//     },
-//     {
-//         name: "Crustaceans",
-//         value: 743,
-//     },
-// ];
-
-// const dataFormatter = (value) => {
-//     return "$ " + Intl.NumberFormat("us").format(value).toString();
-// };
-// const CustomBarChart = () => {
-//     return (
-//         <BarChart width={500} height={300} data={chartData}>
-//             <XAxis dataKey="name" />
-//             <YAxis />
-//             <Tooltip formatter={dataFormatter} />
-//             <Bar dataKey="value" fill="blue" />
-//         </BarChart>
-//     );
-// };
-
-// export default CustomBarChart
-
-// import React from "react";
-// import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from "recharts";
-// import styled from "styled-components";
-
-// const chartData = [
-//     {
-//         subject: "Math",
-//         attendancePercentage: 80,
-//         totalClasses: 50,
-//         attendedClasses: Math.round((80 / 100) * 50),
-//     },
-//     {
-//         subject: "Science",
-//         attendancePercentage: 90,
-//         totalClasses: 60,
-//         attendedClasses: Math.round((90 / 100) * 60),
-//     },
-//     {
-//         subject: "History",
-//         attendancePercentage: 70,
-//         totalClasses: 45,
-//         attendedClasses: Math.round((70 / 100) * 45),
-//     },
-// ];
-
-// const CustomTooltip = styled.div`
-//   background-color: #fff;
-//   border-radius: 4px;
-//   padding: 10px;
-//   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-// `;
-
-// const TooltipText = styled.p`
-//   margin: 0;
-//   font-weight: bold;
-// `;
-
-// const CustomTooltipContent = ({ active, payload }) => {
-//     if (active && payload && payload.length) {
-//         const { subject, attendancePercentage, totalClasses, attendedClasses } = payload[0].payload;
-
-//         return (
-//             <CustomTooltip>
-//                 <TooltipText>{subject}</TooltipText>
-//                 <TooltipText>Attendance: {attendancePercentage}%</TooltipText>
-//                 <TooltipText>Attended Classes: {attendedClasses}</TooltipText>
-//                 <TooltipText>Total Classes: {totalClasses}</TooltipText>
-//             </CustomTooltip>
-//         );
-//     }
-
-//     return null;
-// };
-
-// const colors = ["#0088FE", "#00C49F", "#FFBB28"];
-
-// const CustomBarChart = () => {
-//     return (
-//         <BarChart width={500} height={300} data={chartData}>
-//             <XAxis dataKey="subject" />
-//             <YAxis />
-//             <Tooltip content={<CustomTooltipContent />} />
-//             <Bar dataKey="attendancePercentage">
-//                 {chartData.map((entry, index) => (
-//                     <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-//                 ))}
-//             </Bar>
-//         </BarChart>
-//     );
-// };
-
-// export default CustomBarChart;
-
 import React from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer } from "recharts";
 import styled from "styled-components";
 
-const CustomTooltip = styled.div`
+const StyledTooltip = styled.div`
   background-color: #fff;
   border-radius: 4px;
   padding: 10px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 `;
 
-const TooltipText = styled.p`
+const StyledTooltipText = styled.p`
   margin: 0;
   font-weight: bold;
-  color:#1e1e1e;
+  color: #1e1e1e;
 `;
 
-const TooltipMain = styled.h2`
+const StyledTooltipMain = styled.h2`
   margin: 0;
   font-weight: bold;
-  color:#000000;
+  color: #000000;
 `;
 
-const CustomTooltipContent = ({ active, payload, dataKey }) => {
-    if (active && payload && payload.length) {
-        const { subject, attendancePercentage, totalClasses, attendedClasses, marksObtained, subName } = payload[0].payload;
+const NoDataContainer = styled.div`
+  width: 100%;
+  height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  color: #666;
+`;
 
+const TooltipContent = ({ active, payload, dataKey }) => {
+    if (!active || !payload || !payload.length) return null;
+
+    const data = payload[0].payload;
+    if (!data) return null;
+
+    return (
+        <StyledTooltip>
+            {dataKey === "attendancePercentage" ? (
+                <>
+                    <StyledTooltipMain>{data.subject}</StyledTooltipMain>
+                    <StyledTooltipText>
+                        Attended: ({data.attendedClasses || 0}/{data.totalClasses || 0})
+                    </StyledTooltipText>
+                    <StyledTooltipText>{data.attendancePercentage || 0}%</StyledTooltipText>
+                </>
+            ) : (
+                <>
+                    <StyledTooltipMain>
+                        {data.subName?.subName || "Subject"}
+                    </StyledTooltipMain>
+                    <StyledTooltipText>Marks: {data.marksObtained || 0}</StyledTooltipText>
+                </>
+            )}
+        </StyledTooltip>
+    );
+};
+
+const CustomBarChart = ({ chartData = [], dataKey = "value" }) => {
+    // Return early if no data
+    if (!chartData || !chartData.length) {
         return (
-            <CustomTooltip>
-                {dataKey === "attendancePercentage" ? (
-                    <>
-                        <TooltipMain>{subject}</TooltipMain>
-                        <TooltipText>Attended: ({attendedClasses}/{totalClasses})</TooltipText>
-                        <TooltipText>{attendancePercentage}%</TooltipText>
-                    </>
-                ) : (
-                    <>
-                        <TooltipMain>{subName.subName}</TooltipMain>
-                        <TooltipText>Marks: {marksObtained}</TooltipText>
-                    </>
-                )}
-            </CustomTooltip>
+            <NoDataContainer>
+                No data available to display
+            </NoDataContainer>
         );
     }
 
-    return null;
-};
-
-const CustomBarChart = ({ chartData, dataKey }) => {
-    const subjects = chartData.map((data) => data.subject);
-    const distinctColors = generateDistinctColors(subjects.length);
+    const subjects = chartData.map((data) => data.subject || data.subName?.subName || "");
+    const distinctColors = generateDistinctColors(Math.max(subjects.length, 1));
 
     return (
-        <BarChart width={500} height={500} data={chartData}>
-            <XAxis dataKey={dataKey === "marksObtained" ? "subName.subName" : "subject"} />
-            <YAxis domain={[0, 100]} />
-            <Tooltip content={<CustomTooltipContent dataKey={dataKey} />} />
-            <Bar dataKey={dataKey}>
-                {chartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={distinctColors[index]} />
-                ))}
-            </Bar>
-        </BarChart>
+        <ResponsiveContainer width="100%" height={400}>
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                <XAxis
+                    dataKey={dataKey === "marksObtained" ? "subName.subName" : "subject"}
+                    angle={-45}
+                    textAnchor="end"
+                    height={60}
+                />
+                <YAxis domain={[0, 100]} />
+                <Tooltip content={<TooltipContent dataKey={dataKey} />} />
+                <Bar dataKey={dataKey}>
+                    {chartData.map((entry, index) => (
+                        <Cell
+                            key={`cell-${index}`}
+                            fill={distinctColors[index % distinctColors.length]}
+                        />
+                    ))}
+                </Bar>
+            </BarChart>
+        </ResponsiveContainer>
     );
 };
 
