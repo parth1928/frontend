@@ -7,12 +7,13 @@ import {
     CircularProgress,
     Card,
     CardContent,
-    Button
+    Button,
+    Alert
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { getClassDetails } from '../../redux/sclassRelated/sclassHandle';
-import { getAllStudents } from '../../redux/studentRelated/studentHandle';
+import { getClassAttendanceStats } from '../../redux/studentRelated/studentHandle';
 import CoordinatorSideBar from './CoordinatorSideBar';
 import CustomBarChart from '../../components/CustomBarChart';
 import CustomPieChart from '../../components/CustomPieChart';
@@ -25,85 +26,81 @@ const CoordinatorDashboard = () => {
     const dispatch = useDispatch();
     const { currentUser } = useSelector((state) => state.user);
     const { currentClass, loading: classLoading } = useSelector((state) => state.sclass);
-    const { userDetails: students, loading: studentsLoading } = useSelector((state) => state.student);
+    const { studentsAttendance, loading: attendanceLoading, error } = useSelector((state) => state.student);
 
     useEffect(() => {
         if (currentUser?.assignedClass?._id) {
             console.log('Fetching class details for:', currentUser.assignedClass);
             dispatch(getClassDetails(currentUser.assignedClass));
-        } else {
-            console.log('No assigned class found:', currentUser?.assignedClass);
         }
     }, [dispatch, currentUser]);
 
     useEffect(() => {
         if (currentClass?._id) {
-            console.log('Fetching students for class:', currentClass._id);
-            dispatch(getAllStudents(currentClass._id));
-        } else {
-            console.log('No current class found:', currentClass);
+            console.log('Fetching attendance stats for class:', currentClass._id);
+            dispatch(getClassAttendanceStats(currentClass._id));
         }
     }, [dispatch, currentClass]);
 
-    const calculateStats = () => {
-        if (!students || students.length === 0) {
-            console.log('No students data available');
-            return {
-                totalStudents: 0,
-                activeStudents: 0,
-                averageAttendance: 0,
-                monthlyAverages: []
-            };
-        }
-
-        const totalStudents = students.length;
-        const activeStudents = students.filter(s => s.status === 'active').length;
-        const averageAttendance = students.reduce((acc, student) => 
-            acc + (student.attendance?.overallPercentage || 0), 0) / totalStudents || 0;
-
-        const monthlyData = {};
-        students.forEach(student => {
-            if (student.attendance?.monthly) {
-                Object.entries(student.attendance.monthly).forEach(([month, value]) => {
-                    if (!monthlyData[month]) monthlyData[month] = [];
-                    monthlyData[month].push(value);
-                });
-            }
-        });
-
-        return {
-            totalStudents,
-            activeStudents,
-            averageAttendance,
-            monthlyAverages: Object.entries(monthlyData).map(([month, values]) => ({
-                month,
-                average: values.reduce((a, b) => a + b, 0) / values.length
-            }))
-        };
-    };
-
-    if (classLoading || studentsLoading) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-                <CircularProgress />
-            </Box>
-        );
-    }
-
-    if (!currentUser?.assignedClass) {
+    if (classLoading || attendanceLoading) {
         return (
             <Box sx={{ display: 'flex' }}>
                 <CoordinatorSideBar />
                 <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-                    <Typography variant="h6" color="error">
-                        No class has been assigned to you yet. Please contact the administrator.
-                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+                        <CircularProgress />
+                        <Typography sx={{ ml: 2 }}>Loading dashboard data...</Typography>
+                    </Box>
                 </Box>
             </Box>
         );
     }
 
-    const stats = calculateStats();
+    if (error) {
+        return (
+            <Box sx={{ display: 'flex' }}>
+                <CoordinatorSideBar />
+                <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                        {error}
+                    </Alert>
+                </Box>
+            </Box>
+        );
+    }
+
+    if (!currentClass) {
+        return (
+            <Box sx={{ display: 'flex' }}>
+                <CoordinatorSideBar />
+                <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+                    <Alert severity="warning">
+                        No class is currently assigned to you.
+                    </Alert>
+                </Box>
+            </Box>
+        );
+    }
+
+    const stats = studentsAttendance?.classStats || {
+        totalStudents: 0,
+        averageAttendance: 0,
+        subjects: []
+    };
+
+    // Prepare data for charts
+    const attendanceData = studentsAttendance?.students?.map(student => ({
+        name: student.name,
+        attendance: student.attendance.overallPercentage
+    })) || [];
+
+    const subjectWiseData = studentsAttendance?.students?.[0]?.attendance?.subjectWise?.map(sub => ({
+        subject: sub.subject,
+        average: studentsAttendance.students.reduce((acc, student) => {
+            const subAttendance = student.attendance.subjectWise.find(s => s.subject === sub.subject);
+            return acc + (subAttendance?.percentage || 0);
+        }, 0) / studentsAttendance.students.length
+    })) || [];
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -128,19 +125,11 @@ const CoordinatorDashboard = () => {
                                             Total Students
                                         </Typography>
                                         <Typography variant="h4">
-                                            {stats?.totalStudents || 0}
+                                            {stats.totalStudents}
                                         </Typography>
                                     </Box>
                                     <PeopleIcon sx={{ fontSize: 40, color: 'primary.main' }} />
                                 </Box>
-                                <Button 
-                                    sx={{ mt: 2 }} 
-                                    variant="outlined" 
-                                    fullWidth
-                                    onClick={() => navigate('/coordinator/students')}
-                                >
-                                    View Students
-                                </Button>
                             </CardContent>
                         </Card>
                     </Grid>
@@ -154,19 +143,11 @@ const CoordinatorDashboard = () => {
                                             Average Attendance
                                         </Typography>
                                         <Typography variant="h4">
-                                            {stats?.averageAttendance.toFixed(1)}%
+                                            {stats.averageAttendance}%
                                         </Typography>
                                     </Box>
                                     <AssessmentIcon sx={{ fontSize: 40, color: 'primary.main' }} />
                                 </Box>
-                                <Button 
-                                    sx={{ mt: 2 }} 
-                                    variant="outlined" 
-                                    fullWidth
-                                    onClick={() => navigate('/coordinator/attendance-analysis')}
-                                >
-                                    View Analysis
-                                </Button>
                             </CardContent>
                         </Card>
                     </Grid>
@@ -177,22 +158,14 @@ const CoordinatorDashboard = () => {
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Box>
                                         <Typography color="textSecondary" gutterBottom>
-                                            Generate Reports
+                                            Total Subjects
                                         </Typography>
                                         <Typography variant="h4">
-                                            Quick Access
+                                            {stats.subjects?.length || 0}
                                         </Typography>
                                     </Box>
                                     <DescriptionIcon sx={{ fontSize: 40, color: 'primary.main' }} />
                                 </Box>
-                                <Button 
-                                    sx={{ mt: 2 }} 
-                                    variant="outlined" 
-                                    fullWidth
-                                    onClick={() => navigate('/coordinator/attendance-reports')}
-                                >
-                                    Generate Reports
-                                </Button>
                             </CardContent>
                         </Card>
                     </Grid>
@@ -201,16 +174,18 @@ const CoordinatorDashboard = () => {
                     <Grid item xs={12} md={6}>
                         <Paper sx={{ p: 2 }}>
                             <Typography variant="h6" gutterBottom>
-                                Monthly Attendance Trends
+                                Subject-wise Average Attendance
                             </Typography>
-                            {stats?.monthlyAverages && (
+                            {subjectWiseData.length > 0 ? (
                                 <CustomBarChart
-                                    data={stats.monthlyAverages}
-                                    XAxisKey="month"
+                                    data={subjectWiseData}
+                                    XAxisKey="subject"
                                     YAxisKey="average"
                                     barKey="average"
                                     tooltip="Average Attendance %"
                                 />
+                            ) : (
+                                <Typography color="textSecondary">No attendance data available</Typography>
                             )}
                         </Paper>
                     </Grid>
@@ -218,21 +193,31 @@ const CoordinatorDashboard = () => {
                     <Grid item xs={12} md={6}>
                         <Paper sx={{ p: 2 }}>
                             <Typography variant="h6" gutterBottom>
-                                Recent Attendance Overview
+                                Top 5 Students by Attendance
                             </Typography>
-                            <Box sx={{ minHeight: 300, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                                {students?.slice(0, 5).map(student => (
-                                    <Box key={student._id} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                        <Typography>{student.name}</Typography>
-                                        <Typography>
-                                            {student.attendance?.overallPercentage 
-                                                ? `${student.attendance.overallPercentage}%`
-                                                : 'N/A'
-                                            }
-                                        </Typography>
-                                    </Box>
-                                ))}
-                            </Box>
+                            {attendanceData.length > 0 ? (
+                                <Box sx={{ height: 300 }}>
+                                    {[...attendanceData]
+                                        .sort((a, b) => b.attendance - a.attendance)
+                                        .slice(0, 5)
+                                        .map((student, index) => (
+                                            <Box key={index} sx={{ 
+                                                display: 'flex', 
+                                                justifyContent: 'space-between', 
+                                                alignItems: 'center',
+                                                mb: 1,
+                                                p: 1,
+                                                bgcolor: 'background.default',
+                                                borderRadius: 1
+                                            }}>
+                                                <Typography>{student.name}</Typography>
+                                                <Typography color="primary">{student.attendance}%</Typography>
+                                            </Box>
+                                        ))}
+                                </Box>
+                            ) : (
+                                <Typography color="textSecondary">No student data available</Typography>
+                            )}
                         </Paper>
                     </Grid>
                 </Grid>

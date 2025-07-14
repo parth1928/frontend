@@ -5,7 +5,8 @@ import {
     getFailed,
     getError,
     addStudent,
-    stuffDone
+    stuffDone,
+    getAttendanceSuccess
 } from './studentSlice';
 
 export const getAllStudents = (id) => async (dispatch) => {
@@ -142,6 +143,30 @@ export const getStudentAttendance = (classId) => async (dispatch) => {
         }
     } catch (error) {
         console.error('Error fetching attendance:', error);
+        dispatch(getError(error.response?.data?.message || error.message));
+    }
+};
+
+export const getClassAttendanceStats = (classId) => async (dispatch) => {
+    dispatch(getRequest());
+    console.log('Fetching class attendance stats:', classId);
+
+    try {
+        if (!classId || classId === 'undefined' || classId === 'null') {
+            dispatch(getFailed('Invalid class ID'));
+            return;
+        }
+
+        const result = await axios.get(`/class-attendance/${classId}`);
+        console.log('Class attendance stats response:', result.data);
+
+        if (result.data.message) {
+            dispatch(getFailed(result.data.message));
+        } else {
+            dispatch(getAttendanceSuccess(result.data));
+        }
+    } catch (error) {
+        console.error('Error fetching class attendance stats:', error);
         dispatch(getError(error.response?.data?.message || error.message));
     }
 };
