@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStuff } from '../../../redux/userRelated/userHandle';
-import { getClasses } from '../../../redux/sclassRelated/sclassHandle';
+import { getAllSclasses } from '../../../redux/sclassRelated/sclassHandle';
 
 const AddCoordinator = ({ open, handleClose }) => {
     const dispatch = useDispatch();
@@ -29,7 +29,7 @@ const AddCoordinator = ({ open, handleClose }) => {
     });
 
     useEffect(() => {
-        dispatch(getClasses(currentUser._id));
+        dispatch(getAllSclasses(currentUser._id, 'SclassList'));
     }, [currentUser._id, dispatch]);
 
     const handleChange = (e) => {
