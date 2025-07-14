@@ -54,9 +54,10 @@ const App = () => {
         }
 
         {currentRole === "Coordinator" &&
-          <>
-            <CoordinatorPortal />
-          </>
+          <Routes>
+            <Route path="/Coordinator/*" element={<CoordinatorPortal />} />
+            <Route path="*" element={<Navigate to="/Coordinator/dashboard" />} />
+          </Routes>
         }
       </Router>
     </LocalizationProvider>

@@ -71,13 +71,13 @@ const CoordinatorPortal = () => {
                 <Box component="main" sx={styles.boxStyled}>
                     <Toolbar />
                     <Routes>
-                        <Route path="/" element={<CoordinatorDashboard />} />
-                        <Route path="/dashboard" element={<CoordinatorDashboard />} />
-                        <Route path="/students" element={<CoordinatorStudents />} />
-                        <Route path="/attendance" element={<AttendanceAnalysis />} />
-                        <Route path="/reports" element={<AttendanceReports />} />
-                        <Route path="/profile" element={<CoordinatorProfile />} />
-                        <Route path="/logout" element={<Logout />} />
+                        <Route path="/Coordinator" element={<CoordinatorDashboard />} />
+                        <Route path="/Coordinator/dashboard" element={<CoordinatorDashboard />} />
+                        <Route path="/Coordinator/students" element={<CoordinatorStudents />} />
+                        <Route path="/Coordinator/attendance" element={<AttendanceAnalysis />} />
+                        <Route path="/Coordinator/reports" element={<AttendanceReports />} />
+                        <Route path="/Coordinator/profile" element={<CoordinatorProfile />} />
+                        <Route path="/Coordinator/logout" element={<Logout />} />
                     </Routes>
                 </Box>
             </Box>
