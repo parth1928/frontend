@@ -10,6 +10,8 @@ import TeacherDashboard from './pages/teacher/TeacherDashboard';
 import LoginPage from './pages/LoginPage';
 import AdminRegisterPage from './pages/admin/AdminRegisterPage';
 import ChooseUser from './pages/ChooseUser';
+import CoordinatorLogin from './pages/coordinator/CoordinatorLogin';
+import CoordinatorPortal from './pages/coordinator/CoordinatorPortal';
 
 const App = () => {
   const { currentRole } = useSelector(state => state.user);
@@ -26,6 +28,7 @@ const App = () => {
             <Route path="/Adminlogin" element={<LoginPage role="Admin" />} />
             <Route path="/Studentlogin" element={<LoginPage role="Student" />} />
             <Route path="/Teacherlogin" element={<LoginPage role="Teacher" />} />
+            <Route path="/Coordinatorlogin" element={<CoordinatorLogin />} />
 
             <Route path="/Adminregister" element={<AdminRegisterPage />} />
 
@@ -47,6 +50,12 @@ const App = () => {
         {currentRole === "Teacher" &&
           <>
             <TeacherDashboard />
+          </>
+        }
+
+        {currentRole === "Coordinator" &&
+          <>
+            <CoordinatorPortal />
           </>
         }
       </Router>

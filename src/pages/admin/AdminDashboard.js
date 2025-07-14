@@ -45,6 +45,8 @@ import AddClass from './classRelated/AddClass';
 import ClassDetails from './classRelated/ClassDetails';
 import ShowClasses from './classRelated/ShowClasses';
 import AccountMenu from '../../components/AccountMenu';
+import ShowCoordinators from './coordinatorRelated/ShowCoordinators';
+import AssignCoordinator from './classRelated/AssignCoordinator';
 
 const AdminDashboard = () => {
     const [open, setOpen] = useState(false);
@@ -142,6 +144,10 @@ const AdminDashboard = () => {
                         <Route path="/Admin/teachers/choosesubject/:classID/:teacherID" element={<ChooseSubject situation="Teacher" />} />
                         <Route path="/Admin/teachers/addteacher/:id" element={<AddTeacher />} />
                         <Route path="/Admin/teachers/assignsubjects/:id" element={<AssignSubjects />} />
+
+                        {/* Coordinator Routes */}
+                        <Route path="/Admin/coordinators" element={<ShowCoordinators />} />
+                        <Route path="/Admin/class/assign-coordinator/:id" element={<AssignCoordinator />} />
 
                         <Route path="/logout" element={<Logout />} />
                     </Routes>

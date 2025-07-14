@@ -8,7 +8,7 @@ import {
   CircularProgress,
   Backdrop,
 } from '@mui/material';
-import { AccountCircle, School, Group } from '@mui/icons-material';
+import { AccountCircle, School, Group, SupervisorAccount } from '@mui/icons-material';
 import styled from 'styled-components';
 import { useDispatch, useSelector } from 'react-redux';
 import { loginUser } from '../redux/userRelated/userHandle';
@@ -62,6 +62,10 @@ const ChooseUser = ({ visitor }) => {
         navigate('/Teacherlogin');
       }
     }
+
+    else if (user === "Coordinator") {
+      navigate('/Coordinatorlogin');
+    }
   }
 
   useEffect(() => {
@@ -71,8 +75,12 @@ const ChooseUser = ({ visitor }) => {
       }
       else if (currentRole === 'Student') {
         navigate('/Student/dashboard');
-      } else if (currentRole === 'Teacher') {
+      } 
+      else if (currentRole === 'Teacher') {
         navigate('/Teacher/dashboard');
+      }
+      else if (currentRole === 'Coordinator') {
+        navigate('/Coordinator/dashboard');
       }
     }
     else if (status === 'error') {
@@ -86,7 +94,7 @@ const ChooseUser = ({ visitor }) => {
     <StyledContainer>
       <Container>
         <Grid container spacing={2} justifyContent="center">
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} sm={6} md={3}>
             <div onClick={() => navigateHandler("Admin")}>
               <StyledPaper elevation={3}>
                 <Box mb={2}>
@@ -99,7 +107,7 @@ const ChooseUser = ({ visitor }) => {
               </StyledPaper>
             </div>
           </Grid>
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} sm={6} md={3}>
             <StyledPaper elevation={3}>
               <div onClick={() => navigateHandler("Student")}>
                 <Box mb={2}>
@@ -112,7 +120,7 @@ const ChooseUser = ({ visitor }) => {
               </div>
             </StyledPaper>
           </Grid>
-          <Grid item xs={12} sm={6} md={4}>
+          <Grid item xs={12} sm={6} md={3}>
             <StyledPaper elevation={3}>
               <div onClick={() => navigateHandler("Teacher")}>
                 <Box mb={2}>
@@ -122,6 +130,19 @@ const ChooseUser = ({ visitor }) => {
                   Teacher
                 </StyledTypography>
                 Login as a teacher to create courses, assignments, and track student progress.
+              </div>
+            </StyledPaper>
+          </Grid>
+          <Grid item xs={12} sm={6} md={3}>
+            <StyledPaper elevation={3}>
+              <div onClick={() => navigateHandler("Coordinator")}>
+                <Box mb={2}>
+                  <SupervisorAccount fontSize="large" />
+                </Box>
+                <StyledTypography>
+                  Coordinator
+                </StyledTypography>
+                Login as a class coordinator to monitor class attendance and generate reports.
               </div>
             </StyledPaper>
           </Grid>
