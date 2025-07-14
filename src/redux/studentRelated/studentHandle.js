@@ -50,7 +50,9 @@ export const getStudentList = (classId) => async (dispatch) => {
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
-            dispatch(getSuccess(result.data));
+            // Always pass as array to ensure proper state update
+            const studentsList = Array.isArray(result.data) ? result.data : [result.data].filter(Boolean);
+            dispatch(getSuccess(studentsList));
         }
     } catch (error) {
         console.error('Error fetching class students:', error);

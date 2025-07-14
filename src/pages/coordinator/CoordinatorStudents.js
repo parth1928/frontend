@@ -15,7 +15,7 @@ import {
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { getClassDetails } from '../../redux/sclassRelated/sclassHandle';
-import { getAllStudents } from '../../redux/studentRelated/studentHandle';
+import { getStudentList } from '../../redux/studentRelated/studentHandle';
 import CoordinatorSideBar from './CoordinatorSideBar';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
@@ -23,7 +23,7 @@ const CoordinatorStudents = () => {
     const dispatch = useDispatch();
     const { currentUser } = useSelector((state) => state.user);
     const { currentClass, loading: classLoading } = useSelector((state) => state.sclass);
-    const { userDetails: students, loading: studentsLoading, error } = useSelector((state) => state.student);
+    const { studentsList: students, loading: studentsLoading, error } = useSelector((state) => state.student);
     const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
 
     const loadData = () => {
@@ -41,7 +41,7 @@ const CoordinatorStudents = () => {
     useEffect(() => {
         if (currentClass?._id) {
             console.log('Fetching students for class:', currentClass._id);
-            dispatch(getAllStudents(currentClass._id));
+            dispatch(getStudentList(currentClass._id));
         }
     }, [currentClass]);
 
