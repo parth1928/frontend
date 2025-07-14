@@ -21,6 +21,21 @@ export const getAllCoordinators = (adminId) => async (dispatch) => {
     }
 };
 
+export const getClassCoordinators = (adminId) => async (dispatch) => {
+    dispatch(getRequest());
+
+    try {
+        const result = await axios.get(`/ClassCoordinators/${adminId}`);
+        if (result.data.message) {
+            dispatch(getFailed(result.data.message));
+        } else {
+            dispatch(getSuccess(result.data));
+        }
+    } catch (error) {
+        dispatch(getError(error));
+    }
+};
+
 export const getClassDetails = (id) => async (dispatch) => {
     dispatch(getRequest());
 
