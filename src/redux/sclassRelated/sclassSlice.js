@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
     sclassesList: [],
     sclassStudents: [],
-    sclassDetails: [],
+    currentClass: null,
     subjectsList: [],
     subjectDetails: [],
     loading: false,
@@ -20,6 +20,7 @@ const sclassSlice = createSlice({
     reducers: {
         getRequest: (state) => {
             state.loading = true;
+            state.error = null;
             state.status = 'loading';
         },
         getSubDetailsRequest: (state) => {
@@ -44,6 +45,7 @@ const sclassSlice = createSlice({
             state.loading = false;
             state.error = null;
             state.getresponse = null;
+            state.status = 'succeeded';
         },
         getSubjectsSuccess: (state, action) => {
             state.subjectsList = action.payload;
@@ -58,8 +60,6 @@ const sclassSlice = createSlice({
             state.status = 'failed';
         },
         getFailedTwo: (state, action) => {
-            state.sclassesList = [];
-            state.sclassStudents = [];
             state.getresponse = action.payload;
             state.loading = false;
             state.error = null;
@@ -71,9 +71,11 @@ const sclassSlice = createSlice({
             state.status = 'failed';
         },
         detailsSuccess: (state, action) => {
-            state.sclassDetails = action.payload;
+            state.currentClass = action.payload;
             state.loading = false;
             state.error = null;
+            state.status = 'succeeded';
+            console.log('Class details updated:', action.payload);
         },
         getSubDetailsSuccess: (state, action) => {
             state.subjectDetails = action.payload;
@@ -84,6 +86,13 @@ const sclassSlice = createSlice({
             state.subjectsList = [];
             state.sclassesList = [];
         },
+        clearClassData: (state) => {
+            state.sclassStudents = [];
+            state.currentClass = null;
+            state.error = null;
+            state.response = null;
+            state.status = 'idle';
+        }
     },
 });
 
@@ -99,7 +108,8 @@ export const {
     resetSubjects,
     getSubDetailsSuccess,
     getSubDetailsRequest,
-    addClass
+    addClass,
+    clearClassData
 } = sclassSlice.actions;
 
 export const sclassReducer = sclassSlice.reducer;

@@ -10,12 +10,14 @@ import {
     TableHead,
     TableRow,
     CircularProgress,
-    Alert
+    Alert,
+    Button
 } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { getClassDetails } from '../../redux/sclassRelated/sclassHandle';
 import { getAllStudents } from '../../redux/studentRelated/studentHandle';
 import CoordinatorSideBar from './CoordinatorSideBar';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 const CoordinatorStudents = () => {
     const dispatch = useDispatch();
@@ -24,29 +26,39 @@ const CoordinatorStudents = () => {
     const { userDetails: students, loading: studentsLoading, error } = useSelector((state) => state.student);
     const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
 
-    useEffect(() => {
-        console.log('Current User:', currentUser);
-        if (currentUser?.assignedClass) {
-            console.log('Fetching class details for:', currentUser.assignedClass);
+    const loadData = () => {
+        if (currentUser?.assignedClass?._id) {
+            console.log('Loading data for class:', currentUser.assignedClass);
             dispatch(getClassDetails(currentUser.assignedClass));
+            setHasAttemptedLoad(true);
         }
-    }, [dispatch, currentUser]);
+    };
 
     useEffect(() => {
-        console.log('Current Class:', currentClass);
+        loadData();
+    }, [currentUser]);
+
+    useEffect(() => {
         if (currentClass?._id) {
             console.log('Fetching students for class:', currentClass._id);
             dispatch(getAllStudents(currentClass._id));
-            setHasAttemptedLoad(true);
         }
-    }, [dispatch, currentClass]);
+    }, [currentClass]);
 
     // Debug logging for state changes
     useEffect(() => {
-        console.log('Students Data:', students);
-        console.log('Loading States:', { classLoading, studentsLoading });
-        console.log('Error State:', error);
-    }, [students, classLoading, studentsLoading, error]);
+        console.log('Component State:', {
+            currentUser,
+            currentClass,
+            students,
+            loading: { classLoading, studentsLoading },
+            error
+        });
+    }, [currentUser, currentClass, students, classLoading, studentsLoading, error]);
+
+    const handleRefresh = () => {
+        loadData();
+    };
 
     if (classLoading || (!hasAttemptedLoad && studentsLoading)) {
         return (
@@ -70,9 +82,26 @@ const CoordinatorStudents = () => {
                     <Alert severity="error" sx={{ mb: 2 }}>
                         Error loading data: {error}
                     </Alert>
-                    <Typography>
-                        Please try refreshing the page. If the problem persists, try logging out and logging back in.
-                    </Typography>
+                    <Button 
+                        variant="contained" 
+                        onClick={handleRefresh}
+                        startIcon={<RefreshIcon />}
+                    >
+                        Retry Loading Data
+                    </Button>
+                </Box>
+            </Box>
+        );
+    }
+
+    if (!currentClass) {
+        return (
+            <Box sx={{ display: 'flex' }}>
+                <CoordinatorSideBar />
+                <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
+                    <Alert severity="warning">
+                        No class is currently assigned to you.
+                    </Alert>
                 </Box>
             </Box>
         );
@@ -83,9 +112,18 @@ const CoordinatorStudents = () => {
             <Box sx={{ display: 'flex' }}>
                 <CoordinatorSideBar />
                 <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-                    <Typography variant="h4" gutterBottom>
-                        Students in {currentClass?.sclassName}
-                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                        <Typography variant="h4">
+                            Students in {currentClass?.sclassName}
+                        </Typography>
+                        <Button 
+                            variant="contained" 
+                            onClick={handleRefresh}
+                            startIcon={<RefreshIcon />}
+                        >
+                            Refresh
+                        </Button>
+                    </Box>
                     <Alert severity="info" sx={{ mb: 2 }}>
                         No students found in this class. This could mean either:
                     </Alert>
@@ -97,7 +135,11 @@ const CoordinatorStudents = () => {
                         </ul>
                     </Typography>
                     <Typography sx={{ mt: 2 }}>
-                        Current Class ID: {currentClass?._id || 'Not assigned'}
+                        Class Details:
+                        <ul>
+                            <li>Class Name: {currentClass?.sclassName}</li>
+                            <li>Class ID: {currentClass?._id}</li>
+                        </ul>
                     </Typography>
                 </Box>
             </Box>
@@ -108,9 +150,18 @@ const CoordinatorStudents = () => {
         <Box sx={{ display: 'flex' }}>
             <CoordinatorSideBar />
             <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-                <Typography variant="h4" gutterBottom>
-                    Students in {currentClass?.sclassName}
-                </Typography>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h4">
+                        Students in {currentClass?.sclassName}
+                    </Typography>
+                    <Button 
+                        variant="contained" 
+                        onClick={handleRefresh}
+                        startIcon={<RefreshIcon />}
+                    >
+                        Refresh
+                    </Button>
+                </Box>
 
                 <Paper sx={{ p: 2, mb: 2 }}>
                     <Box sx={{ mb: 2 }}>

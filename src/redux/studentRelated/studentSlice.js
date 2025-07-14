@@ -2,11 +2,13 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
     userDetails: null,
+    studentsList: [],
     loading: false,
     error: null,
     response: null,
     studentsAttendance: null,
-    underControl: false
+    underControl: false,
+    lastFetched: null
 };
 
 const studentSlice = createSlice({
@@ -21,8 +23,10 @@ const studentSlice = createSlice({
         getSuccess: (state, action) => {
             state.loading = false;
             state.userDetails = action.payload;
+            state.studentsList = Array.isArray(action.payload) ? action.payload : state.studentsList;
             state.error = null;
             state.response = null;
+            state.lastFetched = Date.now();
         },
         getFailed: (state, action) => {
             state.loading = false;
@@ -39,6 +43,16 @@ const studentSlice = createSlice({
             state.error = null;
             state.response = null;
         },
+        addStudent: (state, action) => {
+            state.loading = false;
+            state.error = null;
+            if (Array.isArray(action.payload)) {
+                state.studentsList = [...state.studentsList, ...action.payload];
+            } else {
+                state.studentsList = [...state.studentsList, action.payload];
+            }
+            state.response = "Student(s) added successfully";
+        },
         underStudentControl: (state) => {
             state.underControl = !state.underControl;
         },
@@ -53,11 +67,13 @@ const studentSlice = createSlice({
         },
         clearData: (state) => {
             state.userDetails = null;
+            state.studentsList = [];
             state.studentsAttendance = null;
             state.error = null;
             state.response = null;
             state.loading = false;
             state.underControl = false;
+            state.lastFetched = null;
         }
     },
 });
@@ -68,6 +84,7 @@ export const {
     getFailed,
     getError,
     getAttendanceSuccess,
+    addStudent,
     underStudentControl,
     stuffDone,
     clearErrors,

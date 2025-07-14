@@ -24,34 +24,43 @@ import MenuItem from '@mui/material/MenuItem';
 import MenuList from '@mui/material/MenuList';
 import Popup from '../../../components/Popup';
 import AddIcon from '@mui/icons-material/Add';
+import { CircularProgress, Typography, Alert } from '@mui/material';
 
 const ShowStudents = () => {
-
     const navigate = useNavigate()
     const dispatch = useDispatch();
     const { studentsList, loading, error, response } = useSelector((state) => state.student);
     const { dtodStudentsList } = useSelector((state) => state.dtod);
-    const { currentUser } = useSelector(state => state.user)
+    const { currentUser } = useSelector(state => state.user);
 
-    // Assume you have a way to get the selected classId, e.g., from state or UI
     const [selectedClassId, setSelectedClassId] = React.useState("");
-
-    useEffect(() => {
-        dispatch(getAllStudents(currentUser._id));
-        // Pass adminId (school) and classId to getAllDtodStudents
-        dispatch(getAllDtodStudents(currentUser._id, selectedClassId));
-    }, [currentUser._id, selectedClassId, dispatch]);
-
-    if (error) {
-        console.log(error);
-    }
-
     const [showPopup, setShowPopup] = React.useState(false);
     const [message, setMessage] = React.useState("");
+
+    useEffect(() => {
+        if (currentUser?._id) {
+            console.log('Fetching all students for admin:', currentUser._id);
+            dispatch(getAllStudents(currentUser._id));
+            dispatch(getAllDtodStudents(currentUser._id, selectedClassId));
+        }
+    }, [currentUser?._id, selectedClassId, dispatch]);
+
+    // Debug logging
+    useEffect(() => {
+        console.log('Component State:', {
+            studentsList,
+            dtodStudentsList,
+            loading,
+            error,
+            response
+        });
+    }, [studentsList, dtodStudentsList, loading, error, response]);
 
     const deleteHandler = (deleteID, type) => {
         setMessage("");
         setShowPopup(false);
+        console.log('Deleting student:', deleteID, 'of type:', type);
+
         let endpoint = type === 'D2D' ? '/dtod_students/' : '/Student/';
         fetch(`${process.env.REACT_APP_API_BASE_URL}${endpoint}${deleteID}`, {
             method: 'DELETE',
@@ -64,13 +73,16 @@ const ShowStudents = () => {
         .then(data => {
             if (data.success || data.message === 'Student deleted successfully') {
                 setMessage('Student deleted successfully.');
+                // Refresh the student lists
                 dispatch(getAllStudents(currentUser._id));
+                dispatch(getAllDtodStudents(currentUser._id, selectedClassId));
             } else {
                 setMessage(data.message || 'Failed to delete student.');
             }
             setShowPopup(true);
         })
-        .catch(() => {
+        .catch((error) => {
+            console.error('Delete error:', error);
             setMessage('Failed to delete student.');
             setShowPopup(true);
         });
@@ -80,29 +92,38 @@ const ShowStudents = () => {
         { id: 'name', label: 'Name', minWidth: 170 },
         { id: 'rollNum', label: 'Roll Number', minWidth: 100 },
         { id: 'sclassName', label: 'Class', minWidth: 170 },
-    ]
-
-    // Merge both student lists for display
-    const allStudents = [
-        ...(studentsList && studentsList.length > 0 ? studentsList : []),
-        ...(dtodStudentsList && dtodStudentsList.length > 0 ? dtodStudentsList.map(s => ({ ...s, type: 'D2D' })) : [])
     ];
 
-    const studentRows = allStudents.map((student) => {
-        let className = '';
-        if (student.sclassName && typeof student.sclassName === 'object' && student.sclassName.sclassName) {
-            className = student.sclassName.sclassName;
-        } else if (typeof student.sclassName === 'string') {
-            className = student.sclassName;
-        }
-        return {
-            name: student.name,
-            rollNum: student.rollNum,
-            sclassName: className,
-            id: student._id,
-            type: student.type || 'Regular',
-        };
-    });
+    // Merge and process student lists
+    const allStudents = React.useMemo(() => {
+        console.log('Processing student lists:', {
+            regular: studentsList,
+            dtod: dtodStudentsList
+        });
+
+        return [
+            ...(Array.isArray(studentsList) ? studentsList : []),
+            ...(Array.isArray(dtodStudentsList) ? dtodStudentsList.map(s => ({ ...s, type: 'D2D' })) : [])
+        ];
+    }, [studentsList, dtodStudentsList]);
+
+    const studentRows = React.useMemo(() => {
+        return allStudents.map((student) => {
+            let className = '';
+            if (student.sclassName && typeof student.sclassName === 'object' && student.sclassName.sclassName) {
+                className = student.sclassName.sclassName;
+            } else if (typeof student.sclassName === 'string') {
+                className = student.sclassName;
+            }
+            return {
+                name: student.name,
+                rollNum: student.rollNum,
+                sclassName: className,
+                id: student._id,
+                type: student.type || 'Regular',
+            };
+        });
+    }, [allStudents]);
 
     const StudentButtonHaver = ({ row }) => {
         const options = ['Take Attendance', 'Provide Marks'];
@@ -223,9 +244,40 @@ const ShowStudents = () => {
         },
     ];
 
+    if (loading) {
+        return (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+                <CircularProgress />
+                <Typography sx={{ ml: 2 }}>Loading students...</Typography>
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Box sx={{ p: 2 }}>
+                <Alert severity="error" sx={{ mb: 2 }}>
+                    Error loading students: {error}
+                </Alert>
+                <Button
+                    variant="contained"
+                    onClick={() => {
+                        dispatch(getAllStudents(currentUser._id));
+                        dispatch(getAllDtodStudents(currentUser._id, selectedClassId));
+                    }}
+                >
+                    Retry Loading
+                </Button>
+            </Box>
+        );
+    }
+
     return (
         <Box sx={{ p: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="h5" component="h1">
+                    Students Management
+                </Typography>
                 <Button
                     variant="contained"
                     color="secondary"
@@ -235,30 +287,39 @@ const ShowStudents = () => {
                     Add D2D Students
                 </Button>
             </Box>
-            {loading ?
-                <div>Loading...</div>
-                :
-                <>
-                    {response ?
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                            <GreenButton variant="contained" onClick={() => navigate("/Admin/addstudents")}>
-                                Add Students
-                            </GreenButton>
+
+            {response ? (
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+                    <GreenButton variant="contained" onClick={() => navigate("/Admin/addstudents")}>
+                        Add Students
+                    </GreenButton>
+                </Box>
+            ) : (
+                <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+                    {studentRows.length > 0 ? (
+                        <TableTemplate
+                            buttonHaver={StudentButtonHaver}
+                            columns={studentColumns.concat([{ id: 'type', label: 'Type', minWidth: 80 }])}
+                            rows={studentRows}
+                        />
+                    ) : (
+                        <Box sx={{ p: 2, textAlign: 'center' }}>
+                            <Typography variant="h6" color="textSecondary">
+                                No students found
+                            </Typography>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                sx={{ mt: 2 }}
+                                onClick={() => navigate("/Admin/addstudents")}
+                            >
+                                Add Your First Student
+                            </Button>
                         </Box>
-                        :
-                        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                            {Array.isArray(studentsList) && studentsList.length > 0 &&
-                                <TableTemplate
-                                    buttonHaver={StudentButtonHaver}
-                                    columns={studentColumns.concat([{ id: 'type', label: 'Type', minWidth: 80 }])}
-                                    rows={studentRows}
-                                />
-                            }
-                            <SpeedDialTemplate actions={actions} />
-                        </Paper>
-                    }
-                </>
-            }
+                    )}
+                    <SpeedDialTemplate actions={actions} />
+                </Paper>
+            )}
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
         </Box>
     );
