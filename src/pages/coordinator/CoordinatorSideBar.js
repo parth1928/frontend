@@ -63,27 +63,27 @@ const CoordinatorSideBar = () => {
             </Toolbar>
             <Divider />
             <List>
-                <ListItemButton component={Link} to="/Coordinator/dashboard">
+                <ListItemButton component={Link} to="/coordinator/dashboard">
                     <ListItemIcon>
-                        <HomeIcon color={location.pathname === "/Coordinator/dashboard" ? 'primary' : 'inherit'} />
+                        <HomeIcon color={location.pathname === "/coordinator/dashboard" ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Dashboard" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Coordinator/students">
+                <ListItemButton component={Link} to="/coordinator/students">
                     <ListItemIcon>
-                        <PersonOutlineIcon color={location.pathname.startsWith("/Coordinator/students") ? 'primary' : 'inherit'} />
+                        <PersonOutlineIcon color={location.pathname.startsWith("/coordinator/students") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Students" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Coordinator/attendance">
+                <ListItemButton component={Link} to="/coordinator/attendance-analysis">
                     <ListItemIcon>
-                        <AssessmentIcon color={location.pathname.startsWith("/Coordinator/attendance") ? 'primary' : 'inherit'} />
+                        <AssessmentIcon color={location.pathname.startsWith("/coordinator/attendance-analysis") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Attendance Analysis" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Coordinator/reports">
+                <ListItemButton component={Link} to="/coordinator/attendance-reports">
                     <ListItemIcon>
-                        <DownloadIcon color={location.pathname.startsWith("/Coordinator/reports") ? 'primary' : 'inherit'} />
+                        <DownloadIcon color={location.pathname.startsWith("/coordinator/attendance-reports") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Download Reports" />
                 </ListItemButton>

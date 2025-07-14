@@ -43,18 +43,18 @@ const App = () => {
         
         {currentRole === "Coordinator" && 
           <Routes>
-            <Route path="/Coordinator/dashboard" element={<CoordinatorDashboard />} />
-            <Route path="/Coordinator/students" element={<CoordinatorStudents />} />
-            <Route path="/Coordinator/attendance" element={<AttendanceAnalysis />} />
-            <Route path="/Coordinator/reports" element={<AttendanceReports />} />
-            <Route path="/Coordinator/profile" element={<CoordinatorProfile />} />
-            <Route path="/Coordinator" element={<Navigate to="/Coordinator/dashboard" />} />
-            <Route path="*" element={<Navigate to="/Coordinator/dashboard" />} />
+            <Route path="/coordinator/dashboard" element={<CoordinatorDashboard />} />
+            <Route path="/coordinator/students" element={<CoordinatorStudents />} />
+            <Route path="/coordinator/attendance-analysis" element={<AttendanceAnalysis />} />
+            <Route path="/coordinator/attendance-reports" element={<AttendanceReports />} />
+            <Route path="/coordinator/profile" element={<CoordinatorProfile />} />
+            <Route path="/coordinator/*" element={<Navigate to="/coordinator/dashboard" />} />
+            <Route path="*" element={<Navigate to="/coordinator/dashboard" />} />
           </Routes>
         }
       </Router>
     </LocalizationProvider>
-  )
-}
+  );
+};
 
-export default App
+export default App;
