@@ -2,22 +2,30 @@ import axios from 'axios';
 
 const instance = axios.create({
     baseURL: process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com',
-    withCredentials: true,
-    timeout: 30000, // Increased timeout for Render's free tier cold starts
+    withCredentials: false, // Changed to false since we're using token-based auth
+    timeout: 60000, // Increased timeout for Render's cold starts
     headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Access-Control-Allow-Origin': '*'
     }
 });
 
 // Add a request interceptor
 instance.interceptors.request.use(
     (config) => {
-        console.log('Making request to:', config.url);
-        const user = JSON.parse(localStorage.getItem('user'));
-        if (user && user.token) {
-            config.headers.Authorization = `Bearer ${user.token}`;
+        // Add auth token to headers if available
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // Add timestamp to prevent caching
+        config.params = {
+            ...config.params,
+            _t: Date.now()
+        };
+
         return config;
     },
     (error) => {
@@ -34,15 +42,15 @@ instance.interceptors.response.use(
     (error) => {
         if (error.code === 'ECONNABORTED') {
             console.error('Request timeout - server might be starting up (common with free tier)');
-            return Promise.reject(new Error('Server is starting up. Please try again in a few moments.'));
+            throw new Error('Server is starting up. Please wait a moment and try again (this is normal for free hosting).');
         }
 
         if (!error.response) {
             console.error('Network/Connection error:', error);
             if (error.message.includes('Network Error')) {
-                return Promise.reject(new Error('Unable to connect to server. Please check your internet connection and try again.'));
+                throw new Error('Cannot connect to server. Please check your internet connection and try again.');
             }
-            return Promise.reject(new Error('Connection failed. Please try again.'));
+            throw new Error('Connection failed. Please try again.');
         }
 
         console.error('Response error:', {
@@ -53,17 +61,23 @@ instance.interceptors.response.use(
 
         switch (error.response.status) {
             case 401:
+                // Clear auth data and redirect to login
+                localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                window.location.href = '/';
-                return Promise.reject(new Error('Session expired. Please login again.'));
+                if (!window.location.pathname.includes('/login')) {
+                    window.location.href = '/';
+                }
+                throw new Error('Session expired. Please login again.');
             case 403:
-                return Promise.reject(new Error('Access denied. Please check your credentials.'));
+                throw new Error('Access denied. Please check your credentials.');
             case 404:
-                return Promise.reject(new Error('Service not found. Please try again later.'));
+                throw new Error('Service not found. Please try again later.');
             case 500:
-                return Promise.reject(new Error('Server error. Please try again later.'));
+                throw new Error('Server error. Please try again later.');
+            case 429:
+                throw new Error('Too many requests. Please wait a moment and try again.');
             default:
-                return Promise.reject(new Error(error.response?.data?.message || 'Something went wrong. Please try again.'));
+                throw new Error(error.response?.data?.message || 'Something went wrong. Please try again.');
         }
     }
 );

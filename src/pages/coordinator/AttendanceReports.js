@@ -45,15 +45,29 @@ const AttendanceReports = () => {
 
     const handleDownload = async () => {
         if (!currentClass?._id) {
-            setDialogMessage('No class selected');
+            setDialogMessage('Please select a class first');
             setShowDialog(true);
             return;
+        }
+
+        // Validate date range if selected
+        if (reportType === 'date-range') {
+            if (!startDate || !endDate) {
+                setDialogMessage('Please select both start and end dates');
+                setShowDialog(true);
+                return;
+            }
+            if (startDate > endDate) {
+                setDialogMessage('Start date cannot be after end date');
+                setShowDialog(true);
+                return;
+            }
         }
 
         try {
             setDownloading(true);
 
-            let url = `${process.env.REACT_APP_API_BASE_URL}/coordinator/attendance/report/${currentClass._id}`;
+            let url = `${process.env.REACT_APP_API_BASE_URL}/attendance/coordinator-report/${currentClass._id}`;
             const queryParams = [];
 
             if (reportType === 'date-range' && startDate && endDate) {
@@ -66,29 +80,61 @@ const AttendanceReports = () => {
                 url += '?' + queryParams.join('&');
             }
 
-            const response = await axios.get(url, {
+            const response = await axios({
+                url,
+                method: 'GET',
                 responseType: 'blob',
                 headers: {
-                    'Authorization': localStorage.getItem('token')
+                    'Authorization': localStorage.getItem('token'),
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 }
             });
 
+            // Check if response is JSON (error) or Excel file
+            const contentType = response.headers['content-type'];
+            if (contentType.includes('application/json')) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    try {
+                        const errorData = JSON.parse(reader.result);
+                        setDialogMessage(errorData.message || 'Failed to generate report');
+                        setShowDialog(true);
+                    } catch (e) {
+                        setDialogMessage('Failed to generate report');
+                        setShowDialog(true);
+                    }
+                };
+                reader.readAsText(response.data);
+                return;
+            }
+
+            // Create and trigger download
             const blob = new Blob([response.data], { 
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
             });
             
+            const url_obj = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.download = `attendance_report_${currentClass.sclassName}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            link.href = url_obj;
+            link.download = `attendance_report_${currentClass.sclassName}_${reportType}_${new Date().toISOString().slice(0,10)}.xlsx`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            window.URL.revokeObjectURL(url_obj);
             
             setDialogMessage('Report downloaded successfully!');
             setShowDialog(true);
         } catch (error) {
             console.error('Download error:', error);
-            setDialogMessage(error.response?.data?.message || 'Failed to download report');
+            let errorMessage = 'Failed to download report. ';
+            if (error.response) {
+                errorMessage += error.response.data?.message || error.response.statusText;
+            } else if (error.request) {
+                errorMessage += 'Network error. Please check your connection.';
+            } else {
+                errorMessage += error.message;
+            }
+            setDialogMessage(errorMessage);
             setShowDialog(true);
         } finally {
             setDownloading(false);
