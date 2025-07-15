@@ -23,7 +23,7 @@ export const loginUser = (fields, role) => async (dispatch) => {
             return;
         }
 
-        // Log the complete request URL
+        // Log the complete request URL and data
         console.log('Making login request to:', `/${role}Login`);
         console.log('With data:', fields);
 
@@ -35,28 +35,28 @@ export const loginUser = (fields, role) => async (dispatch) => {
             return;
         }
 
-        // Handle various response formats
+        // Handle error messages from server
         if (result.data.error) {
             dispatch(authFailed(result.data.error));
             return;
         }
 
+        // Handle message-only responses (usually errors)
         if (result.data.message && !result.data._id) {
             dispatch(authFailed(result.data.message));
             return;
         }
 
-        // Ensure we have the required user data
+        // Validate required user data
         if (!result.data._id) {
             dispatch(authFailed('Invalid user data received'));
             return;
         }
 
-        // Create a proper user object with all required fields
+        // Create user object with all required fields
         const userData = {
             ...result.data,
-            role: result.data.role || role,
-            token: result.data.token // If your backend sends a token
+            role: result.data.role || role
         };
 
         console.log('Login successful, dispatching user data:', userData);
@@ -68,17 +68,17 @@ export const loginUser = (fields, role) => async (dispatch) => {
             status: error.response?.status
         });
 
+        let errorMessage = 'Login failed. ';
+
         if (error.code === 'ECONNABORTED') {
-            dispatch(authError('Server is taking longer than usual to respond. Please try again.'));
+            errorMessage += 'Server is starting up. Please try again in a few moments.';
         } else if (!error.response) {
-            dispatch(authError('Unable to reach the server. Please check your connection.'));
+            errorMessage += 'Unable to reach the server. Please check your connection and try again.';
         } else {
-            const errorMessage = error.response?.data?.message 
-                || error.response?.data?.error 
-                || error.message 
-                || 'Login failed. Please try again.';
-            dispatch(authError(errorMessage));
+            errorMessage += error.response?.data?.message || error.message || 'Please try again.';
         }
+
+        dispatch(authError(errorMessage));
     }
 };
 
