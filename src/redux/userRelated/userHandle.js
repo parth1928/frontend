@@ -11,6 +11,7 @@ import {
     getSuccess,
     doneSuccess,
     getDeleteSuccess,
+    authLogout
 } from './userSlice';
 
 const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
@@ -107,7 +108,13 @@ export const registerUser = (fields, role) => async (dispatch) => {
 };
 
 export const logoutUser = () => (dispatch) => {
-    dispatch(authLogout());
+    try {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        dispatch(authLogout());
+    } catch (error) {
+        console.error('Logout error:', error);
+    }
 };
 
 export const getUserDetails = (id, address) => async (dispatch) => {
