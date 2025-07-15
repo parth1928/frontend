@@ -1,32 +1,31 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import { authLogout } from '../redux/userRelated/userSlice';
+import { logout } from '../redux/userRelated/userSlice';
 import styled from 'styled-components';
 
 const Logout = () => {
-    const currentUser = useSelector(state => state.user.currentUser);
-
-    const navigate = useNavigate();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
 
-    const handleLogout = () => {
-        dispatch(authLogout());
-        navigate('/');
-    };
+    useEffect(() => {
+        const handleLogout = () => {
+            try {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                dispatch(logout());
+                navigate('/');
+            } catch (error) {
+                console.error('Logout error:', error);
+                // Even if there's an error, try to navigate to home
+                navigate('/');
+            }
+        };
 
-    const handleCancel = () => {
-        navigate(-1);
-    };
+        handleLogout();
+    }, [dispatch, navigate]);
 
-    return (
-        <LogoutContainer>
-            <h1>{currentUser.name}</h1>
-            <LogoutMessage>Are you sure you want to log out?</LogoutMessage>
-            <LogoutButtonLogout onClick={handleLogout}>Log Out</LogoutButtonLogout>
-            <LogoutButtonCancel onClick={handleCancel}>Cancel</LogoutButtonCancel>
-        </LogoutContainer>
-    );
+    return null; // This component doesn't need to render anything
 };
 
 export default Logout;

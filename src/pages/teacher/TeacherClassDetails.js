@@ -124,41 +124,43 @@ const TeacherClassDetails = () => {
             if (subjectDetails.isLab && batchName) {
                 url += `?batch=${encodeURIComponent(batchName)}`;
             }
-            const response = await fetch(
+            
+            const response = await axios({
                 url,
-                {
-                    headers: {
-                        'Authorization': token || ''
-                    }
+                method: 'GET',
+                responseType: 'blob',
+                headers: {
+                    'Authorization': token || '',
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 }
-            );
-            // Check if response is ok before trying to parse it
-            if (!response.ok) {
-                throw new Error('Failed to download attendance');
-            }
-            // Get the response as blob directly
-            const blob = await response.blob();
-            if (blob.type.includes('application/json')) {
-                // If we got JSON instead of an Excel file, there's an error
+            });
+
+            // Handle JSON error responses
+            if (response.data.type === 'application/json') {
                 const reader = new FileReader();
                 reader.onload = () => {
                     const errorData = JSON.parse(reader.result);
                     alert(errorData.message || 'Failed to generate Excel file');
                 };
-                reader.readAsText(blob);
+                reader.readAsText(response.data);
                 return;
             }
-            const urlObj = window.URL.createObjectURL(blob);
+
+            // Create download link
+            const blob = new Blob([response.data], { 
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            const url_obj = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = urlObj;
+            link.href = url_obj;
             link.download = `attendance_${classID}_${new Date().toISOString().slice(0,10)}.xlsx`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            window.URL.revokeObjectURL(urlObj);
+            window.URL.revokeObjectURL(url_obj);
         } catch (error) {
             console.error('Download failed:', error);
-            alert(error.message || 'Failed to download attendance');
+            alert('Failed to download attendance. Please try again.');
         } finally {
             setIsDownloading(false);
         }
