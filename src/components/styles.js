@@ -11,11 +11,13 @@ const drawerWidth = 240
 
 export const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
-        backgroundColor: theme.palette.common.black,
+        backgroundColor: '#7f56da',
         color: theme.palette.common.white,
+        fontSize: 16,
+        fontWeight: 500,
     },
     [`&.${tableCellClasses.body}`]: {
-        fontSize: 14,
+        fontSize: 15,
     },
 }));
 
@@ -26,6 +28,9 @@ export const StyledTableRow = styled(TableRow)(({ theme }) => ({
     // hide last border
     '&:last-child td, &:last-child th': {
         border: 0,
+    },
+    '&:hover': {
+        backgroundColor: 'rgba(127, 86, 218, 0.04)',
     },
 }));
 

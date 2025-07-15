@@ -16,18 +16,16 @@ import { Link, useLocation } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
 import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
 import MenuIcon from '@mui/icons-material/Menu';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ClassIcon from '@mui/icons-material/Class';
 import SubjectIcon from '@mui/icons-material/Subject';
-import GroupIcon from '@mui/icons-material/Group';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 
 const drawerWidth = 240;
 
-const AdminSideBar = () => {
+const TeacherSideBar = () => {
     const location = useLocation();
     const [open, setOpen] = React.useState(true);
 
@@ -66,47 +64,35 @@ const AdminSideBar = () => {
             </Toolbar>
             <Divider />
             <List>
-                <ListItemButton component={Link} to="/Admin/dashboard">
+                <ListItemButton component={Link} to="/Teacher/dashboard">
                     <ListItemIcon>
-                        <HomeIcon color={location.pathname === "/Admin/dashboard" ? 'primary' : 'inherit'} />
+                        <HomeIcon color={location.pathname === "/Teacher/dashboard" ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Dashboard" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/classes">
+                <ListItemButton component={Link} to="/Teacher/class">
                     <ListItemIcon>
-                        <ClassIcon color={location.pathname.startsWith("/Admin/classes") ? 'primary' : 'inherit'} />
+                        <ClassIcon color={location.pathname.startsWith("/Teacher/class") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
-                    <ListItemText primary="Classes" />
+                    <ListItemText primary="Class" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/subjects">
+                <ListItemButton component={Link} to="/Teacher/students">
                     <ListItemIcon>
-                        <SubjectIcon color={location.pathname.startsWith("/Admin/subjects") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Subjects" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/students">
-                    <ListItemIcon>
-                        <PersonOutlineIcon color={location.pathname.startsWith("/Admin/students") ? 'primary' : 'inherit'} />
+                        <PersonOutlineIcon color={location.pathname.startsWith("/Teacher/students") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Students" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/teachers">
+                <ListItemButton component={Link} to="/Teacher/subjects">
                     <ListItemIcon>
-                        <GroupIcon color={location.pathname.startsWith("/Admin/teachers") ? 'primary' : 'inherit'} />
+                        <SubjectIcon color={location.pathname.startsWith("/Teacher/subjects") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
-                    <ListItemText primary="Teachers" />
+                    <ListItemText primary="Subjects" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/coordinators">
+                <ListItemButton component={Link} to="/Teacher/analysis">
                     <ListItemIcon>
-                        <SupervisorAccountIcon color={location.pathname.startsWith("/Admin/coordinators") ? 'primary' : 'inherit'} />
+                        <AssessmentIcon color={location.pathname.startsWith("/Teacher/analysis") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
-                    <ListItemText primary="Coordinators" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/notices">
-                    <ListItemIcon>
-                        <NotificationsIcon color={location.pathname.startsWith("/Admin/notices") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Notices" />
+                    <ListItemText primary="Analysis" />
                 </ListItemButton>
             </List>
             <Divider />
@@ -114,9 +100,9 @@ const AdminSideBar = () => {
                 <ListSubheader component="div" inset>
                     Account
                 </ListSubheader>
-                <ListItemButton component={Link} to="/Admin/profile">
+                <ListItemButton component={Link} to="/Teacher/profile">
                     <ListItemIcon>
-                        <AccountCircleOutlinedIcon color={location.pathname.startsWith("/Admin/profile") ? 'primary' : 'inherit'} />
+                        <AccountCircleOutlinedIcon color={location.pathname.startsWith("/Teacher/profile") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Profile" />
                 </ListItemButton>
@@ -131,4 +117,4 @@ const AdminSideBar = () => {
     );
 };
 
-export default AdminSideBar;
+export default TeacherSideBar;
