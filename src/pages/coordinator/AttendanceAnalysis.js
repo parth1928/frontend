@@ -46,14 +46,16 @@ const AttendanceAnalysis = () => {
         setIsDownloading(true);
         try {
             const BACKEND_URL = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
-            const response = await fetch(
-                `${BACKEND_URL}/coordinator/attendance/download/${currentClass._id}`,
-                {
-                    headers: {
-                        'Authorization': `Bearer ${currentUser?.token || ''}`
-                    }
+            const url = `${BACKEND_URL}/attendance/download/${currentClass._id}`;
+            
+            console.log('Downloading from:', url);
+            
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${currentUser?.token || ''}`,
+                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 }
-            );
+            });
 
             if (!response.ok) {
                 throw new Error('Failed to download attendance');
@@ -70,14 +72,21 @@ const AttendanceAnalysis = () => {
                 return;
             }
 
-            const url = window.URL.createObjectURL(blob);
+            // Create download link
+            const urlObj = window.URL.createObjectURL(new Blob([blob], { 
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            }));
             const link = document.createElement('a');
-            link.href = url;
-            link.download = `attendance_report_${currentClass.sclassName}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            link.href = urlObj;
+            link.download = `attendance_${currentClass.sclassName}_${new Date().toISOString().slice(0,10)}.xlsx`;
+
+            // Trigger download
             document.body.appendChild(link);
             link.click();
+            
+            // Cleanup
             document.body.removeChild(link);
-            window.URL.revokeObjectURL(url);
+            window.URL.revokeObjectURL(urlObj);
         } catch (error) {
             console.error('Download failed:', error);
             alert(error.message || 'Failed to download attendance');

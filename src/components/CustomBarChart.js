@@ -1,5 +1,5 @@
 import React from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, Cell, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import styled from "styled-components";
 
 const StyledTooltip = styled.div`
@@ -60,81 +60,53 @@ const TooltipContent = ({ active, payload, dataKey }) => {
     );
 };
 
-const CustomBarChart = ({ chartData = [], dataKey = "value" }) => {
-    // Return early if no data
-    if (!chartData || !chartData.length) {
-        return (
-            <NoDataContainer>
-                No data available to display
-            </NoDataContainer>
-        );
+const CustomBarChart = ({ data, XAxisKey = "subject", YAxisKey = "average", barKey = "average", tooltip = "Average %" }) => {
+    if (!data || data.length === 0) {
+        return <NoDataContainer>No data available for chart</NoDataContainer>;
     }
 
-    const subjects = chartData.map((data) => data.subject || data.subName?.subName || "");
-    const distinctColors = generateDistinctColors(Math.max(subjects.length, 1));
+    // Ensure data is properly formatted
+    const formattedData = data.map(item => ({
+        [XAxisKey]: item[XAxisKey],
+        [barKey]: typeof item[YAxisKey] === 'number' ? Number(item[YAxisKey].toFixed(1)) : 0
+    }));
 
     return (
         <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <BarChart
+                data={formattedData}
+                margin={{
+                    top: 20,
+                    right: 30,
+                    left: 30,
+                    bottom: 60
+                }}
+            >
+                <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
-                    dataKey={dataKey === "marksObtained" ? "subName.subName" : "subject"}
+                    dataKey={XAxisKey}
                     angle={-45}
                     textAnchor="end"
-                    height={60}
+                    height={80}
+                    interval={0}
                 />
-                <YAxis domain={[0, 100]} />
-                <Tooltip content={<TooltipContent dataKey={dataKey} />} />
-                <Bar dataKey={dataKey}>
-                    {chartData.map((entry, index) => (
-                        <Cell
-                            key={`cell-${index}`}
-                            fill={distinctColors[index % distinctColors.length]}
-                        />
-                    ))}
-                </Bar>
+                <YAxis
+                    domain={[0, 100]}
+                    label={{ value: 'Attendance %', angle: -90, position: 'insideLeft' }}
+                />
+                <Tooltip
+                    formatter={(value) => [`${value}%`, tooltip]}
+                    labelFormatter={(label) => `Subject: ${label}`}
+                />
+                <Bar
+                    dataKey={barKey}
+                    fill="#8884d8"
+                    name={tooltip}
+                    radius={[5, 5, 0, 0]}
+                />
             </BarChart>
         </ResponsiveContainer>
     );
-};
-
-// Helper function to generate distinct colors
-const generateDistinctColors = (count) => {
-    const colors = [];
-    const goldenRatioConjugate = 0.618033988749895;
-
-    for (let i = 0; i < count; i++) {
-        const hue = (i * goldenRatioConjugate) % 1;
-        const color = hslToRgb(hue, 0.6, 0.6);
-        colors.push(`rgb(${color[0]}, ${color[1]}, ${color[2]})`);
-    }
-
-    return colors;
-};
-
-// Helper function to convert HSL to RGB
-const hslToRgb = (h, s, l) => {
-    let r, g, b;
-
-    if (s === 0) {
-        r = g = b = l; // Achromatic
-    } else {
-        const hue2rgb = (p, q, t) => {
-            if (t < 0) t += 1;
-            if (t > 1) t -= 1;
-            if (t < 1 / 6) return p + (q - p) * 6 * t;
-            if (t < 1 / 2) return q;
-            if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-            return p;
-        };
-
-        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-        const p = 2 * l - q;
-        r = hue2rgb(p, q, h + 1 / 3);
-        g = hue2rgb(p, q, h);
-        b = hue2rgb(p, q, h - 1 / 3);
-    }
-
-    return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
 };
 
 export default CustomBarChart;
