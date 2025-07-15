@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { logout } from '../redux/userRelated/userSlice';
+import { authLogout } from '../redux/userRelated/userSlice';
 import styled from 'styled-components';
 
 const Logout = () => {
@@ -12,8 +12,7 @@ const Logout = () => {
         const handleLogout = () => {
             try {
                 localStorage.removeItem('token');
-                localStorage.removeItem('user');
-                dispatch(logout());
+                dispatch(authLogout());
                 navigate('/');
             } catch (error) {
                 console.error('Logout error:', error);
