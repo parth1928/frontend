@@ -5,7 +5,8 @@ import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import {
-    Paper, Box, IconButton,
+    Paper, Box, IconButton, CircularProgress, Typography,
+    Button, Alert
 } from '@mui/material';
 import DeleteIcon from "@mui/icons-material/Delete";
 import TableTemplate from '../../../components/TableTemplate';
@@ -84,28 +85,60 @@ const ShowSubjects = () => {
     ];
 
     return (
-        <>
-            {loading ?
-                <div>Loading...</div>
-                :
+        <Box sx={{ p: 2 }}>
+            {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+                    <CircularProgress />
+                    <Typography sx={{ ml: 2 }}>Loading subjects...</Typography>
+                </Box>
+            ) : (
                 <>
-                    {response ?
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                            <GreenButton variant="contained"
-                                onClick={() => navigate("/Admin/subjects/chooseclass")}>
-                                Add Subjects
-                            </GreenButton>
-                        </Box>
-                        :
-                        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                            {Array.isArray(subjectsList) && subjectsList.length > 0 &&
-                                <TableTemplate buttonHaver={SubjectsButtonHaver} columns={subjectColumns} rows={subjectRows} />
-                            }
-                            <SpeedDialTemplate actions={actions} />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+                        <Typography variant="h5" component="h1">
+                            Subjects Management
+                        </Typography>
+                        <GreenButton 
+                            variant="contained"
+                            startIcon={<PostAddIcon />}
+                            onClick={() => navigate("/Admin/subjects/chooseclass")}
+                        >
+                            Add Subject
+                        </GreenButton>
+                    </Box>
+
+                    {error ? (
+                        <Alert severity="error" sx={{ mb: 2 }}>
+                            {error}
+                        </Alert>
+                    ) : !subjectsList || subjectsList.length === 0 ? (
+                        <Paper sx={{ p: 3, textAlign: 'center' }}>
+                            <Typography variant="h6" gutterBottom>
+                                No Subjects Found
+                            </Typography>
+                            <Typography color="textSecondary" sx={{ mb: 3 }}>
+                                Get started by adding subjects to your classes
+                            </Typography>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                startIcon={<PostAddIcon />}
+                                onClick={() => navigate("/Admin/subjects/chooseclass")}
+                            >
+                                Add First Subject
+                            </Button>
                         </Paper>
-                    }
+                    ) : (
+                        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
+                            <TableTemplate 
+                                buttonHaver={SubjectsButtonHaver} 
+                                columns={subjectColumns} 
+                                rows={subjectRows || []} 
+                            />
+                        </Paper>
+                    )}
+                    <SpeedDialTemplate actions={actions} />
                 </>
-            }
+            )}
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
 
         </>
