@@ -85,27 +85,44 @@ export const getClassStudents = (id, adminId) => async (dispatch) => {
 
 export const getClassDetails = (classInfo) => async (dispatch) => {
     dispatch(getRequest());
+    
+    const maxRetries = 3;
+    let retryCount = 0;
+    
+    const fetchWithRetry = async () => {
+        try {
+            // Handle case where classInfo is an object (from coordinator's assignedClass)
+            const classId = typeof classInfo === 'object' ? classInfo._id : classInfo;
+            
+            // Don't make the API call if classId is undefined/null/empty
+            if (!classId || classId === 'undefined' || classId === 'null') {
+                dispatch(getFailed('Invalid class ID'));
+                return;
+            }
 
-    try {
-        // Handle case where classInfo is an object (from coordinator's assignedClass)
-        const classId = typeof classInfo === 'object' ? classInfo._id : classInfo;
-        
-        // Don't make the API call if classId is undefined/null/empty
-        if (!classId || classId === 'undefined' || classId === 'null') {
-            dispatch(getFailed('Invalid class ID'));
-            return;
+            const result = await axios.get(`/Sclass/${classId}`);
+            if (result.data.message) {
+                dispatch(getFailed(result.data.message));
+            } else {
+                dispatch(detailsSuccess(result.data));
+            }
+        } catch (error) {
+            console.error('Error fetching class details:', error);
+            
+            // If it's a startup error and we haven't exceeded retries
+            if (error.message?.includes('starting up') && retryCount < maxRetries) {
+                retryCount++;
+                console.log(`Retrying fetch class details (${retryCount}/${maxRetries})...`);
+                // Wait 5 seconds before retrying
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                return fetchWithRetry();
+            }
+            
+            dispatch(getError(error.response?.data?.message || error.message));
         }
+    };
 
-        const result = await axios.get(`/Sclass/${classId}`);
-        if (result.data.message) {
-            dispatch(getFailed(result.data.message));
-        } else {
-            dispatch(detailsSuccess(result.data));
-        }
-    } catch (error) {
-        console.error('Error fetching class details:', error);
-        dispatch(getError(error.response?.data?.message || error.message));
-    }
+    await fetchWithRetry();
 }
 
 export const getSubjectList = (id, address) => async (dispatch) => {
