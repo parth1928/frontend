@@ -17,14 +17,26 @@ export const getAllSclasses = (id, address) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
+        if (!id) {
+            console.warn('No admin ID provided to getAllSclasses');
+            dispatch(getFailedTwo('Admin ID is required'));
+            return;
+        }
+
+        console.log('Fetching classes for admin:', id);
         const result = await axios.get(`/SclassList/${id}`);
-        if (result.data.message) {
+        
+        console.log('Classes API response:', result.data);
+        if (result.data.message === 'No classes found' || !result.data) {
+            dispatch(getSuccess([]));
+        } else if (result.data.message) {
             dispatch(getFailedTwo(result.data.message));
         } else {
-            dispatch(getSuccess(result.data));
+            dispatch(getSuccess(Array.isArray(result.data) ? result.data : [result.data]));
         }
     } catch (error) {
-        dispatch(getError(error));
+        console.error('Error fetching classes:', error);
+        dispatch(getError(error.response?.data?.message || error.message));
     }
 }
 
