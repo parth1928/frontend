@@ -140,8 +140,7 @@ const ShowSubjects = () => {
                 </>
             )}
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-
-        </>
+        </Box>
     );
 };
 
