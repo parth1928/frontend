@@ -19,14 +19,23 @@ const ShowSubjects = () => {
     const dispatch = useDispatch();
     const { subjectsList, loading, error, response } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector(state => state.user)
+    const [retryCount, setRetryCount] = useState(0);
+    const maxRetries = 3;
 
     useEffect(() => {
-        dispatch(getSubjectList(currentUser._id, "AllSubjects"));
-    }, [currentUser._id, dispatch]);
-
-    if (error) {
-        console.log(error);
-    }
+        const fetchData = async () => {
+            try {
+                await dispatch(getSubjectList(currentUser._id, "AllSubjects"));
+            } catch (err) {
+                if (err.message?.includes('starting up') && retryCount < maxRetries) {
+                    setTimeout(() => {
+                        setRetryCount(prev => prev + 1);
+                    }, 5000); // Retry after 5 seconds
+                }
+            }
+        };
+        fetchData();
+    }, [currentUser._id, dispatch, retryCount]);
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
@@ -87,9 +96,16 @@ const ShowSubjects = () => {
     return (
         <Box sx={{ p: 2 }}>
             {loading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
                     <CircularProgress />
-                    <Typography sx={{ ml: 2 }}>Loading subjects...</Typography>
+                    <Typography sx={{ mt: 2, mb: retryCount > 0 ? 1 : 0 }}>
+                        Loading subjects...
+                    </Typography>
+                    {retryCount > 0 && (
+                        <Typography color="textSecondary" variant="body2">
+                            Server is starting up. Retrying... ({retryCount}/{maxRetries})
+                        </Typography>
+                    )}
                 </Box>
             ) : (
                 <>
