@@ -1,77 +1,84 @@
 import axios from '../../api/axiosInstance';
 import {
     authRequest,
+    stuffAdded,
     authSuccess,
     authFailed,
     authError,
-    stuffAdded,
+    authLogout,
+    doneSuccess,
+    getDeleteSuccess,
     getRequest,
     getFailed,
     getError,
-    getSuccess,
-    doneSuccess,
-    getDeleteSuccess,
-    authLogout
 } from './userSlice';
-
-const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
 
 export const loginUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
+    console.log('Attempting login for role:', role, 'with fields:', fields);
 
     try {
-        const result = await axios.post(`/${role}Login`, fields, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            },
-            withCredentials: false
+        if (!role) {
+            dispatch(authFailed('Role is required'));
+            return;
+        }
+
+        // Log the complete request URL and data
+        console.log('Making login request to:', `/${role}Login`);
+        console.log('With data:', fields);
+
+        const result = await axios.post(`/${role}Login`, fields);
+        console.log('Login response:', result.data);
+
+        if (!result.data) {
+            dispatch(authFailed('No response from server'));
+            return;
+        }
+
+        // Handle error messages from server
+        if (result.data.error) {
+            dispatch(authFailed(result.data.error));
+            return;
+        }
+
+        // Handle message-only responses (usually errors)
+        if (result.data.message && !result.data._id) {
+            dispatch(authFailed(result.data.message));
+            return;
+        }
+
+        // Validate required user data
+        if (!result.data._id) {
+            dispatch(authFailed('Invalid user data received'));
+            return;
+        }
+
+        // Create user object with all required fields
+        const userData = {
+            ...result.data,
+            role: result.data.role || role
+        };
+
+        console.log('Login successful, dispatching user data:', userData);
+        dispatch(authSuccess(userData));
+    } catch (error) {
+        console.error('Login error details:', {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status
         });
 
-        if (result.data.role !== role) {
-            dispatch(authFailed("Invalid role"));
-            return;
+        let errorMessage = 'Login failed. ';
+
+        if (error.code === 'ECONNABORTED') {
+            errorMessage += 'Server is starting up. Please try again in a few moments.';
+        } else if (!error.response) {
+            errorMessage += 'Unable to reach the server. Please check your connection and try again.';
+        } else {
+            errorMessage += error.response?.data?.message || error.message || 'Please try again.';
         }
 
-        // Store auth token
-        const token = result.data.token;
-        if (token) {
-            localStorage.setItem('token', token);
-        }
-
-        const userData = { ...result.data, role: role };
-        dispatch(authSuccess(userData));
-        localStorage.setItem('user', JSON.stringify(userData));
-
-    } catch (error) {
-        console.error('Login error details:', error);
-
-        // Handle specific error cases
-        if (!error.response) {
-            dispatch(authError("Unable to connect to server. Please check your internet connection and try again."));
-            return;
-        }
-
-        switch (error.response?.status) {
-            case 400:
-                dispatch(authFailed("Invalid username or password"));
-                break;
-            case 401:
-                dispatch(authFailed("Invalid credentials"));
-                break;
-            case 404:
-                dispatch(authFailed("User not found"));
-                break;
-            case 429:
-                dispatch(authFailed("Too many login attempts. Please try again later."));
-                break;
-            case 500:
-                dispatch(authError("Server error. Please try again later."));
-                break;
-            default:
-                dispatch(authError(error.response?.data?.message || "Login failed. Please try again."));
-        }
+        dispatch(authError(errorMessage));
     }
 };
 
@@ -108,13 +115,7 @@ export const registerUser = (fields, role) => async (dispatch) => {
 };
 
 export const logoutUser = () => (dispatch) => {
-    try {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        dispatch(authLogout());
-    } catch (error) {
-        console.error('Logout error:', error);
-    }
+    dispatch(authLogout());
 };
 
 export const getUserDetails = (id, address) => async (dispatch) => {

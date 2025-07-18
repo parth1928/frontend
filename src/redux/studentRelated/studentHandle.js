@@ -14,22 +14,19 @@ export const getAllStudents = (id) => async (dispatch) => {
     console.log('Fetching students for admin:', id);
 
     try {
-        // Less strict check for ID
-        if (!id) {
-            console.warn('No admin ID provided to getAllStudents');
-            dispatch(getFailed('Admin ID is required'));
+        // Don't make the API call if id is undefined/null/empty
+        if (!id || id === 'undefined' || id === 'null') {
+            dispatch(getFailed('Invalid admin ID'));
             return;
         }
 
         const result = await axios.get(`/Students/${id}`);
         console.log('Students API response:', result.data);
 
-        if (result.data.message === 'No students found' || !result.data) {
-            dispatch(getSuccess([]));
-        } else if (result.data.message) {
+        if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
-            dispatch(getSuccess(Array.isArray(result.data) ? result.data : [result.data]));
+            dispatch(getSuccess(result.data));
         }
     } catch (error) {
         console.error('Error fetching students:', error);

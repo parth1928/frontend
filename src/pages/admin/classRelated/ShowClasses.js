@@ -145,38 +145,25 @@ const ShowClasses = () => {
 
   return (
     <>
-      {loading ? (
+      {loading ?
         <div>Loading...</div>
-      ) : (
-        <Box>
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-            <GreenButton variant="contained" onClick={() => navigate("/Admin/addclass")}>
-              Add Class
-            </GreenButton>
-          </Box>
-
-          {getresponse ? (
-            <div>{getresponse}</div>
-          ) : (
+        :
+        <>
+          {getresponse ?
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+              <GreenButton variant="contained" onClick={() => navigate("/Admin/addclass")}>
+                Add Class
+              </GreenButton>
+            </Box>
+            :
             <>
-              {!sclassesList || sclassesList.length === 0 ? (
-                <Box sx={{ textAlign: 'center', mt: 4 }}>
-                  <h2>No classes found</h2>
-                  <p>Start by adding a new class using the button above.</p>
-                </Box>
-              ) : (
-                <TableTemplate 
-                  buttonHaver={SclassButtonHaver} 
-                  columns={sclassColumns} 
-                  rows={sclassRows || []} 
-                />
-              )}
-            </>
-          )}
-          
-          <SpeedDialTemplate actions={actions} />
-        </Box>
-      )}
+              {Array.isArray(sclassesList) && sclassesList.length > 0 &&
+                <TableTemplate buttonHaver={SclassButtonHaver} columns={sclassColumns} rows={sclassRows} />
+              }
+              <SpeedDialTemplate actions={actions} />
+            </>}
+        </>
+      }
       <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
 
     </>
