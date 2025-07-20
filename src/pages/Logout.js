@@ -11,8 +11,12 @@ const Logout = () => {
     const dispatch = useDispatch();
 
     const handleLogout = () => {
+        // Clear all auth data
         dispatch(authLogout());
-        navigate('/');
+        localStorage.removeItem('user');
+        
+        // Redirect to home page
+        navigate('/', { replace: true });
     };
 
     const handleCancel = () => {

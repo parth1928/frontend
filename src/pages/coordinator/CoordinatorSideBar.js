@@ -99,9 +99,12 @@ const CoordinatorSideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary="Profile" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/logout">
+                <ListItemButton 
+                    component={Link} 
+                    to="/logout"
+                >
                     <ListItemIcon>
-                        <ExitToAppIcon />
+                        <ExitToAppIcon color={location.pathname === "/logout" ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Logout" />
                 </ListItemButton>
