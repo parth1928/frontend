@@ -50,10 +50,37 @@ const AttendanceReports = () => {
             return;
         }
 
+        setDownloading(true);
         try {
-            setDownloading(true);
+            // Debug logs for authentication state
+            console.log('Current user state:', currentUser);
+            console.log('Class details:', currentClass);
 
-            let url = `${process.env.REACT_APP_API_BASE_URL}/coordinator/attendance/report/${currentClass._id}`;
+            let userFromStorage;
+            try {
+                userFromStorage = JSON.parse(localStorage.getItem('user'));
+                console.log('User from storage:', userFromStorage);
+            } catch (e) {
+                console.error('Error parsing user from storage:', e);
+            }
+
+            if (!currentUser && !userFromStorage) {
+                throw new Error('Please log in again - No user found');
+            }
+
+            const token = userFromStorage?.token || currentUser?.token;
+            console.log('Token found:', !!token);  // Debug log (don't log actual token)
+            
+            if (!token) {
+                throw new Error('No authentication token found. Please log in again.');
+            }
+
+            const userId = currentUser?._id || userFromStorage?._id;
+            if (!userId) {
+                throw new Error('User ID not found. Please log in again.');
+            }
+
+            let url = `${process.env.REACT_APP_API_BASE_URL}/Coordinator/attendance/download/${userId}`;
             const queryParams = [];
 
             if (reportType === 'date-range' && startDate && endDate) {
@@ -66,29 +93,49 @@ const AttendanceReports = () => {
                 url += '?' + queryParams.join('&');
             }
 
-            const response = await axios.get(url, {
-                responseType: 'blob',
-                headers: {
-                    'Authorization': localStorage.getItem('token')
-                }
+            console.log('Downloading from:', url); // Debug log
+
+            console.log('Making request to:', url);  // Debug log
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            };
+            console.log('Request headers:', { ...headers, Authorization: 'Bearer [HIDDEN]' });  // Debug log
+
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: headers
             });
 
-            const blob = new Blob([response.data], { 
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-            });
+            if (!response.ok) {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to download report');
+                }
+                throw new Error(`Failed to download report: ${response.status} ${response.statusText}`);
+            }
+
+            const blob = await response.blob();
+            const downloadUrl = window.URL.createObjectURL(
+                new Blob([blob], { 
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+                })
+            );
             
             const link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.download = `attendance_report_${currentClass.sclassName}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            link.href = downloadUrl;
+            link.download = `attendance_report_${currentClass.sclassName}_${new Date().toLocaleDateString('en-GB')}.xlsx`;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            window.URL.revokeObjectURL(downloadUrl);
             
             setDialogMessage('Report downloaded successfully!');
             setShowDialog(true);
         } catch (error) {
             console.error('Download error:', error);
-            setDialogMessage(error.response?.data?.message || 'Failed to download report');
+            setDialogMessage(error.message || 'Failed to download report');
             setShowDialog(true);
         } finally {
             setDownloading(false);
