@@ -45,30 +45,15 @@ const AttendanceReports = () => {
 
     const handleDownload = async () => {
         if (!currentClass?._id) {
-            setDialogMessage('Please select a class first');
+            setDialogMessage('No class selected');
             setShowDialog(true);
             return;
-        }
-
-        // Validate date range if selected
-        if (reportType === 'date-range') {
-            if (!startDate || !endDate) {
-                setDialogMessage('Please select both start and end dates');
-                setShowDialog(true);
-                return;
-            }
-            if (startDate > endDate) {
-                setDialogMessage('Start date cannot be after end date');
-                setShowDialog(true);
-                return;
-            }
         }
 
         try {
             setDownloading(true);
 
-            // Use the correct endpoint
-            let url = `${process.env.REACT_APP_API_BASE_URL}/coordinator/attendance/download/${currentClass._id}`;
+            let url = `${process.env.REACT_APP_API_BASE_URL}/coordinator/attendance/report/${currentClass._id}`;
             const queryParams = [];
 
             if (reportType === 'date-range' && startDate && endDate) {
@@ -81,109 +66,29 @@ const AttendanceReports = () => {
                 url += '?' + queryParams.join('&');
             }
 
-            console.log('Downloading from URL:', url); // Debug log
-
-            const response = await axios({
-                url,
-                method: 'GET',
+            const response = await axios.get(url, {
                 responseType: 'blob',
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                    'Cache-Control': 'no-cache'
-                },
-                timeout: 30000 // 30 second timeout
+                    'Authorization': localStorage.getItem('token')
+                }
             });
 
-            // Log response details for debugging
-            console.log('Response headers:', response.headers);
-            console.log('Response type:', response.data.type);
-
-            // Handle error responses
-            if (response.data.type === 'application/json') {
-                const reader = new FileReader();
-                reader.onload = () => {
-                    try {
-                        const errorData = JSON.parse(reader.result);
-                        setDialogMessage(errorData.message || 'Failed to generate report');
-                        setShowDialog(true);
-                    } catch (e) {
-                        console.error('Error parsing error response:', e);
-                        setDialogMessage('Failed to generate report');
-                        setShowDialog(true);
-                    }
-                };
-                reader.onerror = (error) => {
-                    console.error('FileReader error:', error);
-                    setDialogMessage('Error processing server response');
-                    setShowDialog(true);
-                };
-                reader.readAsText(response.data);
-                return;
-            }
-
-            // Create download
             const blob = new Blob([response.data], { 
                 type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
             });
             
-            if (blob.size === 0) {
-                throw new Error('Downloaded file is empty');
-            }
-
-            const url_obj = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.href = url_obj;
-            link.download = `attendance_report_${currentClass.sclassName}_${reportType}_${new Date().toISOString().slice(0,10)}.xlsx`;
-            
-            // Trigger download
+            link.href = window.URL.createObjectURL(blob);
+            link.download = `attendance_report_${currentClass.sclassName}_${new Date().toISOString().slice(0,10)}.xlsx`;
             document.body.appendChild(link);
             link.click();
-            
-            // Cleanup
-            setTimeout(() => {
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url_obj);
-            }, 100);
+            document.body.removeChild(link);
             
             setDialogMessage('Report downloaded successfully!');
             setShowDialog(true);
         } catch (error) {
             console.error('Download error:', error);
-            let errorMessage = 'Failed to download report. ';
-            
-            if (error.response) {
-                console.error('Response error details:', {
-                    status: error.response.status,
-                    headers: error.response.headers,
-                    data: error.response.data
-                });
-                
-                switch (error.response.status) {
-                    case 401:
-                        errorMessage += 'Please login again.';
-                        break;
-                    case 403:
-                        errorMessage += 'You do not have permission to download this report.';
-                        break;
-                    case 404:
-                        errorMessage += 'Report not found. Please try again.';
-                        break;
-                    case 500:
-                        errorMessage += 'Server error. Please try again later.';
-                        break;
-                    default:
-                        errorMessage += error.response.data?.message || error.response.statusText || 'Unknown error occurred.';
-                }
-            } else if (error.request) {
-                console.error('Request error:', error.request);
-                errorMessage += 'Network error. Please check your connection.';
-            } else {
-                console.error('Error details:', error);
-                errorMessage += error.message || 'Unknown error occurred.';
-            }
-            
-            setDialogMessage(errorMessage);
+            setDialogMessage(error.response?.data?.message || 'Failed to download report');
             setShowDialog(true);
         } finally {
             setDownloading(false);

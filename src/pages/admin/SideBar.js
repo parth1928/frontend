@@ -1,88 +1,52 @@
-import React from 'react';
-import {
-    Box,
-    Drawer,
-    Toolbar,
-    List,
-    Divider,
-    ListItem,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText,
-    ListSubheader,
-    IconButton,
-} from '@mui/material';
+import * as React from 'react';
+import { Divider, ListItemButton, ListItemIcon, ListItemText, ListSubheader } from '@mui/material';
 import { Link, useLocation } from 'react-router-dom';
-import HomeIcon from '@mui/icons-material/Home';
-import PersonOutlineIcon from '@mui/icons-material/PersonOutline';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-import AccountCircleOutlinedIcon from '@mui/icons-material/AccountCircleOutlined';
-import MenuIcon from '@mui/icons-material/Menu';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import ClassIcon from '@mui/icons-material/Class';
-import SubjectIcon from '@mui/icons-material/Subject';
-import GroupIcon from '@mui/icons-material/Group';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 
-const drawerWidth = 240;
+import HomeIcon from "@mui/icons-material/Home";
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
+import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
+import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
+import SupervisorAccountOutlinedIcon from '@mui/icons-material/SupervisorAccountOutlined';
+import ReportIcon from '@mui/icons-material/Report';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import PeopleIcon from '@mui/icons-material/People';
 
-const AdminSideBar = () => {
+const SideBar = () => {
     const location = useLocation();
-    const [open, setOpen] = React.useState(true);
-
-    const toggleDrawer = () => {
-        setOpen(!open);
-    };
-
     return (
-        <Drawer
-            variant="permanent"
-            open={open}
-            sx={{
-                width: drawerWidth,
-                flexShrink: 0,
-                '& .MuiDrawer-paper': {
-                    width: drawerWidth,
-                    boxSizing: 'border-box',
-                    ...(!open && {
-                        width: theme => theme.spacing(7),
-                        overflowX: 'hidden',
-                    }),
-                },
-            }}
-        >
-            <Toolbar
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'flex-end',
-                    px: [1],
-                }}
-            >
-                <IconButton onClick={toggleDrawer}>
-                    {open ? <ChevronLeftIcon /> : <MenuIcon />}
-                </IconButton>
-            </Toolbar>
-            <Divider />
-            <List>
-                <ListItemButton component={Link} to="/Admin/dashboard">
+        <>
+            <React.Fragment>
+                <ListItemButton component={Link} to="/">
                     <ListItemIcon>
-                        <HomeIcon color={location.pathname === "/Admin/dashboard" ? 'primary' : 'inherit'} />
+                        <HomeIcon color={location.pathname === ("/" || "/Admin/dashboard") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
-                    <ListItemText primary="Dashboard" />
+                    <ListItemText primary="Home" />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/Admin/classes">
                     <ListItemIcon>
-                        <ClassIcon color={location.pathname.startsWith("/Admin/classes") ? 'primary' : 'inherit'} />
+                        <ClassOutlinedIcon color={location.pathname.startsWith('/Admin/classes') ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Classes" />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/Admin/subjects">
                     <ListItemIcon>
-                        <SubjectIcon color={location.pathname.startsWith("/Admin/subjects") ? 'primary' : 'inherit'} />
+                        <AssignmentIcon color={location.pathname.startsWith("/Admin/subjects") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Subjects" />
+                </ListItemButton>
+                <ListItemButton component={Link} to="/Admin/teachers">
+                    <ListItemIcon>
+                        <SupervisorAccountOutlinedIcon color={location.pathname.startsWith("/Admin/teachers") ? 'primary' : 'inherit'} />
+                    </ListItemIcon>
+                    <ListItemText primary="Teachers" />
+                </ListItemButton>
+                <ListItemButton component={Link} to="/Admin/coordinators">
+                    <ListItemIcon>
+                        <PeopleIcon color={location.pathname.startsWith("/Admin/coordinators") ? 'primary' : 'inherit'} />
+                    </ListItemIcon>
+                    <ListItemText primary="Coordinators" />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/Admin/students">
                     <ListItemIcon>
@@ -90,29 +54,23 @@ const AdminSideBar = () => {
                     </ListItemIcon>
                     <ListItemText primary="Students" />
                 </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/teachers">
-                    <ListItemIcon>
-                        <GroupIcon color={location.pathname.startsWith("/Admin/teachers") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Teachers" />
-                </ListItemButton>
-                <ListItemButton component={Link} to="/Admin/coordinators">
-                    <ListItemIcon>
-                        <SupervisorAccountIcon color={location.pathname.startsWith("/Admin/coordinators") ? 'primary' : 'inherit'} />
-                    </ListItemIcon>
-                    <ListItemText primary="Coordinators" />
-                </ListItemButton>
                 <ListItemButton component={Link} to="/Admin/notices">
                     <ListItemIcon>
-                        <NotificationsIcon color={location.pathname.startsWith("/Admin/notices") ? 'primary' : 'inherit'} />
+                        <AnnouncementOutlinedIcon color={location.pathname.startsWith("/Admin/notices") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Notices" />
                 </ListItemButton>
-            </List>
-            <Divider />
-            <List>
+                <ListItemButton component={Link} to="/Admin/complains">
+                    <ListItemIcon>
+                        <ReportIcon color={location.pathname.startsWith("/Admin/complains") ? 'primary' : 'inherit'} />
+                    </ListItemIcon>
+                    <ListItemText primary="Complains" />
+                </ListItemButton>
+            </React.Fragment>
+            <Divider sx={{ my: 1 }} />
+            <React.Fragment>
                 <ListSubheader component="div" inset>
-                    Account
+                    User
                 </ListSubheader>
                 <ListItemButton component={Link} to="/Admin/profile">
                     <ListItemIcon>
@@ -122,13 +80,13 @@ const AdminSideBar = () => {
                 </ListItemButton>
                 <ListItemButton component={Link} to="/logout">
                     <ListItemIcon>
-                        <ExitToAppIcon />
+                        <ExitToAppIcon color={location.pathname.startsWith("/logout") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
                     <ListItemText primary="Logout" />
                 </ListItemButton>
-            </List>
-        </Drawer>
-    );
-};
+            </React.Fragment>
+        </>
+    )
+}
 
-export default AdminSideBar;
+export default SideBar

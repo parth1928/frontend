@@ -30,7 +30,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "CI=false npx update-browserslist-db@latest && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -53,8 +53,7 @@
     ]
   },
   "devDependencies": {
-    "webpack": "^5.81.0",
-    "browserslist": "^4.21.10"
+    "webpack": "^5.81.0"
   },
   "resolutions": {
     "@mui/x-date-pickers/AdapterDateFns": "^6.10.0",

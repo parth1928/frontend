@@ -27,7 +27,7 @@ const sclassSlice = createSlice({
             state.subloading = true;
         },
         getSuccess: (state, action) => {
-            state.sclassesList = Array.isArray(action.payload) ? action.payload : [];
+            state.sclassesList = action.payload;
             state.loading = false;
             state.error = null;
             state.getresponse = null;
