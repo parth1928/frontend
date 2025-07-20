@@ -4,8 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { getClassDetails, getClassStudents, getSubjectList } from "../../../redux/sclassRelated/sclassHandle";
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import {
-    Box, Container, Typography, Tab, IconButton,
-    CircularProgress, Alert
+    Box, Container, Typography, Tab, IconButton
 } from '@mui/material';
 import TabContext from '@mui/lab/TabContext';
 import TabList from '@mui/lab/TabList';
@@ -253,17 +252,7 @@ const ClassDetails = () => {
     return (
         <>
             {loading ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '80vh' }}>
-                    <CircularProgress />
-                    <Typography sx={{ mt: 2 }}>
-                        Loading class details...
-                    </Typography>
-                    {error?.includes('starting up') && (
-                        <Typography color="textSecondary" variant="body2" sx={{ mt: 1 }}>
-                            Server is starting up. Please wait a moment...
-                        </Typography>
-                    )}
-                </Box>
+                <div>Loading...</div>
             ) : (
                 <>
                     <Box sx={{ width: '100%', typography: 'body1', }} >

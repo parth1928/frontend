@@ -5,8 +5,7 @@ import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
 import { deleteUser } from '../../../redux/userRelated/userHandle';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import {
-    Paper, Box, IconButton, CircularProgress, Typography,
-    Button, Alert
+    Paper, Box, IconButton,
 } from '@mui/material';
 import DeleteIcon from "@mui/icons-material/Delete";
 import TableTemplate from '../../../components/TableTemplate';
@@ -19,23 +18,14 @@ const ShowSubjects = () => {
     const dispatch = useDispatch();
     const { subjectsList, loading, error, response } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector(state => state.user)
-    const [retryCount, setRetryCount] = useState(0);
-    const maxRetries = 3;
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                await dispatch(getSubjectList(currentUser._id, "AllSubjects"));
-            } catch (err) {
-                if (err.message?.includes('starting up') && retryCount < maxRetries) {
-                    setTimeout(() => {
-                        setRetryCount(prev => prev + 1);
-                    }, 5000); // Retry after 5 seconds
-                }
-            }
-        };
-        fetchData();
-    }, [currentUser._id, dispatch, retryCount]);
+        dispatch(getSubjectList(currentUser._id, "AllSubjects"));
+    }, [currentUser._id, dispatch]);
+
+    if (error) {
+        console.log(error);
+    }
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
@@ -94,69 +84,31 @@ const ShowSubjects = () => {
     ];
 
     return (
-        <Box sx={{ p: 2 }}>
-            {loading ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-                    <CircularProgress />
-                    <Typography sx={{ mt: 2, mb: retryCount > 0 ? 1 : 0 }}>
-                        Loading subjects...
-                    </Typography>
-                    {retryCount > 0 && (
-                        <Typography color="textSecondary" variant="body2">
-                            Server is starting up. Retrying... ({retryCount}/{maxRetries})
-                        </Typography>
-                    )}
-                </Box>
-            ) : (
+        <>
+            {loading ?
+                <div>Loading...</div>
+                :
                 <>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-                        <Typography variant="h5" component="h1">
-                            Subjects Management
-                        </Typography>
-                        <GreenButton 
-                            variant="contained"
-                            startIcon={<PostAddIcon />}
-                            onClick={() => navigate("/Admin/subjects/chooseclass")}
-                        >
-                            Add Subject
-                        </GreenButton>
-                    </Box>
-
-                    {error ? (
-                        <Alert severity="error" sx={{ mb: 2 }}>
-                            {error}
-                        </Alert>
-                    ) : !subjectsList || subjectsList.length === 0 ? (
-                        <Paper sx={{ p: 3, textAlign: 'center' }}>
-                            <Typography variant="h6" gutterBottom>
-                                No Subjects Found
-                            </Typography>
-                            <Typography color="textSecondary" sx={{ mb: 3 }}>
-                                Get started by adding subjects to your classes
-                            </Typography>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                startIcon={<PostAddIcon />}
-                                onClick={() => navigate("/Admin/subjects/chooseclass")}
-                            >
-                                Add First Subject
-                            </Button>
-                        </Paper>
-                    ) : (
+                    {response ?
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+                            <GreenButton variant="contained"
+                                onClick={() => navigate("/Admin/subjects/chooseclass")}>
+                                Add Subjects
+                            </GreenButton>
+                        </Box>
+                        :
                         <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                            <TableTemplate 
-                                buttonHaver={SubjectsButtonHaver} 
-                                columns={subjectColumns} 
-                                rows={subjectRows || []} 
-                            />
+                            {Array.isArray(subjectsList) && subjectsList.length > 0 &&
+                                <TableTemplate buttonHaver={SubjectsButtonHaver} columns={subjectColumns} rows={subjectRows} />
+                            }
+                            <SpeedDialTemplate actions={actions} />
                         </Paper>
-                    )}
-                    <SpeedDialTemplate actions={actions} />
+                    }
                 </>
-            )}
+            }
             <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-        </Box>
+
+        </>
     );
 };
 
