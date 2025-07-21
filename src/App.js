@@ -16,6 +16,7 @@ import CoordinatorProfile from './pages/coordinator/CoordinatorProfile';
 import CoordinatorStudents from './pages/coordinator/CoordinatorStudents';
 import AttendanceAnalysis from './pages/coordinator/AttendanceAnalysis';
 import AttendanceReports from './pages/coordinator/AttendanceReports';
+import Logout from './pages/Logout';
 
 const App = () => {
   const { currentRole } = useSelector(state => state.user);
@@ -33,6 +34,7 @@ const App = () => {
             <Route path="/Teacherlogin" element={<LoginPage role="Teacher" />} />
             <Route path="/Coordinatorlogin" element={<CoordinatorLogin />} />
             <Route path="/Adminregister" element={<AdminRegisterPage />} />
+            <Route path="/logout" element={<Logout />} />
             <Route path='*' element={<Navigate to="/" />} />
           </Routes>
         }
@@ -48,6 +50,7 @@ const App = () => {
             <Route path="/coordinator/attendance-analysis" element={<AttendanceAnalysis />} />
             <Route path="/coordinator/attendance-reports" element={<AttendanceReports />} />
             <Route path="/coordinator/profile" element={<CoordinatorProfile />} />
+            <Route path="/logout" element={<Logout />} />
             <Route path="/coordinator/*" element={<Navigate to="/coordinator/dashboard" />} />
             <Route path="*" element={<Navigate to="/coordinator/dashboard" />} />
           </Routes>

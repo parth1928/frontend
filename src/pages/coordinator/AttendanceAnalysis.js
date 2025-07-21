@@ -45,19 +45,39 @@ const AttendanceAnalysis = () => {
 
         setIsDownloading(true);
         try {
+            // Get user data from Redux or localStorage
+            let userFromStorage;
+            try {
+                userFromStorage = JSON.parse(localStorage.getItem('user'));
+            } catch (e) {
+                console.error('Error parsing user from storage:', e);
+            }
+
+            const token = userFromStorage?.token || currentUser?.token;
+            const userId = currentUser?._id || userFromStorage?._id;
+
+            if (!token || !userId) {
+                throw new Error('Authentication required. Please log in again.');
+            }
+
             const BACKEND_URL = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
-            const url = `${BACKEND_URL}/attendance/download/${currentClass._id}`;
+            const url = `${BACKEND_URL}/Coordinator/attendance/download/${userId}`;
             
             console.log('Downloading from:', url);
             
             const response = await fetch(url, {
                 headers: {
-                    'Authorization': `Bearer ${currentUser?.token || ''}`,
+                    'Authorization': `Bearer ${token}`,
                     'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
                 }
             });
 
             if (!response.ok) {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Failed to generate Excel file');
+                }
                 throw new Error('Failed to download attendance');
             }
 
@@ -78,7 +98,7 @@ const AttendanceAnalysis = () => {
             }));
             const link = document.createElement('a');
             link.href = urlObj;
-            link.download = `attendance_${currentClass.sclassName}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            link.download = `attendance_${currentClass.sclassName}_${new Date().toLocaleDateString('en-GB')}.xlsx`;
 
             // Trigger download
             document.body.appendChild(link);
