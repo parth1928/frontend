@@ -41,9 +41,10 @@ const CoordinatorStudents = () => {
     useEffect(() => {
         if (currentClass?._id) {
             console.log('Fetching students for class:', currentClass._id);
-            dispatch(getStudentList(currentClass._id));
+            const adminId = currentUser?.school?._id;
+            dispatch(getStudentList(currentClass._id, adminId));
         }
-    }, [currentClass]);
+    }, [currentClass, currentUser]);
 
     // Debug logging for state changes
     useEffect(() => {

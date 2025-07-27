@@ -106,6 +106,12 @@ const ShowStudents = () => {
         { id: 'sclassName', label: 'Class', minWidth: 170 },
     ];
 
+    const combinedStudentsList = React.useMemo(() => {
+        const regularStudents = studentsList || [];
+        const dtodStudents = dtodStudentsList || [];
+        return [...regularStudents.map(s => ({ ...s, type: 'Regular' })), ...dtodStudents.map(s => ({ ...s, type: 'D2D' }))];
+    }, [studentsList, dtodStudentsList]);
+
     const StudentButtonHaver = ({ row }) => {
         const options = ['Take Attendance', 'Provide Marks'];
 
@@ -318,12 +324,12 @@ const ShowStudents = () => {
                 <TableTemplate
                     buttonHaver={StudentButtonHaver}
                     columns={studentColumns.concat([{ id: 'type', label: 'Type', minWidth: 80 }])}
-                    rows={studentsList.map(student => ({
+                    rows={combinedStudentsList.map(student => ({
                         name: student.name,
                         rollNum: student.rollNum,
                         sclassName: typeof student.sclassName === 'object' ? student.sclassName.sclassName : student.sclassName,
                         id: student._id,
-                        type: student.type || 'Regular'
+                        type: student.type
                     }))}
                 />
             </Paper>

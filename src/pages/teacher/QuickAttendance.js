@@ -152,7 +152,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 }
             }
         } catch (error) {
-            console.error('Error marking selected student:', error);
+            // ...removed for production...
             setMessage({
                 text: `Error marking student: ${error.message}`,
                 type: 'error'
@@ -207,7 +207,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
             }
 
             const data = await response.json();
-            console.log('Submit response:', data);
+            // ...removed for production...
 
             if (data.success) {
                 setMessage({ 
@@ -223,7 +223,7 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 });
             }
         } catch (error) {
-            console.error('Error submitting attendance:', error);
+            // ...removed for production...
             setMessage({ 
                 text: `Failed to submit attendance: ${error.message}`, 
                 type: 'error' 
@@ -234,8 +234,20 @@ const QuickAttendance = ({ classID, subjectID }) => {
     };
 
     return (
-        <Box sx={{ p: 3, maxWidth: 600, mx: 'auto' }}>
-            <Typography variant="h5" gutterBottom>
+        <Box sx={{ 
+            p: { xs: 2, sm: 3 }, 
+            maxWidth: { xs: '100%', sm: 600 }, 
+            mx: 'auto',
+            overflowX: 'hidden' 
+        }}>
+            <Typography 
+                variant="h5" 
+                gutterBottom
+                sx={{
+                    fontSize: { xs: '1.5rem', sm: '1.8rem' },
+                    textAlign: { xs: 'center', sm: 'left' }
+                }}
+            >
                 Quick Attendance
             </Typography>
 
@@ -248,7 +260,8 @@ const QuickAttendance = ({ classID, subjectID }) => {
                     slotProps={{
                         textField: {
                             fullWidth: true,
-                            margin: 'normal'
+                            margin: 'normal',
+                            size: 'small'
                         }
                     }}
                 />
@@ -256,10 +269,25 @@ const QuickAttendance = ({ classID, subjectID }) => {
 
             {/* Batch selection for lab subjects */}
             {subjectDetails && subjectDetails.isLab && subjectDetails.batches && (
-                <FormControl fullWidth sx={{ mt: 3 }}>
-                    <FormLabel>Select Batch</FormLabel>
+                <FormControl 
+                    fullWidth 
+                    sx={{ 
+                        mt: 3,
+                        '& .MuiFormLabel-root': {
+                            fontSize: { xs: '0.9rem', sm: '1rem' }
+                        }
+                    }}
+                >
+                    <FormLabel sx={{ mb: 1 }}>Select Batch</FormLabel>
                     <RadioGroup
-                        row
+                        sx={{
+                            display: 'grid',
+                            gridTemplateColumns: { 
+                                xs: '1fr', 
+                                sm: subjectDetails.batches.length > 2 ? '1fr 1fr' : 'repeat(auto-fit, minmax(120px, 1fr))' 
+                            },
+                            gap: 1
+                        }}
                         value={selectedBatch}
                         onChange={e => setSelectedBatch(e.target.value)}
                     >
@@ -267,23 +295,73 @@ const QuickAttendance = ({ classID, subjectID }) => {
                             <FormControlLabel
                                 key={batch.batchName}
                                 value={batch.batchName}
-                                control={<Radio />}
+                                control={<Radio size="small" />}
                                 label={batch.batchName}
+                                sx={{
+                                    mx: 0,
+                                    py: 0.5,
+                                    px: 1,
+                                    borderRadius: 1,
+                                    bgcolor: selectedBatch === batch.batchName ? 'action.selected' : 'transparent',
+                                    '& .MuiFormControlLabel-label': {
+                                        fontSize: { xs: '0.9rem', sm: '1rem' }
+                                    }
+                                }}
                             />
                         ))}
                     </RadioGroup>
                 </FormControl>
             )}
 
-            <FormControl sx={{ mt: 3, width: '100%' }}>
-                <FormLabel>Attendance Mode</FormLabel>
+            <FormControl 
+                sx={{ 
+                    mt: 3, 
+                    width: '100%',
+                    '& .MuiFormLabel-root': {
+                        fontSize: { xs: '0.9rem', sm: '1rem' }
+                    }
+                }}
+            >
+                <FormLabel sx={{ mb: 1 }}>Attendance Mode</FormLabel>
                 <RadioGroup
-                    row
+                    sx={{
+                        display: 'grid',
+                        gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                        gap: 1
+                    }}
                     value={mode}
                     onChange={(e) => setMode(e.target.value)}
                 >
-                    <FormControlLabel value="present" control={<Radio />} label="Mark Present Students" />
-                    <FormControlLabel value="absent" control={<Radio />} label="Mark Absent Students" />
+                    <FormControlLabel 
+                        value="present" 
+                        control={<Radio size="small" />} 
+                        label="Mark Present Students" 
+                        sx={{
+                            mx: 0,
+                            py: 0.5,
+                            px: 1,
+                            borderRadius: 1,
+                            bgcolor: mode === 'present' ? 'success.light' : 'transparent',
+                            '& .MuiFormControlLabel-label': {
+                                fontSize: { xs: '0.9rem', sm: '1rem' }
+                            }
+                        }}
+                    />
+                    <FormControlLabel 
+                        value="absent" 
+                        control={<Radio size="small" />} 
+                        label="Mark Absent Students" 
+                        sx={{
+                            mx: 0,
+                            py: 0.5,
+                            px: 1,
+                            borderRadius: 1,
+                            bgcolor: mode === 'absent' ? 'error.light' : 'transparent',
+                            '& .MuiFormControlLabel-label': {
+                                fontSize: { xs: '0.9rem', sm: '1rem' }
+                            }
+                        }}
+                    />
                 </RadioGroup>
             </FormControl>
 
@@ -294,45 +372,94 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 onChange={(e) => setRollInput(e.target.value)}
                 onKeyPress={handleRollInput}
                 disabled={loading || (subjectDetails && subjectDetails.isLab && !selectedBatch)}
-                sx={{ mt: 3 }}
+                size="small"
+                sx={{ 
+                    mt: 3,
+                    '& .MuiInputLabel-root': {
+                        fontSize: { xs: '0.9rem', sm: '1rem' }
+                    },
+                    '& .MuiInputBase-input': {
+                        fontSize: { xs: '0.9rem', sm: '1rem' },
+                        py: { xs: 1.5, sm: 1 }
+                    }
+                }}
                 placeholder="For example: 41 01 02"
-                helperText={subjectDetails && subjectDetails.isLab ?
-                    "Select a batch and then enter roll numbers for that batch only" :
-                    "Press Enter after typing numbers (separated by spaces)"}
+                helperText={
+                    <Typography 
+                        component="span" 
+                        sx={{ 
+                            fontSize: { xs: '0.75rem', sm: '0.8rem' },
+                            color: 'text.secondary',
+                            display: 'block',
+                            mt: 0.5
+                        }}
+                    >
+                        {subjectDetails && subjectDetails.isLab
+                            ? "Select a batch and then enter roll numbers for that batch only"
+                            : "Press Enter after typing numbers (separated by spaces)"}
+                    </Typography>
+                }
             />
 
             {message.text && (
-                <Alert severity={message.type} sx={{ mt: 2 }}>
+                <Alert 
+                    severity={message.type} 
+                    sx={{ 
+                        mt: 2,
+                        '& .MuiAlert-message': {
+                            fontSize: { xs: '0.9rem', sm: '1rem' }
+                        }
+                    }}
+                >
                     {message.text}
                 </Alert>
             )}
 
             <Paper sx={{ mt: 2, p: 2, bgcolor: '#f5f5f5' }}>
                 <Typography variant="subtitle2" gutterBottom>
-                    Debug Information:
+                    Quick Summary:
                 </Typography>
-                <Typography variant="body2">
-                    Class ID: {classID}
-                </Typography>
-                <Typography variant="body2">
-                    Subject ID: {subjectID}
-                </Typography>
-                <Typography variant="body2">
-                    Marked Students Count: {markedStudents.length}
-                </Typography>
-                <Typography variant="body2">
-                    Current Mode: {mode}
-                </Typography>
-                <Typography variant="body2">
-                    Submit Button State: {markedStudents.length === 0 ? 'Disabled' : 'Enabled'}
-                </Typography>
+                <Box sx={{ 
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                    gap: 2
+                }}>
+                    <Typography variant="body2" sx={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1
+                    }}>
+                        Mode: <span style={{ fontWeight: 'bold' }}>{mode}</span>
+                    </Typography>
+                    <Typography variant="body2" sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1
+                    }}>
+                        Students: <span style={{ fontWeight: 'bold' }}>{markedStudents.length}</span>
+                    </Typography>
+                </Box>
                 {markedStudents.length > 0 && (
-                    <Box sx={{ mt: 1 }}>
-                        <Typography variant="body2">
+                    <Box sx={{ 
+                        mt: 2,
+                        maxHeight: { xs: '150px', sm: '200px' },
+                        overflowY: 'auto',
+                        p: 1
+                    }}>
+                        <Typography variant="body2" sx={{ fontWeight: 'bold', mb: 1 }}>
                             Marked Students:
                         </Typography>
                         {markedStudents.map((student, idx) => (
-                            <Typography key={idx} variant="body2" sx={{ pl: 2 }}>
+                            <Typography 
+                                key={idx} 
+                                variant="body2" 
+                                sx={{ 
+                                    pl: 2,
+                                    py: 0.5,
+                                    borderBottom: '1px solid rgba(0,0,0,0.1)',
+                                    '&:last-child': { borderBottom: 'none' }
+                                }}
+                            >
                                 • {student.name} (Roll: {student.rollNum})
                             </Typography>
                         ))}
@@ -344,7 +471,12 @@ const QuickAttendance = ({ classID, subjectID }) => {
                 variant="contained"
                 color="primary"
                 onClick={submitAttendance}
-                sx={{ mt: 3 }}
+                sx={{ 
+                    mt: 3,
+                    width: '100%',
+                    py: { xs: 1.5, sm: 1 },
+                    fontSize: { xs: '1rem', sm: 'inherit' }
+                }}
                 disabled={markedStudents.length === 0 || loading || (subjectDetails && subjectDetails.isLab && !selectedBatch)}
             >
                 Submit Attendance ({markedStudents.length} students)

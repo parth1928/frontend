@@ -34,9 +34,9 @@ const TeacherClassDetails = () => {
     // If we're missing required IDs, show appropriate message
     React.useEffect(() => {
         if (!classID || !subjectID) {
-            console.warn('Missing required IDs:', { classID, subjectID });
+            // ...removed for production...
         } else {
-            console.log('TeacherClassDetails: Using IDs:', { classID, subjectID });
+            // ...removed for production...
         }
     }, [classID, subjectID]);
 
@@ -62,26 +62,21 @@ const TeacherClassDetails = () => {
         const fetchStudents = async () => {
             try {
                 if (!classID) {
-                    console.warn('TeacherClassDetails: Missing classID');
                     return;
                 }
 
-                // Get adminId from currentUser
+                // Get adminId from currentUser's school
                 const adminId = currentUser?.school?._id;
 
-                // Validate classID and adminId
+                // Validate classID
                 if (typeof classID !== 'string' || classID === 'undefined' || classID === 'null') {
-                    console.warn('TeacherClassDetails: Invalid classID');
                     return;
                 }
 
-                if (adminId && typeof adminId === 'string' && adminId.trim() && adminId !== 'undefined' && adminId !== 'null') {
-                    await dispatch(getClassStudents(classID, adminId));
-                } else {
-                    await dispatch(getClassStudents(classID));
-                }
+                // Always pass the adminId to get both regular and D2D students
+                await dispatch(getClassStudents(classID, adminId));
             } catch (error) {
-                console.error('TeacherClassDetails: Error fetching students:', error);
+                console.error('Error fetching students:', error);
             }
         };
 
@@ -157,7 +152,7 @@ const TeacherClassDetails = () => {
             document.body.removeChild(link);
             window.URL.revokeObjectURL(urlObj);
         } catch (error) {
-            console.error('Download failed:', error);
+            // ...removed for production...
             alert(error.message || 'Failed to download attendance');
         } finally {
             setIsDownloading(false);
@@ -165,7 +160,7 @@ const TeacherClassDetails = () => {
     };
 
     if (error) {
-        console.log(error)
+    // ...removed for production...
     }
 
     const studentColumns = [
@@ -176,10 +171,10 @@ const TeacherClassDetails = () => {
     // Debug: Log fetched students and create rows with validation
     const studentRows = React.useMemo(() => {
         if (!Array.isArray(filteredStudents)) {
-            console.warn('TeacherClassDetails: filteredStudents is not an array');
+            // ...removed for production...
             return [];
         }
-        console.log('TeacherClassDetails: Processing students:', filteredStudents.length);
+    // ...removed for production...
         return filteredStudents.map((student) => ({
             name: student.name || 'No Name',
             rollNum: student.rollNum || 'No Roll Number',
@@ -195,7 +190,7 @@ const TeacherClassDetails = () => {
         const [selectedIndex, setSelectedIndex] = React.useState(0);
 
         const handleClick = () => {
-            console.info(`You clicked ${options[selectedIndex]}`);
+            // ...removed for production...
             if (selectedIndex === 0) {
                 handleAttendance();
             } else if (selectedIndex === 1) {
@@ -237,19 +232,44 @@ const TeacherClassDetails = () => {
             setOpen(false);
         };
         return (
-            <>
+            <Box sx={{ 
+                display: 'flex', 
+                flexDirection: { xs: 'column', sm: 'row' },
+                gap: { xs: 1, sm: 2 },
+                width: '100%'
+            }}>
                 <BlueButton
                     variant="contained"
                     onClick={() =>
                         navigate("/Teacher/class/student/" + row.id)
                     }
+                    sx={{
+                        py: { xs: 1, sm: 'inherit' },
+                        fontSize: { xs: '0.9rem', sm: 'inherit' }
+                    }}
                 >
                     View
                 </BlueButton>
 
                 <React.Fragment>
-                    <ButtonGroup variant="contained" ref={anchorRef} aria-label="split button">
-                        <Button onClick={handleClick}>{options[selectedIndex]}</Button>
+                    <ButtonGroup 
+                        variant="contained" 
+                        ref={anchorRef} 
+                        aria-label="split button"
+                        sx={{ 
+                            width: { xs: '100%', sm: 'auto' },
+                            '& .MuiButton-root': {
+                                py: { xs: 1, sm: 'inherit' },
+                                fontSize: { xs: '0.9rem', sm: 'inherit' }
+                            }
+                        }}
+                    >
+                        <Button 
+                            onClick={handleClick}
+                            sx={{ flex: { xs: 1, sm: 'inherit' } }}
+                        >
+                            {options[selectedIndex]}
+                        </Button>
                         <BlackButton
                             size="small"
                             aria-controls={open ? 'split-button-menu' : undefined}
@@ -257,6 +277,9 @@ const TeacherClassDetails = () => {
                             aria-label="select merge strategy"
                             aria-haspopup="menu"
                             onClick={handleToggle}
+                            sx={{
+                                px: { xs: 2, sm: 1 }
+                            }}
                         >
                             {open ? <KeyboardArrowUp /> : <KeyboardArrowDown />}
                         </BlackButton>
@@ -279,9 +302,22 @@ const TeacherClassDetails = () => {
                                         placement === 'bottom' ? 'center top' : 'center bottom',
                                 }}
                             >
-                                <Paper>
+                                <Paper sx={{ 
+                                    minWidth: { xs: '200px', sm: 'auto' },
+                                    maxHeight: { xs: '70vh', sm: 'auto' },
+                                    overflowY: 'auto'
+                                }}>
                                     <ClickAwayListener onClickAway={handleClose}>
-                                        <MenuList id="split-button-menu" autoFocusItem>
+                                        <MenuList 
+                                            id="split-button-menu" 
+                                            autoFocusItem
+                                            sx={{
+                                                '& .MuiMenuItem-root': {
+                                                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                                                    py: { xs: 1.5, sm: 1 }
+                                                }
+                                            }}
+                                        >
                                             {options.map((option, index) => (
                                                 <MenuItem
                                                     key={option}
@@ -299,29 +335,65 @@ const TeacherClassDetails = () => {
                         )}
                     </Popper>
                 </React.Fragment>
-            </>
+            </Box>
         );
     };
 
     return (
         <>
             {loading ? (
-                <div>Loading...</div>
+                <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center',
+                    height: '200px'
+                }}>
+                    <Typography>Loading...</Typography>
+                </Box>
             ) : (
                 <>
-                    <Typography variant="h4" align="center" gutterBottom>
+                    <Typography 
+                        variant="h4" 
+                        align="center" 
+                        gutterBottom
+                        sx={{
+                            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
+                            my: { xs: 2, sm: 3 }
+                        }}
+                    >
                         Class Details
                     </Typography>
                     {subjectDetails.isLab && batchList.length > 0 && (
-                        <FormControl fullWidth sx={{ mb: 2 }}>
+                        <FormControl 
+                            fullWidth 
+                            sx={{ 
+                                mb: 2,
+                                '& .MuiInputLabel-root': {
+                                    fontSize: { xs: '0.9rem', sm: '1rem' }
+                                },
+                                '& .MuiSelect-select': {
+                                    fontSize: { xs: '0.9rem', sm: '1rem' },
+                                    py: { xs: 1, sm: 1.5 }
+                                }
+                            }}
+                        >
                             <InputLabel>Select Batch</InputLabel>
                             <Select
                                 value={selectedBatch}
                                 label="Select Batch"
                                 onChange={e => setSelectedBatch(e.target.value)}
+                                size="small"
                             >
                                 {batchList.map((batch, idx) => (
-                                    <MuiMenuItem key={idx} value={batch.batchName}>{batch.batchName}</MuiMenuItem>
+                                    <MuiMenuItem 
+                                        key={idx} 
+                                        value={batch.batchName}
+                                        sx={{ 
+                                            fontSize: { xs: '0.9rem', sm: '1rem' }
+                                        }}
+                                    >
+                                        {batch.batchName}
+                                    </MuiMenuItem>
                                 ))}
                             </Select>
                         </FormControl>
@@ -333,13 +405,39 @@ const TeacherClassDetails = () => {
                             </Box>
                         </>
                     ) : (
-                        <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-                            <Typography variant="h5" gutterBottom>
+                        <Paper sx={{ 
+                            width: '100%', 
+                            overflow: 'hidden',
+                            p: { xs: 1, sm: 2 },
+                            boxShadow: { xs: 1, sm: 3 },
+                            borderRadius: { xs: 1, sm: 2 }
+                        }}>
+                            <Typography 
+                                variant="h5" 
+                                gutterBottom
+                                sx={{
+                                    fontSize: { xs: '1.2rem', sm: '1.5rem' },
+                                    mb: { xs: 2, sm: 3 }
+                                }}
+                            >
                                 Students List:
                             </Typography>
 
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                <Typography variant="h5">
+                            <Box sx={{ 
+                                display: 'flex', 
+                                flexDirection: { xs: 'column', sm: 'row' },
+                                justifyContent: 'space-between', 
+                                alignItems: { xs: 'stretch', sm: 'center' }, 
+                                mb: 2,
+                                gap: 2
+                            }}>
+                                <Typography 
+                                    variant="h5"
+                                    sx={{
+                                        fontSize: { xs: '1.2rem', sm: '1.5rem' },
+                                        textAlign: { xs: 'center', sm: 'left' }
+                                    }}
+                                >
                                     Students List:
                                 </Typography>
                                 <BlueButton
@@ -355,24 +453,45 @@ const TeacherClassDetails = () => {
                                         }
                                         navigate(`/Teacher/class/student/bulk-attendance/${classID}/${subjectID}${subjectDetails.isLab && selectedBatch ? `?batch=${encodeURIComponent(selectedBatch)}` : ''}`);
                                     }}
+                                    sx={{
+                                        py: { xs: 1.5, sm: 1 },
+                                        fontSize: { xs: '0.9rem', sm: '1rem' }
+                                    }}
                                 >
                                     Take Bulk Attendance
                                 </BlueButton>
                             </Box>
-                            <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+                            <Box sx={{ 
+                                display: 'grid',
+                                gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+                                gap: 2, 
+                                mb: 2 
+                            }}>
                                 <BlueButton
                                     onClick={() => navigate("/Teacher/class/addstudents")}
+                                    sx={{
+                                        py: { xs: 1.5, sm: 1 },
+                                        fontSize: { xs: '0.9rem', sm: '1rem' }
+                                    }}
                                 >
                                     Add Students
                                 </BlueButton>
                                 <BlueButton
                                     onClick={() => downloadExcel(selectedBatch)}
                                     disabled={isDownloading}
+                                    sx={{
+                                        py: { xs: 1.5, sm: 1 },
+                                        fontSize: { xs: '0.9rem', sm: '1rem' }
+                                    }}
                                 >
-                                    {isDownloading ? 'Downloading...' : 'Download Attendance Excel'}
+                                    {isDownloading ? 'Downloading...' : 'Download Attendance'}
                                 </BlueButton>
                                 <BlueButton
                                     onClick={() => setShowQuickAttendance(!showQuickAttendance)}
+                                    sx={{
+                                        py: { xs: 1.5, sm: 1 },
+                                        fontSize: { xs: '0.9rem', sm: '1rem' }
+                                    }}
                                 >
                                     {showQuickAttendance ? 'Hide Quick Attendance' : 'Quick Attendance'}
                                 </BlueButton>

@@ -58,7 +58,7 @@ const BulkAttendance = () => {
     // Validate required IDs
     React.useEffect(() => {
         if (!classID || !subjectID) {
-            console.warn('BulkAttendance: Missing required IDs:', { classID, subjectID });
+            // ...removed for production...
         }
     }, [classID, subjectID]);
 
@@ -100,13 +100,15 @@ const BulkAttendance = () => {
     useEffect(() => {
         // Only fetch students if we have a valid classID
         if (!classID || classID === 'undefined' || classID === 'null') {
-            console.warn('BulkAttendance: Invalid classID:', classID);
             return;
         }
 
-        console.log('BulkAttendance: Fetching students for classID:', classID);
-        dispatch(getClassStudents(classID));
-    }, [dispatch, classID]);
+        // Get adminId from currentUser's school
+        const adminId = currentUser?.school?._id;
+
+        // Always pass the adminId to get both regular and D2D students
+        dispatch(getClassStudents(classID, adminId));
+    }, [dispatch, classID, currentUser]);
 
     // Filter students for selected batch if lab using useMemo
     const filteredStudents = React.useMemo(() => {
@@ -198,20 +200,36 @@ const BulkAttendance = () => {
         }
 
         try {
-            // Only process attendance for filtered students (batch students for lab)
-            for (const student of filteredStudents) {
-                const fields = {
-                    subName: subjectID,
-                    status: attendance[student._id] ? 'Present' : 'Absent',
-                    date
-                };
-                await dispatch(updateStudentFields(student._id, fields, 'StudentAttendance'));
-            }
+            // Prepare attendanceList for bulk API
+            const attendanceList = filteredStudents.map(student => ({
+                studentId: student._id,
+                isDtod: student.role === 'D2D' || student.isDtod,
+                date,
+                status: attendance[student._id] ? 'Present' : 'Absent',
+                subName: subjectID
+            }));
 
-            setLoader(false);
-            setShowPopup(true);
-            setMessage('Attendance marked successfully!');
-            setSuccess(true);
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/attendance/bulk-mark`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': localStorage.getItem('token')
+                },
+                body: JSON.stringify({ attendanceList })
+            });
+
+            const data = await response.json();
+            if (response.ok && data.message) {
+                setLoader(false);
+                setShowPopup(true);
+                setMessage('Attendance marked successfully!');
+                setSuccess(true);
+            } else {
+                setLoader(false);
+                setShowPopup(true);
+                setMessage(data.message || 'Error marking attendance');
+                setSuccess(false);
+            }
         } catch (error) {
             setLoader(false);
             setShowPopup(true);
@@ -225,21 +243,41 @@ const BulkAttendance = () => {
             {loading || !classID || (subjectID && !subjectDetails._id && !subjectDetails.isLab && !subjectDetails.subName) ? (
                 <div>Loading subject details... {!classID ? "Missing class ID" : ""}</div>
             ) : (
-                <Box sx={{ p: 3 }}>
-                    <Typography variant="h4" gutterBottom sx={{ color: 'primary.main', mb: 4 }}>
+                <Box sx={{ 
+                    p: { xs: 2, sm: 3 },
+                    maxWidth: '100%',
+                    overflowX: 'hidden'
+                }}>
+                    <Typography 
+                        variant="h4" 
+                        gutterBottom 
+                        sx={{ 
+                            color: 'primary.main', 
+                            mb: 4,
+                            fontSize: { xs: '1.5rem', sm: '2rem' },
+                            textAlign: { xs: 'center', sm: 'left' }
+                        }}
+                    >
                         Bulk Attendance
                     </Typography>
 
                     <form onSubmit={submitAttendance}>
-                        <Stack spacing={3} sx={{ mb: 4 }}>
-                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mb: 2 }}>
-                                <FormControl sx={{ width: '200px' }}>
+                        <Stack spacing={2} sx={{ mb: 4 }}>
+                            <Box sx={{ 
+                                display: 'flex', 
+                                flexDirection: { xs: 'column', sm: 'row' },
+                                gap: { xs: 2, sm: 2 },
+                                alignItems: { xs: 'stretch', sm: 'center' },
+                                mb: 2 
+                            }}>
+                                <FormControl sx={{ width: { xs: '100%', sm: '200px' } }}>
                                     <TextField
                                         label="Select Date"
                                         type="date"
                                         value={date}
                                         onChange={(e) => setDate(e.target.value)}
                                         required
+                                        size="small"
                                         InputLabelProps={{
                                             shrink: true,
                                         }}
@@ -257,7 +295,7 @@ const BulkAttendance = () => {
                                 </FormControl>
                                 {/* Batch selector for lab subjects */}
                                 {subjectDetails.isLab && batchList.length > 0 && (
-                                    <FormControl sx={{ width: '200px' }}>
+                                    <FormControl sx={{ width: { xs: '100%', sm: '200px' } }}>
                                         <TextField
                                             select
                                             label="Select Batch"
@@ -265,6 +303,7 @@ const BulkAttendance = () => {
                                             onChange={e => setBatchName(e.target.value)}
                                             SelectProps={{ native: true }}
                                             required
+                                            size="small"
                                         >
                                             <option value="">-- Select Batch --</option>
                                             {batchList.map(batch => (
@@ -273,14 +312,19 @@ const BulkAttendance = () => {
                                         </TextField>
                                     </FormControl>
                                 )}
+                            </Box>
+                            <Box sx={{ 
+                                display: 'grid',
+                                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                                gap: 2
+                            }}>
                                 <Button
                                     variant="contained"
                                     onClick={markAllPresent}
                                     sx={{
                                         bgcolor: '#4caf50',
                                         '&:hover': { bgcolor: '#388e3c' },
-                                        px: 3,
-                                        py: 1,
+                                        py: { xs: 1.5, sm: 1 },
                                     }}
                                 >
                                     Mark All Present
@@ -291,8 +335,7 @@ const BulkAttendance = () => {
                                     sx={{
                                         bgcolor: '#f44336',
                                         '&:hover': { bgcolor: '#d32f2f' },
-                                        px: 3,
-                                        py: 1,
+                                        py: { xs: 1.5, sm: 1 },
                                     }}
                                 >
                                     Mark All Absent
@@ -300,30 +343,80 @@ const BulkAttendance = () => {
                             </Box>
                         </Stack>
 
-                        <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2, mb: 4 }}>
-                            <Table>
+                        <TableContainer 
+                            component={Paper} 
+                            sx={{ 
+                                boxShadow: 3, 
+                                borderRadius: 2, 
+                                mb: 4,
+                                overflow: 'auto',
+                                maxHeight: { xs: '50vh', sm: '60vh' }
+                            }}
+                        >
+                            <Table stickyHeader>
                                 <TableHead>
                                     <TableRow>
-                                        <StyledTableCell>Name</StyledTableCell>
-                                        <StyledTableCell>Roll Number</StyledTableCell>
-                                        <StyledTableCell align="center">Attendance Status</StyledTableCell>
+                                        <StyledTableCell 
+                                            sx={{ 
+                                                minWidth: { xs: '120px', sm: '150px' },
+                                                fontSize: { xs: '0.875rem', sm: '1rem' }
+                                            }}
+                                        >
+                                            Name
+                                        </StyledTableCell>
+                                        <StyledTableCell 
+                                            sx={{ 
+                                                minWidth: { xs: '100px', sm: '120px' },
+                                                fontSize: { xs: '0.875rem', sm: '1rem' }
+                                            }}
+                                        >
+                                            Roll No
+                                        </StyledTableCell>
+                                        <StyledTableCell 
+                                            align="center"
+                                            sx={{ 
+                                                minWidth: { xs: '140px', sm: '180px' },
+                                                fontSize: { xs: '0.875rem', sm: '1rem' }
+                                            }}
+                                        >
+                                            Status
+                                        </StyledTableCell>
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
                                     {filteredStudents.map((student) => (
                                         <StyledTableRow key={student._id}>
-                                            <StyledTableCell>{student.name}</StyledTableCell>
-                                            <StyledTableCell>{student.rollNum}</StyledTableCell>
-                                            <StyledTableCell align="center">
-                                                <Switch
-                                                    checked={!!attendance[student._id]}
-                                                    onChange={(e) => handleAttendanceChange(student._id, e.target.checked)}
-                                                    color="success"
-                                                    disabled={loader}
-                                                />
-                                                <Typography component="span" sx={{ ml: 1, color: attendance[student._id] ? 'success.main' : 'error.main' }}>
-                                                    {attendance[student._id] ? 'Present' : 'Absent'}
-                                                </Typography>
+                                            <StyledTableCell sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                                                {student.name}
+                                            </StyledTableCell>
+                                            <StyledTableCell sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                                                {student.rollNum}
+                                            </StyledTableCell>
+                                            <StyledTableCell>
+                                                <Box sx={{ 
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    justifyContent: 'center',
+                                                    gap: { xs: 0.5, sm: 1 }
+                                                }}>
+                                                    <Switch
+                                                        checked={!!attendance[student._id]}
+                                                        onChange={(e) => handleAttendanceChange(student._id, e.target.checked)}
+                                                        color="success"
+                                                        disabled={loader}
+                                                        size="small"
+                                                    />
+                                                    <Typography 
+                                                        component="span" 
+                                                        sx={{ 
+                                                            color: attendance[student._id] ? 'success.main' : 'error.main',
+                                                            fontSize: { xs: '0.875rem', sm: '1rem' },
+                                                            fontWeight: 'medium'
+                                                        }}
+                                                    >
+                                                        {attendance[student._id] ? 'Present' : 'Absent'}
+                                                    </Typography>
+                                                </Box>
                                             </StyledTableCell>
                                         </StyledTableRow>
                                     ))}
@@ -332,9 +425,38 @@ const BulkAttendance = () => {
                         </TableContainer>
 
                         {/* Show count of students marked present */}
-                        <Box sx={{ mb: 2, textAlign: 'center' }}>
-                            <Typography variant="subtitle1" color="success.main">
-                                Marked Present: {Object.values(attendance).filter(Boolean).length} / {filteredStudents.length}
+                        <Box sx={{ 
+                            mb: 2, 
+                            p: 2,
+                            bgcolor: 'background.paper',
+                            borderRadius: 1,
+                            boxShadow: 1
+                        }}>
+                            <Typography 
+                                variant="subtitle1" 
+                                sx={{
+                                    display: 'flex',
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                    gap: 1,
+                                    flexWrap: 'wrap',
+                                    textAlign: 'center',
+                                    fontSize: { xs: '0.9rem', sm: '1rem' }
+                                }}
+                            >
+                                <span>Present:</span> 
+                                <span style={{ 
+                                    color: '#4caf50', 
+                                    fontWeight: 'bold',
+                                    fontSize: '1.1em'
+                                }}>
+                                    {Object.values(attendance).filter(Boolean).length}
+                                </span>
+                                <span>of</span>
+                                <span style={{ fontWeight: 'bold' }}>
+                                    {filteredStudents.length}
+                                </span>
+                                <span>students</span>
                             </Typography>
                         </Box>
 
@@ -344,13 +466,26 @@ const BulkAttendance = () => {
                             type="submit"
                             disabled={loader}
                             sx={{
-                                mt: 4,
-                                py: 1.5,
-                                fontSize: '1.1rem',
-                                fontWeight: 'medium'
+                                mt: 2,
+                                py: { xs: 2, sm: 1.5 },
+                                fontSize: { xs: '1rem', sm: '1.1rem' },
+                                fontWeight: 'medium',
+                                borderRadius: 2,
+                                boxShadow: 2,
+                                '&:disabled': {
+                                    bgcolor: 'action.disabledBackground',
+                                    color: 'text.disabled'
+                                }
                             }}
                         >
-                            {loader ? <CircularProgress size={24} color="inherit" /> : "Submit Attendance"}
+                            {loader ? (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <CircularProgress size={20} color="inherit" />
+                                    <span>Submitting...</span>
+                                </Box>
+                            ) : (
+                                "Submit Attendance"
+                            )}
                         </PurpleButton>
                     </form>
 

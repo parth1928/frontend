@@ -82,8 +82,9 @@ const AttendanceOverview = () => {
                 <Table>
                     <TableHead>
                         <TableRow>
-                            <TableCell>Enrollment No</TableCell>
+                            <TableCell>Roll No</TableCell>
                             <TableCell>Name</TableCell>
+                            <TableCell>Type</TableCell>
                             {attendanceData.subjects.map((subject) => (
                                 <TableCell key={subject}>{subject}</TableCell>
                             ))}
@@ -92,19 +93,20 @@ const AttendanceOverview = () => {
                     </TableHead>
                     <TableBody>
                         {attendanceData.students.map((student) => (
-                            <TableRow key={student.enrollmentNo}>
-                                <TableCell>{student.enrollmentNo}</TableCell>
+                            <TableRow key={student._id}>
+                                <TableCell>{student.rollNum}</TableCell>
                                 <TableCell>{student.name}</TableCell>
+                                <TableCell>{student.type || 'Regular'}</TableCell>
                                 {attendanceData.subjects.map((subject) => (
                                     <StyledTableCell
                                         key={subject}
-                                        attendance={student.subjectWiseAttendance[subject]}
+                                        attendance={student.attendance?.subjects[subject]?.percentage || 0}
                                     >
-                                        {student.subjectWiseAttendance[subject].toFixed(2)}%
+                                        {(student.attendance?.subjects[subject]?.percentage || 0).toFixed(1)}%
                                     </StyledTableCell>
                                 ))}
-                                <StyledTableCell attendance={student.totalAttendance}>
-                                    {student.totalAttendance.toFixed(2)}%
+                                <StyledTableCell attendance={student.attendance?.overallPercentage || 0}>
+                                    {(student.attendance?.overallPercentage || 0).toFixed(1)}%
                                 </StyledTableCell>
                             </TableRow>
                         ))}

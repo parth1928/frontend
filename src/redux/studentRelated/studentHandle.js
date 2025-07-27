@@ -34,24 +34,27 @@ export const getAllStudents = (id) => async (dispatch) => {
     }
 };
 
-export const getStudentList = (classId) => async (dispatch) => {
+export const getStudentList = (classId, adminId) => async (dispatch) => {
     dispatch(getRequest());
     console.log('Fetching students for class:', classId);
 
     try {
-        // Don't make the API call if classId is undefined/null/empty
         if (!classId || classId === 'undefined' || classId === 'null') {
             dispatch(getFailed('Invalid class ID'));
             return;
         }
 
-        const result = await axios.get(`/Sclass/Students/${classId}`);
+        let url = `/Sclass/Students/${classId}`;
+        if (adminId) {
+            url += `?adminId=${adminId}`;
+        }
+
+        const result = await axios.get(url);
         console.log('Class students API response:', result.data);
 
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
-            // Always pass as array to ensure proper state update
             const studentsList = Array.isArray(result.data) ? result.data : [result.data].filter(Boolean);
             dispatch(getSuccess(studentsList));
         }

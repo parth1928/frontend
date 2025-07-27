@@ -53,15 +53,15 @@ const AttendanceReports = () => {
         setDownloading(true);
         try {
             // Debug logs for authentication state
-            console.log('Current user state:', currentUser);
-            console.log('Class details:', currentClass);
+            // ...removed for production...
+            // ...removed for production...
 
             let userFromStorage;
             try {
                 userFromStorage = JSON.parse(localStorage.getItem('user'));
-                console.log('User from storage:', userFromStorage);
+                // ...removed for production...
             } catch (e) {
-                console.error('Error parsing user from storage:', e);
+                // ...removed for production...
             }
 
             if (!currentUser && !userFromStorage) {
@@ -69,7 +69,7 @@ const AttendanceReports = () => {
             }
 
             const token = userFromStorage?.token || currentUser?.token;
-            console.log('Token found:', !!token);  // Debug log (don't log actual token)
+            // ...removed for production...
             
             if (!token) {
                 throw new Error('No authentication token found. Please log in again.');
@@ -93,14 +93,14 @@ const AttendanceReports = () => {
                 url += '?' + queryParams.join('&');
             }
 
-            console.log('Downloading from:', url); // Debug log
+            // ...removed for production...
 
-            console.log('Making request to:', url);  // Debug log
+            // ...removed for production...
             const headers = {
                 'Authorization': `Bearer ${token}`,
                 'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             };
-            console.log('Request headers:', { ...headers, Authorization: 'Bearer [HIDDEN]' });  // Debug log
+            // ...removed for production...
 
             const response = await fetch(url, {
                 method: 'GET',
@@ -134,7 +134,7 @@ const AttendanceReports = () => {
             setDialogMessage('Report downloaded successfully!');
             setShowDialog(true);
         } catch (error) {
-            console.error('Download error:', error);
+            // ...removed for production...
             setDialogMessage(error.message || 'Failed to download report');
             setShowDialog(true);
         } finally {

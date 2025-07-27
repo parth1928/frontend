@@ -50,7 +50,7 @@ const AttendanceAnalysis = () => {
             try {
                 userFromStorage = JSON.parse(localStorage.getItem('user'));
             } catch (e) {
-                console.error('Error parsing user from storage:', e);
+                // ...removed for production...
             }
 
             const token = userFromStorage?.token || currentUser?.token;
@@ -63,7 +63,7 @@ const AttendanceAnalysis = () => {
             const BACKEND_URL = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
             const url = `${BACKEND_URL}/Coordinator/attendance/download/${userId}`;
             
-            console.log('Downloading from:', url);
+            // ...removed for production...
             
             const response = await fetch(url, {
                 headers: {
@@ -108,7 +108,7 @@ const AttendanceAnalysis = () => {
             document.body.removeChild(link);
             window.URL.revokeObjectURL(urlObj);
         } catch (error) {
-            console.error('Download failed:', error);
+            // ...removed for production...
             alert(error.message || 'Failed to download attendance');
         } finally {
             setIsDownloading(false);

@@ -14,7 +14,7 @@ import {
 
 export const loginUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
-    console.log('Attempting login for role:', role, 'with fields:', fields);
+    // ...removed for production...
 
     try {
         if (!role) {
@@ -23,11 +23,11 @@ export const loginUser = (fields, role) => async (dispatch) => {
         }
 
         // Log the complete request URL and data
-        console.log('Making login request to:', `/${role}Login`);
-        console.log('With data:', fields);
+    // ...removed for production...
+    // ...removed for production...
 
         const result = await axios.post(`/${role}Login`, fields);
-        console.log('Login response:', result.data);
+    // ...removed for production...
 
         if (!result.data) {
             dispatch(authFailed('No response from server'));
@@ -58,15 +58,9 @@ export const loginUser = (fields, role) => async (dispatch) => {
             role: result.data.role || role
         };
 
-        console.log('Login successful, dispatching user data:', userData);
+    // ...removed for production...
         dispatch(authSuccess(userData));
     } catch (error) {
-        console.error('Login error details:', {
-            message: error.message,
-            response: error.response?.data,
-            status: error.response?.status
-        });
-
         let errorMessage = 'Login failed. ';
 
         if (error.code === 'ECONNABORTED') {
@@ -83,11 +77,11 @@ export const loginUser = (fields, role) => async (dispatch) => {
 
 export const registerUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
-    console.log('Attempting registration for role:', role, 'with fields:', fields);
+    // ...removed for production...
 
     try {
         const result = await axios.post(`/${role}Reg`, fields);
-        console.log('Registration response:', result.data);
+    // ...removed for production...
 
         if (!result.data) {
             dispatch(authFailed('No response from server'));
@@ -107,7 +101,7 @@ export const registerUser = (fields, role) => async (dispatch) => {
             dispatch(authFailed('Registration failed'));
         }
     } catch (error) {
-        console.error('Registration error:', error);
+    // ...removed for production...
         const errorMessage = error.response?.data?.message || error.message || 'Registration failed';
         dispatch(authError(errorMessage));
     }
