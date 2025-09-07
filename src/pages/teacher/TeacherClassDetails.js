@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import * as React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom'
@@ -6,30 +6,38 @@ import { getClassStudents } from "../../redux/sclassRelated/sclassHandle";
 import { 
     Paper, 
     Box, 
-    Typography, 
-    ButtonGroup, 
-    Button, 
-    Popper, 
+    Typography,
+    Chip,
+    FormControl, 
+    InputLabel, 
+    Select, 
+    MenuItem as MuiMenuItem,
+    Button,
+    ButtonGroup,
+    Popper,
     Grow,
-    ClickAwayListener, 
-    MenuList, 
-    MenuItem 
+    ClickAwayListener,
+    MenuList,
+    MenuItem,
+    CircularProgress
 } from '@mui/material';
+import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
 import { BlackButton, BlueButton} from "../../components/buttonStyles";
 import TableTemplate from "../../components/TableTemplate";
-import { KeyboardArrowDown, KeyboardArrowUp } from "@mui/icons-material";
 import QuickAttendance from './QuickAttendance';
-import { FormControl, InputLabel, Select, MenuItem as MuiMenuItem } from "@mui/material";
-import axios from "axios";
+import axios from "../../api/axiosInstance";
+import { useSubject } from '../../context/SubjectContext';
+import { useClass } from '../../context/ClassContext';
 
 const TeacherClassDetails = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch();
     const { sclassStudents, loading, error, getresponse } = useSelector((state) => state.sclass);
-
+    const { selectedSubject } = useSubject();
+    const { selectedClass } = useClass();
     const { currentUser } = useSelector((state) => state.user);
-    const classID = currentUser?.teachSclass?._id;
-    const subjectID = currentUser?.teachSubjects?.[0]?._id; // Use first subject from teachSubjects array
+    const classID = selectedClass?._id || currentUser?.teachSclass?._id;
+    const subjectID = selectedSubject?._id || currentUser?.teachSubjects?.[0]?._id; // Use selected subject or fall back to first subject
     
     // If we're missing required IDs, show appropriate message
     React.useEffect(() => {
@@ -47,34 +55,52 @@ const TeacherClassDetails = () => {
 
     // Fetch subject details (with batches) on mount
     useEffect(() => {
-        if (subjectID) {
-            axios.get(`${process.env.REACT_APP_API_BASE_URL}/subject/${subjectID}`)
-                .then(res => {
-                    setSubjectDetails(res.data);
-                    if (res.data.isLab && Array.isArray(res.data.batches)) {
-                        setBatchList(res.data.batches);
-                    }
-                });
-        }
+        const fetchSubjectDetails = async () => {
+            if (!subjectID) {
+                console.log('No subjectID for fetching details');
+                return;
+            }
+            
+            console.log('Fetching subject details for:', subjectID);
+            try {
+                const response = await axios.get(`/subject/${subjectID}`);
+                console.log('Subject details response:', response.data);
+                setSubjectDetails(response.data);
+                if (response.data.isLab && Array.isArray(response.data.batches)) {
+                    setBatchList(response.data.batches);
+                    console.log('Set batch list:', response.data.batches.length);
+                }
+            } catch (error) {
+                console.error("Error fetching subject details:", error);
+            }
+        };
+
+        fetchSubjectDetails();
     }, [subjectID]);
 
     useEffect(() => {
         const fetchStudents = async () => {
             try {
                 if (!classID) {
+                    console.log('No classID provided');
                     return;
                 }
-
-                // Get adminId from currentUser's school
-                const adminId = currentUser?.school?._id;
 
                 // Validate classID
                 if (typeof classID !== 'string' || classID === 'undefined' || classID === 'null') {
+                    console.log('Invalid classID:', classID);
                     return;
                 }
 
-                // Always pass the adminId to get both regular and D2D students
+                console.log('Fetching students for class:', classID);
+                
+                // Try to get adminId from currentUser, but it's not required anymore
+                const adminId = currentUser?.school?._id;
+                console.log('AdminId:', adminId);
+                
+                // Always call getClassStudents - backend will handle getting adminId from class if needed
                 await dispatch(getClassStudents(classID, adminId));
+                console.log('Students fetch dispatched');
             } catch (error) {
                 console.error('Error fetching students:', error);
             }
@@ -88,16 +114,31 @@ const TeacherClassDetails = () => {
 
     // Filter students for selected batch if lab
     const filteredStudents = React.useMemo(() => {
+        console.log('Filtering students:', { sclassStudents, subjectDetails, selectedBatch, batchList });
+        
         if (!Array.isArray(sclassStudents)) {
+            console.log('sclassStudents is not an array:', sclassStudents);
             return [];
         }
-        if (subjectDetails.isLab && selectedBatch) {
-            return sclassStudents.filter(student =>
-                batchList.find(b => b.batchName === selectedBatch)?.students?.includes(student._id)
-            );
+        
+        // The API returns a flat array of students, not an object
+        let result = sclassStudents;
+        console.log('Initial students count:', result.length);
+        
+        // Apply batch filter if this is a lab subject
+        if (subjectDetails.isLab && selectedBatch && batchList.length > 0) {
+            const batch = batchList.find(b => b.batchName === selectedBatch);
+            if (batch && Array.isArray(batch.students)) {
+                result = result.filter(student => 
+                    batch.students.includes(student._id)
+                );
+                console.log('After batch filter:', result.length);
+            }
         }
-        return sclassStudents;
-    }, [subjectDetails.isLab, selectedBatch, sclassStudents, batchList]);
+        
+        console.log('Final filtered students:', result.length);
+        return result;
+    }, [sclassStudents, subjectDetails.isLab, selectedBatch, batchList]);
 
     const BACKEND_URL = process.env.REACT_APP_API_BASE_URL;
     
@@ -163,24 +204,61 @@ const TeacherClassDetails = () => {
     // ...removed for production...
     }
 
-    const studentColumns = [
-        { id: 'name', label: 'Name', minWidth: 170 },
-        { id: 'rollNum', label: 'Roll Number', minWidth: 100 },
-    ]
+    const [studentColumns, setStudentColumns] = useState([
+        { id: 'rollNum', label: 'Roll No.', minWidth: 140 },
+        { id: 'name', label: 'Name', minWidth: 250 },
+        { id: 'type', label: 'Student Type', minWidth: 150 },
+        { id: 'percentage', label: 'Attendance %', minWidth: 180, align: 'center' }
+    ]);
 
-    // Debug: Log fetched students and create rows with validation
-    const studentRows = React.useMemo(() => {
-        if (!Array.isArray(filteredStudents)) {
-            // ...removed for production...
-            return [];
-        }
-    // ...removed for production...
-        return filteredStudents.map((student) => ({
-            name: student.name || 'No Name',
-            rollNum: student.rollNum || 'No Roll Number',
-            id: student._id,
-        }));
-    }, [filteredStudents]);
+    const [studentsWithPercentage, setStudentsWithPercentage] = useState([]);
+    const [isLoadingPercentages, setIsLoadingPercentages] = useState(false);
+
+    // Fetch attendance percentages for the selected subject
+    useEffect(() => {
+        const fetchAttendancePercentages = async () => {
+            if (!classID || !subjectID) {
+                console.log('Missing classID or subjectID for attendance fetch:', { classID, subjectID });
+                return;
+            }
+            
+            console.log('Fetching attendance percentages for class:', classID, 'subject:', subjectID);
+            setIsLoadingPercentages(true);
+            try {
+                // Use the same endpoint as coordinator reports for consistency
+                const adminId = currentUser?.school?._id;
+                const response = await axios.get(`/class-attendance/${classID}?adminId=${adminId || ''}`);
+                console.log('Attendance percentages response:', response.data);
+                
+                if (response.data && response.data.students && Array.isArray(response.data.students)) {
+                    // Process the data to extract subject-specific percentages
+                    const processedStudents = response.data.students.map(student => {
+                        // Find the percentage for the selected subject
+                        const subjectData = student.attendance.subjectWise.find(
+                            sub => sub.subject === selectedSubject?.subName
+                        );
+                        
+                        return {
+                            _id: student._id,
+                            name: student.name,
+                            rollNum: student.rollNum,
+                            type: student.type,
+                            percentage: subjectData ? subjectData.percentage : 0
+                        };
+                    });
+                    
+                    setStudentsWithPercentage(processedStudents);
+                    console.log('Set students with percentages:', processedStudents.length);
+                }
+            } catch (error) {
+                console.error("Error fetching attendance percentages:", error);
+            } finally {
+                setIsLoadingPercentages(false);
+            }
+        };
+
+        fetchAttendancePercentages();
+    }, [classID, subjectID, selectedSubject, currentUser]);
 
     const StudentsButtonHaver = ({ row }) => {
         const options = ['Take Attendance', 'Provide Marks'];
@@ -203,17 +281,7 @@ const TeacherClassDetails = () => {
         }
         const handleMarks = () => {
             navigate(`/Teacher/class/student/marks/${row.id}/${subjectID}`)
-        };                const handleBulkAttendance = () => {
-            if (!classID || !subjectID) {
-                alert('Missing required class or subject information');
-                return;
-            }
-            if (subjectDetails.isLab && batchList.length > 0 && !selectedBatch) {
-                alert('Please select a batch to take bulk attendance for this lab subject.');
-                return;
-            }
-            navigate(`/Teacher/class/student/bulk-attendance/${classID}/${subjectID}${subjectDetails.isLab && selectedBatch ? `?batch=${encodeURIComponent(selectedBatch)}` : ''}`);
-        };
+        }
 
         const handleMenuItemClick = (event, index) => {
             setSelectedIndex(index);
@@ -363,6 +431,54 @@ const TeacherClassDetails = () => {
                     >
                         Class Details
                     </Typography>
+                    
+                    {/* Class and Subject indicator */}
+                    <Paper
+                        elevation={2}
+                        sx={{
+                            p: 2,
+                            mb: 3,
+                            backgroundColor: 'rgba(25, 118, 210, 0.05)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 1,
+                            maxWidth: '600px',
+                            mx: 'auto'
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                Current Class:
+                            </Typography>
+                            <Chip 
+                                label={selectedClass?.sclassName || 'No Class Selected'} 
+                                color="primary" 
+                                variant="outlined"
+                            />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                Current Subject:
+                            </Typography>
+                            <Chip 
+                                label={selectedSubject ? `${selectedSubject.subName} (${selectedSubject.subCode})` : 'No Subject Selected'} 
+                                color="secondary" 
+                                variant="outlined"
+                            />
+                        </Box>
+                        {subjectDetails && subjectDetails.isLab && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                    Type:
+                                </Typography>
+                                <Chip 
+                                    label="Lab Subject" 
+                                    color="success" 
+                                    variant="outlined"
+                                />
+                            </Box>
+                        )}
+                    </Paper>
                     {subjectDetails.isLab && batchList.length > 0 && (
                         <FormControl 
                             fullWidth 
@@ -399,11 +515,17 @@ const TeacherClassDetails = () => {
                         </FormControl>
                     )}
                     {getresponse ? (
-                        <>
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
-                                No Students Found
-                            </Box>
-                        </>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                            <Typography color="text.secondary">
+                                {getresponse}
+                            </Typography>
+                        </Box>
+                    ) : !Array.isArray(sclassStudents) || sclassStudents.length === 0 ? (
+                        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                            <Typography color="text.secondary">
+                                No students found in this class
+                            </Typography>
+                        </Box>
                     ) : (
                         <Paper sx={{ 
                             width: '100%', 
@@ -505,9 +627,53 @@ const TeacherClassDetails = () => {
                                     )}
                                 </Box>
                             )}
-                            {Array.isArray(filteredStudents) && filteredStudents.length > 0 &&
-                                <TableTemplate buttonHaver={StudentsButtonHaver} columns={studentColumns} rows={studentRows} />
-                            }
+                            {Array.isArray(filteredStudents) && filteredStudents.length > 0 && (
+                                <>
+                                    {isLoadingPercentages ? (
+                                        <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
+                                            <CircularProgress />
+                                        </Box>
+                                    ) : (
+                                        <TableTemplate 
+                                            columns={studentColumns} 
+                                            rows={filteredStudents.map(student => {
+                                                // Find attendance percentage for this student
+                                                const studentPercentage = studentsWithPercentage.find(
+                                                    s => s._id === student._id
+                                                );
+                                                
+                                                // Format percentage display with color coding
+                                                let percentageDisplay;
+                                                if (isLoadingPercentages) {
+                                                    percentageDisplay = "Loading...";
+                                                } else if (!studentPercentage) {
+                                                    percentageDisplay = "N/A";
+                                                } else {
+                                                    // Color code based on percentage - same as coordinator reports
+                                                    let color = "inherit";
+                                                    if (studentPercentage.percentage >= 75) color = "success.main"; 
+                                                    else if (studentPercentage.percentage >= 60) color = "warning.main";
+                                                    else color = "error.main";
+                                                    
+                                                    percentageDisplay = (
+                                                        <Typography color={color} fontWeight="bold">
+                                                            {studentPercentage.percentage.toFixed(2)}%
+                                                        </Typography>
+                                                    );
+                                                }
+                                                
+                                                return {
+                                                    id: student._id,
+                                                    rollNum: student.rollNum,
+                                                    name: student.name,
+                                                    type: student.type || 'Regular', // Use the type from API response
+                                                    percentage: percentageDisplay
+                                                };
+                                            })}
+                                        />
+                                    )}
+                                </>
+                            )}
                         </Paper>
                     )}
                 </>

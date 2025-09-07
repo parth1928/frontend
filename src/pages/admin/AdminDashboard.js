@@ -36,6 +36,7 @@ import BatchAssignment from './subjectRelated/BatchAssignment';
 
 import AddTeacher from './teacherRelated/AddTeacher';
 import AssignSubjects from './teacherRelated/AssignSubjects';
+import AssignClasses from './teacherRelated/AssignClasses';
 import ChooseClass from './teacherRelated/ChooseClass';
 import ChooseSubject from './teacherRelated/ChooseSubject';
 import ShowTeachers from './teacherRelated/ShowTeachers';
@@ -144,6 +145,8 @@ const AdminDashboard = () => {
                         <Route path="/Admin/teachers/choosesubject/:classID/:teacherID" element={<ChooseSubject situation="Teacher" />} />
                         <Route path="/Admin/teachers/addteacher/:id" element={<AddTeacher />} />
                         <Route path="/Admin/teachers/assignsubjects/:id" element={<AssignSubjects />} />
+                        <Route path="/Admin/teachers/assignclasses/:id" element={<AssignClasses />} />
+                        <Route path="/Admin/teachers/assignclasses/:id" element={<AssignClasses />} />
 
                         {/* Coordinator Routes */}
                         <Route path="/Admin/coordinators" element={<ShowCoordinators />} />

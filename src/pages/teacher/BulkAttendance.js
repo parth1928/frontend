@@ -18,12 +18,16 @@ import {
     TextField,
     CircularProgress,
     Stack,
-    styled
+    styled,
+    Chip,
+    Divider
 } from '@mui/material';
 import { tableCellClasses } from '@mui/material/TableCell';
 import { PurpleButton } from '../../components/buttonStyles';
 import Popup from '../../components/Popup';
 import { getClassStudents } from '../../redux/sclassRelated/sclassHandle';
+import { useSubject } from '../../context/SubjectContext';
+import { useClass } from '../../context/ClassContext';
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
     [`&.${tableCellClasses.head}`]: {
@@ -50,9 +54,14 @@ const BulkAttendance = () => {
     const dispatch = useDispatch();
     const { sclassStudents, loading } = useSelector((state) => state.sclass);
     const { currentUser } = useSelector((state) => state.user);
+    const { selectedSubject } = useSubject();
+    const { selectedClass } = useClass();
     const params = useParams();
-    const classID = params.classID;
-    const subjectID = params.subjectID;
+    
+    // Use the selected subject from context or fall back to params
+    const classID = selectedClass?._id || currentUser?.teachSclass?._id;
+    const subjectID = selectedSubject?._id || params.subjectID;
+    
     const location = useLocation();
 
     // Validate required IDs
@@ -80,20 +89,21 @@ const BulkAttendance = () => {
     // Always fetch subject details (with batches) on mount
     useEffect(() => {
         if (subjectID) {
-            fetch(`${process.env.REACT_APP_API_BASE_URL}/subject/${subjectID}`)
-                .then(res => res.json())
-                .then(res => {
-                    setSubjectDetails(res);
-                    if (res.isLab && Array.isArray(res.batches)) {
-                        setBatchList(res.batches);
-                    } else {
+            import('../../api/axiosInstance').then(({ default: axios }) => {
+                axios.get(`/subject/${subjectID}`)
+                    .then(res => {
+                        setSubjectDetails(res.data);
+                        if (res.data.isLab && Array.isArray(res.data.batches)) {
+                            setBatchList(res.data.batches);
+                        } else {
+                            setBatchList([]);
+                        }
+                    })
+                    .catch(() => {
+                        setSubjectDetails({});
                         setBatchList([]);
-                    }
-                })
-                .catch(() => {
-                    setSubjectDetails({});
-                    setBatchList([]);
-                });
+                    });
+            });
         }
     }, [subjectID]);
 
@@ -113,9 +123,18 @@ const BulkAttendance = () => {
     // Filter students for selected batch if lab using useMemo
     const filteredStudents = React.useMemo(() => {
         if (subjectDetails.isLab && batchName) {
-            return sclassStudents.filter(student =>
-                batchList.find(b => b.batchName === batchName)?.students.includes(student._id)
-            );
+            const batch = batchList.find(b => b.batchName === batchName);
+            if (!batch) return [];
+            
+            const batchStudentIds = batch.students.map(id => id.toString());
+            
+            return sclassStudents.filter(student => {
+                // Get the student ID and convert to string for safe comparison
+                const studentId = student._id?.toString();
+                
+                // Check if this student is in the selected batch
+                return batchStudentIds.includes(studentId);
+            });
         }
         return !subjectDetails.isLab ? sclassStudents : [];
     }, [subjectDetails.isLab, batchName, sclassStudents, batchList]);
@@ -203,11 +222,17 @@ const BulkAttendance = () => {
             // Prepare attendanceList for bulk API
             const attendanceList = filteredStudents.map(student => ({
                 studentId: student._id,
-                isDtod: student.role === 'D2D' || student.isDtod,
+                isDtod: Boolean(student.role === 'D2D' || student.type === 'D2D' || student.isDtod),
                 date,
                 status: attendance[student._id] ? 'Present' : 'Absent',
                 subName: subjectID
             }));
+
+            console.log('Sending attendance for:', attendanceList.map(a => ({
+                id: a.studentId,
+                isDtod: a.isDtod,
+                status: a.status
+            })));
 
             const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/attendance/bulk-mark`, {
                 method: 'POST',
@@ -253,13 +278,59 @@ const BulkAttendance = () => {
                         gutterBottom 
                         sx={{ 
                             color: 'primary.main', 
-                            mb: 4,
+                            mb: 2,
                             fontSize: { xs: '1.5rem', sm: '2rem' },
                             textAlign: { xs: 'center', sm: 'left' }
                         }}
                     >
                         Bulk Attendance
                     </Typography>
+                    
+                    {/* Class and Subject indicator */}
+                    <Paper
+                        elevation={2}
+                        sx={{
+                            p: 2,
+                            mb: 3,
+                            backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 1
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                Current Class:
+                            </Typography>
+                            <Chip 
+                                label={selectedClass?.sclassName || 'No Class Selected'} 
+                                color="primary" 
+                                variant="outlined"
+                            />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                Current Subject:
+                            </Typography>
+                            <Chip 
+                                label={selectedSubject ? `${selectedSubject.subName} (${selectedSubject.subCode})` : 'No Subject Selected'} 
+                                color="secondary" 
+                                variant="outlined"
+                            />
+                        </Box>
+                        {subjectDetails.isLab && (
+                            <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                                    Type:
+                                </Typography>
+                                <Chip 
+                                    label="Lab Subject" 
+                                    color="success" 
+                                    variant="outlined"
+                                />
+                            </Box>
+                        )}
+                    </Paper>
 
                     <form onSubmit={submitAttendance}>
                         <Stack spacing={2} sx={{ mb: 4 }}>

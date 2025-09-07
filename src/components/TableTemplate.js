@@ -5,6 +5,10 @@ import { Table, TableBody, TableContainer, TableHead, TablePagination } from '@m
 const TableTemplate = ({ buttonHaver: ButtonHaver, columns, rows }) => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(25);
+    
+    // Check if we should include the Actions column
+    const includeActions = !!ButtonHaver;
+    
     return (
         <>
             <TableContainer>
@@ -20,9 +24,11 @@ const TableTemplate = ({ buttonHaver: ButtonHaver, columns, rows }) => {
                                     {column.label}
                                 </StyledTableCell>
                             ))}
-                            <StyledTableCell align="center">
-                                Actions
-                            </StyledTableCell>
+                            {includeActions && (
+                                <StyledTableCell align="center">
+                                    Actions
+                                </StyledTableCell>
+                            )}
                         </StyledTableRow>
                     </TableHead>
                     <TableBody>
@@ -43,9 +49,11 @@ const TableTemplate = ({ buttonHaver: ButtonHaver, columns, rows }) => {
                                                 </StyledTableCell>
                                             );
                                         })}
-                                        <StyledTableCell align="center">
-                                            <ButtonHaver row={row} />
-                                        </StyledTableCell>
+                                        {includeActions && (
+                                            <StyledTableCell align="center">
+                                                <ButtonHaver row={row} />
+                                            </StyledTableCell>
+                                        )}
                                     </StyledTableRow>
                                 );
                             })}

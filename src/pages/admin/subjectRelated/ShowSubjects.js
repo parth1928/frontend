@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from "react-router-dom";
 import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
-import { deleteUser } from '../../../redux/userRelated/userHandle';
+import { deleteSubject, deleteAllSubjects } from '../../../redux/subjectRelated/subjectHandle';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import {
-    Paper, Box, IconButton,
+    Paper, Box, IconButton, CircularProgress
 } from '@mui/material';
 import DeleteIcon from "@mui/icons-material/Delete";
 import TableTemplate from '../../../components/TableTemplate';
@@ -17,7 +17,8 @@ const ShowSubjects = () => {
     const navigate = useNavigate()
     const dispatch = useDispatch();
     const { subjectsList, loading, error, response } = useSelector((state) => state.sclass);
-    const { currentUser } = useSelector(state => state.user)
+    const { currentUser } = useSelector(state => state.user);
+    const subjectState = useSelector(state => state.subject);
 
     useEffect(() => {
         dispatch(getSubjectList(currentUser._id, "AllSubjects"));
@@ -29,17 +30,42 @@ const ShowSubjects = () => {
 
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
+    const [isSuccess, setIsSuccess] = useState(false);
+    const [deleteInProgress, setDeleteInProgress] = useState(false);
 
-    const deleteHandler = (deleteID, address) => {
-        console.log(deleteID);
-        console.log(address);
-        setMessage("Sorry the delete function has been disabled for now.")
-        setShowPopup(true)
-
-        // dispatch(deleteUser(deleteID, address))
-        //     .then(() => {
-        //         dispatch(getSubjectList(currentUser._id, "AllSubjects"));
-        //     })
+    const deleteHandler = async (deleteID, address) => {
+        try {
+            setDeleteInProgress(true);
+            console.log('Deleting:', deleteID, address);
+            
+            let result;
+            if (address === "Subject") {
+                result = await dispatch(deleteSubject(deleteID));
+                console.log('Delete result:', result);
+            } else if (address === "Subjects") {
+                result = await dispatch(deleteAllSubjects(deleteID));
+                console.log('Delete all result:', result);
+            }
+            
+            if (result && result.success) {
+                setMessage("Subject deleted successfully!");
+                setIsSuccess(true);
+                // Refresh the subject list
+                dispatch(getSubjectList(currentUser._id, "AllSubjects"));
+            } else {
+                setMessage((result && result.message) || "Failed to delete subject. Please try again.");
+                setIsSuccess(false);
+            }
+            
+            setShowPopup(true);
+        } catch (error) {
+            setMessage("An error occurred while deleting. Please try again.");
+            setIsSuccess(false);
+            setShowPopup(true);
+            console.error("Delete error:", error);
+        } finally {
+            setDeleteInProgress(false);
+        }
     }
 
     const subjectColumns = [
@@ -61,8 +87,14 @@ const ShowSubjects = () => {
     const SubjectsButtonHaver = ({ row }) => {
         return (
             <>
-                <IconButton onClick={() => deleteHandler(row.id, "Subject")}>
-                    <DeleteIcon color="error" />
+                <IconButton 
+                    onClick={() => deleteHandler(row.id, "Subject")}
+                    disabled={deleteInProgress}
+                >
+                    {deleteInProgress ? 
+                        <CircularProgress size={24} /> : 
+                        <DeleteIcon color="error" />
+                    }
                 </IconButton>
                 <BlueButton variant="contained"
                     onClick={() => navigate(`/Admin/subjects/subject/${row.sclassID}/${row.id}`)}>
@@ -106,8 +138,7 @@ const ShowSubjects = () => {
                     }
                 </>
             }
-            <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
-
+            <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} success={isSuccess} />
         </>
     );
 };

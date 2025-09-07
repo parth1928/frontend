@@ -34,12 +34,17 @@ const userSlice = createSlice({
         },
         authSuccess: (state, action) => {
             state.status = 'success';
+            // Make sure we have a role
+            if (!action.payload.role) {
+                console.error('Auth payload missing role:', action.payload);
+                action.payload.role = state.currentRole || 'Unknown';
+            }
             state.currentUser = action.payload;
             state.currentRole = action.payload.role;
             localStorage.setItem('user', JSON.stringify(action.payload));
             state.response = null;
             state.error = null;
-            console.log('Auth success:', action.payload); // Add debug logging
+            console.log('Auth success - Role:', action.payload.role, 'User:', action.payload.name || action.payload.email);
         },
         authFailed: (state, action) => {
             state.status = 'failed';

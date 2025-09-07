@@ -1,4 +1,4 @@
-import axios from 'axios';
+import instance from '../../api/axiosInstance';
 import {
     getRequest,
     getSuccess,
@@ -7,12 +7,11 @@ import {
     postDone,
     doneSuccess
 } from './teacherSlice';
-const REACT_APP_BASE_URL = process.env.REACT_APP_API_BASE_URL;
 export const getAllTeachers = (id) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/Teachers/${id}`);
+        const result = await instance.get(`/Teachers/${id}`);
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
@@ -27,7 +26,7 @@ export const getTeacherDetails = (id) => async (dispatch) => {
     dispatch(getRequest());
 
     try {
-        const result = await axios.get(`${REACT_APP_BASE_URL}/Teacher/${id}`);
+        const result = await instance.get(`/Teacher/${id}`);
         if (result.data) {
             dispatch(doneSuccess(result.data));
         }
@@ -40,7 +39,7 @@ export const updateTeachSubject = (teacherId, teachSubject) => async (dispatch) 
     dispatch(getRequest());
 
     try {
-        await axios.put(`${REACT_APP_BASE_URL}/TeacherSubject`, { teacherId, teachSubject }, {
+        await instance.put(`/TeacherSubject`, { teacherId, teachSubject }, {
             headers: { 'Content-Type': 'application/json' },
         });
         dispatch(postDone());

@@ -121,7 +121,7 @@ const ShowTeachers = () => {
                                                                 size="small"
                                                                 onClick={() => navigate(`/Admin/teachers/assignsubjects/${row.id}`)}
                                                             >
-                                                                {value ? 'Edit Subjects' : 'Assign Subjects'}
+                                                                {value ? 'Edit' : 'Assign'}
                                                             </Button>
                                                         </Box>
                                                     </StyledTableCell>
@@ -134,13 +134,26 @@ const ShowTeachers = () => {
                                             );
                                         })}
                                         <StyledTableCell align="center">
-                                            <IconButton onClick={() => deleteHandler(row.id, "Teacher")}>
-                                                <PersonRemoveIcon color="error" />
-                                            </IconButton>
-                                            <BlueButton variant="contained"
-                                                onClick={() => navigate("/Admin/teachers/teacher/" + row.id)}>
-                                                View
-                                            </BlueButton>
+                                            <Box display="flex" gap={1} justifyContent="center">
+                                                <IconButton onClick={() => deleteHandler(row.id, "Teacher")}>
+                                                    <PersonRemoveIcon color="error" />
+                                                </IconButton>
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    onClick={() => navigate(`/Admin/teachers/teacher/${row.id}`)}
+                                                >
+                                                    View
+                                                </Button>
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    color="secondary"
+                                                    onClick={() => navigate(`/Admin/teachers/assignclasses/${row.id}`)}
+                                                >
+                                                    Classes
+                                                </Button>
+                                            </Box>
                                         </StyledTableCell>
                                     </StyledTableRow>
                                 );

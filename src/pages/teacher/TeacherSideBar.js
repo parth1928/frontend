@@ -8,10 +8,14 @@ import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined
 import AnnouncementOutlinedIcon from '@mui/icons-material/AnnouncementOutlined';
 import ClassOutlinedIcon from '@mui/icons-material/ClassOutlined';
 import { useSelector } from 'react-redux';
+import TeacherSubjectSelector from '../../components/TeacherSubjectSelector';
+import TeacherClassSelector from '../../components/TeacherClassSelector';
+import { useClass } from '../../context/ClassContext';
 
 const TeacherSideBar = () => {
     const { currentUser } = useSelector((state) => state.user);
-    const sclassName = currentUser.teachSclass
+    const { selectedClass } = useClass();
+    const className = selectedClass ? selectedClass.sclassName : (currentUser.teachSclass ? currentUser.teachSclass.sclassName : "");
 
     const location = useLocation();
     return (
@@ -27,7 +31,7 @@ const TeacherSideBar = () => {
                     <ListItemIcon>
                         <ClassOutlinedIcon color={location.pathname.startsWith("/Teacher/class") ? 'primary' : 'inherit'} />
                     </ListItemIcon>
-                    <ListItemText primary={`Class ${sclassName.sclassName}`} />
+                    <ListItemText primary={`Class ${className}`} />
                 </ListItemButton>
                 <ListItemButton component={Link} to="/Teacher/complain">
                     <ListItemIcon>
@@ -36,6 +40,13 @@ const TeacherSideBar = () => {
                     <ListItemText primary="Complain" />
                 </ListItemButton>
             </React.Fragment>
+            
+            {/* Add TeacherClassSelector */}
+            <TeacherClassSelector />
+            
+            {/* Add TeacherSubjectSelector */}
+            <TeacherSubjectSelector />
+            
             <Divider sx={{ my: 1 }} />
             <React.Fragment>
                 <ListSubheader component="div" inset>

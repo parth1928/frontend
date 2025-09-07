@@ -62,9 +62,11 @@ const LoginPage = ({ role }) => {
                 if (!rollNum) setRollNumberError(true);
                 if (!studentName) setStudentNameError(true);
                 if (!password) setPasswordError(true);
+                console.log('Validation failed for student login');
                 return;
             }
             const fields = { rollNum, studentName, password }
+            console.log('Student login fields:', { ...fields, password: '***' });
             setLoader(true)
             dispatch(loginUser(fields, role))
         }
@@ -76,10 +78,12 @@ const LoginPage = ({ role }) => {
             if (!email || !password) {
                 if (!email) setEmailError(true);
                 if (!password) setPasswordError(true);
+                console.log('Validation failed for', role, 'login');
                 return;
             }
 
             const fields = { email, password }
+            console.log(role, 'login fields:', { ...fields, password: '***' });
             setLoader(true)
             dispatch(loginUser(fields, role))
         }

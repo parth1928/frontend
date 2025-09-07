@@ -1,25 +1,29 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
-import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
-import { getUserDetails, updateTeacherSubject } from '../../../redux/userRelated/userHandle';
+import { getAllSclasses } from '../../../redux/sclassRelated/sclassHandle';
+import { getUserDetails } from '../../../redux/userRelated/userHandle';
 import { Box, Button, Checkbox, FormControlLabel, Typography, CircularProgress, Paper, Alert } from '@mui/material';
 import Popup from '../../../components/Popup';
+import axios from 'axios';
 
-const AssignSubjects = () => {
+const AssignClasses = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const params = useParams();
     const teacherId = params.id;
 
-    const [selectedSubjects, setSelectedSubjects] = useState([]);
+    const [selectedClasses, setSelectedClasses] = useState([]);
     const [showPopup, setShowPopup] = useState(false);
     const [message, setMessage] = useState("");
     const [loader, setLoader] = useState(false);
     const [initialLoad, setInitialLoad] = useState(true);
 
-    const { subjectsList, loading: subjectsLoading } = useSelector((state) => state.sclass);
-    const { currentUser, status, response, responseUser } = useSelector((state) => state.user);
+    const { sclassesList, loading: classesLoading } = useSelector((state) => state.sclass);
+    const { currentUser, responseUser } = useSelector((state) => state.user);
+    
+    // Get the base URL from environment or use the default
+    const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
 
     // Fetch the teacher details
     useEffect(() => {
@@ -28,78 +32,83 @@ const AssignSubjects = () => {
         }
     }, [dispatch, teacherId]);
 
-    // Fetch all subjects
+    // Fetch all classes
     useEffect(() => {
-        dispatch(getSubjectList(currentUser._id, "AllSubjects"));
-    }, [dispatch, currentUser._id]);
+        if (currentUser && currentUser._id) {
+            dispatch(getAllSclasses(currentUser._id));
+        }
+    }, [dispatch, currentUser]);
 
-    // Initialize selected subjects from teacher data when it loads
+    // Initialize selected classes from teacher data when it loads
     useEffect(() => {
-        if (responseUser && responseUser.teachSubjects && initialLoad) {
-            const subjectIds = responseUser.teachSubjects.map(subject => subject._id);
-            setSelectedSubjects(subjectIds);
+        if (responseUser) {
+            const classIds = [];
+            
+            // Add primary class if it exists
+            if (responseUser.teachSclass && responseUser.teachSclass._id) {
+                classIds.push(responseUser.teachSclass._id);
+            }
+            
+            // Add any additional classes if they exist
+            if (responseUser.teachClasses && Array.isArray(responseUser.teachClasses)) {
+                responseUser.teachClasses.forEach(classId => {
+                    if (!classIds.includes(classId)) {
+                        classIds.push(classId);
+                    }
+                });
+            }
+            
+            setSelectedClasses(classIds);
             setInitialLoad(false);
         }
     }, [responseUser, initialLoad]);
 
-    const handleSubjectToggle = (subjectId) => {
-        setSelectedSubjects(prev => {
-            if (prev.includes(subjectId)) {
-                return prev.filter(id => id !== subjectId);
+    const handleClassToggle = (classId) => {
+        setSelectedClasses(prev => {
+            if (prev.includes(classId)) {
+                return prev.filter(id => id !== classId);
             } else {
-                return [...prev, subjectId];
+                return [...prev, classId];
             }
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoader(true);
-        console.log('Submitting subjects:', selectedSubjects);
-        dispatch(updateTeacherSubject({ 
-            teacherId: teacherId,
-            teachSubjects: selectedSubjects
-        }))
-        .then((result) => {
-            console.log('Submit result:', result);
-            // Add a small delay to ensure the UI updates
-            setTimeout(() => {
-                setLoader(false);
-                setMessage("Subjects assigned successfully");
+        
+        try {
+            // Call the API to update teacher classes
+            const response = await axios.put(`${apiBaseUrl}/TeacherClasses`, {
+                teacherId: teacherId,
+                teachClasses: selectedClasses
+            });
+            
+            if (response.data) {
+                setMessage("Classes assigned successfully");
                 setShowPopup(true);
-                // Navigate back after a short delay
+                
                 setTimeout(() => {
                     navigate('/Admin/teachers');
                 }, 1500);
-            }, 500);
-        })
-        .catch((error) => {
-            console.error('Submit error:', error);
-            setLoader(false);
-            setMessage(error.message || "Failed to assign subjects");
+            }
+        } catch (error) {
+            console.error('Error assigning classes:', error);
+            setMessage(error.response?.data?.message || "Failed to assign classes");
             setShowPopup(true);
-        });
-    };
-
-    // Still keep the status effect for backward compatibility
-    useEffect(() => {
-        if (status === 'success') {
-            navigate('/Admin/teachers');
-        } else if (status === 'failed') {
-            setMessage(response);
-            setShowPopup(true);
+        } finally {
             setLoader(false);
         }
-    }, [status, navigate, response]);
+    };
 
     return (
         <Box sx={{ maxWidth: 600, margin: 'auto', padding: 3 }}>
             <Paper elevation={3} sx={{ p: 3, borderRadius: 2 }}>
                 <Typography variant="h5" gutterBottom>
-                    Assign Subjects to Teacher
+                    Assign Classes to Teacher
                 </Typography>
 
-                {subjectsLoading ? (
+                {classesLoading ? (
                     <Box sx={{ display: 'flex', justifyContent: 'center', my: 3 }}>
                         <CircularProgress />
                     </Box>
@@ -107,12 +116,12 @@ const AssignSubjects = () => {
                     <form onSubmit={handleSubmit}>
                         <Box sx={{ mb: 3 }}>
                             <Typography variant="subtitle1" gutterBottom>
-                                Select subjects for this teacher:
+                                Select classes for this teacher:
                             </Typography>
                             
-                            {!subjectsList || subjectsList.length === 0 ? (
+                            {!sclassesList || sclassesList.length === 0 ? (
                                 <Alert severity="info" sx={{ mt: 2 }}>
-                                    No subjects available. Please create subjects first.
+                                    No classes available. Please create classes first.
                                 </Alert>
                             ) : (
                                 <Box sx={{ 
@@ -126,16 +135,16 @@ const AssignSubjects = () => {
                                     border: '1px solid #e0e0e0',
                                     borderRadius: 1
                                 }}>
-                                    {Array.isArray(subjectsList) && subjectsList.map((subject) => (
+                                    {Array.isArray(sclassesList) && sclassesList.map((classObj) => (
                                         <FormControlLabel
-                                            key={subject._id}
+                                            key={classObj._id}
                                             control={
                                                 <Checkbox
-                                                    checked={selectedSubjects.includes(subject._id)}
-                                                    onChange={() => handleSubjectToggle(subject._id)}
+                                                    checked={selectedClasses.includes(classObj._id)}
+                                                    onChange={() => handleClassToggle(classObj._id)}
                                                 />
                                             }
-                                            label={`${subject.subName} (${subject.sclassName.sclassName})`}
+                                            label={classObj.sclassName}
                                         />
                                     ))}
                                 </Box>
@@ -153,7 +162,7 @@ const AssignSubjects = () => {
                                 variant="contained"
                                 color="primary"
                                 type="submit"
-                                disabled={loader || selectedSubjects.length === 0}
+                                disabled={loader || selectedClasses.length === 0}
                             >
                                 {loader ? <CircularProgress size={24} color="inherit" /> : 'Save Changes'}
                             </Button>
@@ -166,4 +175,4 @@ const AssignSubjects = () => {
     );
 };
 
-export default AssignSubjects;
+export default AssignClasses;

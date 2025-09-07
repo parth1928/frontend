@@ -21,6 +21,7 @@ const AddClass = () => {
 
     const [message, setMessage] = useState("");
     const [showPopup, setShowPopup] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
 
     const fields = {
         sclassName,
@@ -36,9 +37,17 @@ const AddClass = () => {
         if (status === 'failed' || (response && response.includes("already exists"))) {
             setMessage(response || "Failed to create class");
             setShowPopup(true);
+            setIsSuccess(false);
         } else if (status === 'error') {
             setMessage("Network Error");
             setShowPopup(true);
+            setIsSuccess(false);
+        } else if (status === 'added') {
+            setMessage("Class created successfully!");
+            setShowPopup(true);
+            setIsSuccess(true);
+            // Reset form after successful creation
+            setSclassName("");
         }
     }, [status, navigate, error, response]);
 
@@ -84,7 +93,7 @@ const AddClass = () => {
                     </form>
                 </StyledBox>
             </StyledContainer>
-            <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
+            <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} success={isSuccess} />
         </>
     )
 }

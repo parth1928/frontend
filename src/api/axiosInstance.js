@@ -1,7 +1,11 @@
 import axios from 'axios';
 
+// Debug the API URL that's being used
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
+console.log('API Base URL:', apiBaseUrl);
+
 const instance = axios.create({
-    baseURL: process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com',
+    baseURL: apiBaseUrl,
     withCredentials: true,
     timeout: 30000, // Increased timeout for Render's free tier cold starts
     headers: {

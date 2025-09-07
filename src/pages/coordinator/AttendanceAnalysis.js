@@ -24,6 +24,7 @@ const AttendanceAnalysis = () => {
     const { currentClass, loading: classLoading } = useSelector((state) => state.sclass);
     const { studentsAttendance, loading: attendanceLoading, error } = useSelector((state) => state.student);
     const [isDownloading, setIsDownloading] = useState(false);
+    const [isSendingEmails, setIsSendingEmails] = useState(false);
 
     useEffect(() => {
         if (currentUser?.assignedClass?._id) {
@@ -36,6 +37,38 @@ const AttendanceAnalysis = () => {
             dispatch(getClassAttendanceStats(currentClass._id));
         }
     }, [dispatch, currentClass]);
+
+    const sendLowAttendanceEmails = async () => {
+        if (!currentClass?._id) {
+            alert('Class information is required');
+            return;
+        }
+        setIsSendingEmails(true);
+        try {
+            const token = currentUser?.token || (JSON.parse(localStorage.getItem('user'))?.token);
+            
+            // Import the configured axios instance and use it for the API call
+            const { default: axiosInstance } = await import('../../api/axiosInstance');
+            const response = await axiosInstance.post('/attendance/send-low-attendance-emails', 
+                { classId: currentClass._id },
+                { 
+                    headers: { 
+                        'Authorization': `Bearer ${token}` 
+                    }
+                }
+            );
+            const data = response.data;
+            if (response.status === 200) {
+                alert(data.message);
+            } else {
+                alert(data.message || 'Failed to send emails');
+            }
+        } catch (error) {
+            alert(error.message || 'Failed to send emails');
+        } finally {
+            setIsSendingEmails(false);
+        }
+    };
 
     const downloadExcel = async () => {
         if (!currentClass?._id) {
@@ -60,28 +93,25 @@ const AttendanceAnalysis = () => {
                 throw new Error('Authentication required. Please log in again.');
             }
 
-            const BACKEND_URL = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
-            const url = `${BACKEND_URL}/Coordinator/attendance/download/${userId}`;
-            
-            // ...removed for production...
-            
-            const response = await fetch(url, {
+            // Import the configured axios instance and use it for the API call
+            const { default: axiosInstance } = await import('../../api/axiosInstance');
+            const response = await axiosInstance.get(`/Coordinator/attendance/download/${userId}`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                     'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                }
+                },
+                responseType: 'blob'
             });
 
-            if (!response.ok) {
-                const contentType = response.headers.get('content-type');
+            if (!response.status === 200) {
+                const contentType = response.headers['content-type'];
                 if (contentType && contentType.includes('application/json')) {
-                    const errorData = await response.json();
+                    const errorData = response.data;
                     throw new Error(errorData.message || 'Failed to generate Excel file');
                 }
                 throw new Error('Failed to download attendance');
             }
 
-            const blob = await response.blob();
+            const blob = response.data;
             if (blob.type.includes('application/json')) {
                 const reader = new FileReader();
                 reader.onload = () => {
@@ -170,16 +200,26 @@ const AttendanceAnalysis = () => {
         <Box sx={{ display: 'flex' }}>
             <CoordinatorSideBar />
             <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, gap: 2 }}>
                     <Typography variant="h4">
                         Attendance Analysis - {currentClass?.sclassName}
                     </Typography>
-                    <BlueButton
-                        onClick={downloadExcel}
-                        disabled={isDownloading}
-                    >
-                        {isDownloading ? 'Downloading...' : 'Download Report'}
-                    </BlueButton>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                        <BlueButton
+                            onClick={downloadExcel}
+                            disabled={isDownloading}
+                        >
+                            {isDownloading ? 'Downloading...' : 'Download Report'}
+                        </BlueButton>
+                        <Button
+                            variant="contained"
+                            color="error"
+                            onClick={sendLowAttendanceEmails}
+                            disabled={isSendingEmails}
+                        >
+                            {isSendingEmails ? 'Sending Emails...' : 'Send Low Attendance Emails'}
+                        </Button>
+                    </Box>
                 </Box>
 
                 <Grid container spacing={3}>

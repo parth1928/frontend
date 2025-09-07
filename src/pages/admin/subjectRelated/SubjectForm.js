@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStuff } from '../../../redux/userRelated/userHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
+import { getStudentList } from '../../../redux/studentRelated/studentHandle';
 import Popup from '../../../components/Popup';
 
 const SubjectForm = () => {
@@ -18,7 +19,7 @@ const SubjectForm = () => {
     const userState = useSelector(state => state.user);
     const { status, currentUser, response, error } = userState;
 
-    const { studentsList } = useSelector(state => state.student);
+    const { studentsList, loading: studentsLoading } = useSelector(state => state.student);
 
     const sclassName = params.id
     const adminID = currentUser._id
@@ -109,25 +110,38 @@ const SubjectForm = () => {
 
     const submitHandler = (event) => {
         event.preventDefault();
-        setLoader(true)
-        dispatch(addStuff(fields, address))
+        setLoader(true);
+        console.log('Submitting subject data:', fields);
+        dispatch(addStuff(fields, address));
     };
+
+    // Add useEffect to fetch students from selected class when component mounts
+    useEffect(() => {
+        if (sclassName) {
+            console.log('Fetching students for class:', sclassName);
+            dispatch(getStudentList(sclassName, adminID));
+        }
+    }, [sclassName, adminID, dispatch]);
 
     useEffect(() => {
         if (status === 'added') {
-            navigate("/Admin/subjects");
-            dispatch(underControl())
-            setLoader(false)
+            setMessage("Subject added successfully!");
+            setShowPopup(true);
+            setTimeout(() => {
+                navigate("/Admin/subjects");
+                dispatch(underControl());
+            }, 1500);
+            setLoader(false);
         }
         else if (status === 'failed') {
-            setMessage(response)
-            setShowPopup(true)
-            setLoader(false)
+            setMessage(response || "Failed to add subject. Please try again.");
+            setShowPopup(true);
+            setLoader(false);
         }
         else if (status === 'error') {
-            setMessage("Network Error")
-            setShowPopup(true)
-            setLoader(false)
+            setMessage(error || "Network Error. Please check your connection.");
+            setShowPopup(true);
+            setLoader(false);
         }
     }, [status, navigate, error, response, dispatch, subjects, sclassName]);
 
@@ -196,6 +210,9 @@ const SubjectForm = () => {
                                 {subject.isLab && (
                                     <Box mt={3} p={2} sx={{ border: '1px dashed #1976d2', borderRadius: 2, background: '#e3f2fd' }}>
                                         <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#1976d2' }}>Batch Assignment</Typography>
+                                        <Typography variant="body2" sx={{ color: '#555', mb: 2 }}>
+                                            Students shown below are from the selected class only.
+                                        </Typography>
                                         <Box mt={2} mb={2}>
                                             <TextField
                                                 label="Number of Batches"
@@ -228,7 +245,18 @@ const SubjectForm = () => {
                                                                     </Grid>
                                                                 ))
                                                             ) : (
-                                                                <Typography>No students found.</Typography>
+                                                                <Grid item xs={12}>
+                                                                    {studentsLoading ? (
+                                                                        <Box display="flex" alignItems="center" p={1}>
+                                                                            <CircularProgress size={20} sx={{ mr: 1 }} />
+                                                                            <Typography>Loading students...</Typography>
+                                                                        </Box>
+                                                                    ) : (
+                                                                        <Typography color="textSecondary">
+                                                                            No students found in this class. Please add students to the class first.
+                                                                        </Typography>
+                                                                    )}
+                                                                </Grid>
                                                             )}
                                                         </Grid>
                                                     </Box>
@@ -273,7 +301,7 @@ const SubjectForm = () => {
                         </Button>
                     </Box>
                 </Grid>
-                <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} />
+                <Popup message={message} setShowPopup={setShowPopup} showPopup={showPopup} success={status === 'added'} />
             </Grid>
         </form>
     );

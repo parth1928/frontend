@@ -1,4 +1,5 @@
-import axios from '../../api/axiosInstance';
+import instance from '../../api/axiosInstance';
+import axios from 'axios';
 import {
     authRequest,
     stuffAdded,
@@ -12,9 +13,12 @@ import {
     getError,
 } from './userSlice';
 
+// Get the base URL from environment or use the default
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
+
 export const loginUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
-    // ...removed for production...
+    console.log('Login attempt:', { role, fields: { ...fields, password: '***' } });
 
     try {
         if (!role) {
@@ -22,12 +26,20 @@ export const loginUser = (fields, role) => async (dispatch) => {
             return;
         }
 
-        // Log the complete request URL and data
-    // ...removed for production...
-    // ...removed for production...
+        // Log the complete request URL
+        const loginUrl = `${apiBaseUrl}/${role}Login`;
+        console.log('Login URL:', loginUrl);
 
-        const result = await axios.post(`/${role}Login`, fields);
-    // ...removed for production...
+        // Use direct axios call to ensure no circular dependencies
+        const result = await axios.post(loginUrl, fields, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            withCredentials: true
+        });
+        
+        console.log('Login response:', result.data);
 
         if (!result.data) {
             dispatch(authFailed('No response from server'));
@@ -77,11 +89,23 @@ export const loginUser = (fields, role) => async (dispatch) => {
 
 export const registerUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
-    // ...removed for production...
+    console.log('Register attempt:', { role, fields: { ...fields, password: '***' } });
 
     try {
-        const result = await axios.post(`/${role}Reg`, fields);
-    // ...removed for production...
+        // Log the complete request URL
+        const registerUrl = `${apiBaseUrl}/${role}Reg`;
+        console.log('Register URL:', registerUrl);
+
+        // Use direct axios call to ensure no circular dependencies
+        const result = await axios.post(registerUrl, fields, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            withCredentials: true
+        });
+        
+        console.log('Register response:', result.data);
 
         if (!result.data) {
             dispatch(authFailed('No response from server'));
@@ -173,9 +197,17 @@ export const addStuff = (fields, address) => async (dispatch) => {
     dispatch(authRequest());
 
     try {
-        const result = await axios.post(`/${address}Create`, fields, {
+        // Get base URL from environment or default
+        const baseUrl = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
+        // Construct full URL
+        const url = `${baseUrl}/${address}Create`;
+        console.log('Making API request to:', url);
+        
+        const result = await axios.post(url, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
+
+        console.log('API response:', result.data);
 
         if (result.data.message) {
             dispatch(authFailed(result.data.message));
@@ -183,23 +215,34 @@ export const addStuff = (fields, address) => async (dispatch) => {
             dispatch(stuffAdded(result.data));
         }
     } catch (error) {
-        dispatch(authError(error.message));
+        console.error('API error:', error);
+        dispatch(authError(error.response?.data?.message || error.message));
     }
 };
 
 export const updateTeacherSubject = (fields) => async (dispatch) => {
     dispatch(getRequest());
     try {
-        const result = await axios.put(`/TeacherSubject`, fields, {
+        // Get base URL from environment or default
+        const baseUrl = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
+        // Construct full URL
+        const url = `${baseUrl}/TeacherSubject`;
+        console.log('Making API request to:', url);
+        
+        const result = await axios.put(url, fields, {
             headers: { 'Content-Type': 'application/json' },
         });
+        
+        console.log('API response:', result.data);
+        
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
             dispatch(doneSuccess(result.data));
         }
     } catch (error) {
-        dispatch(getError(error.message));
+        console.error('API error:', error);
+        dispatch(getError(error.response?.data?.message || error.message));
     }
 };
 

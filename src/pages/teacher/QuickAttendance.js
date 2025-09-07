@@ -19,18 +19,31 @@ import {
     DialogActions,
     List,
     ListItem,
-    ListItemText
+    ListItemText,
+    Chip,
+    Divider
 } from '@mui/material';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import dayjs from 'dayjs';
+import { useSubject } from '../../context/SubjectContext';
+import { useClass } from '../../context/ClassContext';
 
-const QuickAttendance = ({ classID, subjectID }) => {
+const QuickAttendance = ({ classID: propClassID, subjectID: propSubjectID, batchName: propBatchName }) => {
     const dispatch = useDispatch();
     const { subjectDetails } = useSelector((state) => state.sclass);
+    const { currentUser } = useSelector((state) => state.user);
+    const { selectedSubject } = useSubject();
+    const { selectedClass } = useClass();
+    
+    // Use context values or props, with context taking precedence
+    const classID = selectedClass?._id || currentUser?.teachSclass?._id || propClassID;
+    const subjectID = selectedSubject?._id || propSubjectID;
+    
     const [selectedBatch, setSelectedBatch] = useState('');
     const [batchStudents, setBatchStudents] = useState([]);
+    
     // Fetch subject details (for isLab and batches)
     useEffect(() => {
         if (subjectID) {
@@ -250,6 +263,55 @@ const QuickAttendance = ({ classID, subjectID }) => {
             >
                 Quick Attendance
             </Typography>
+
+            {/* Class and Subject indicator */}
+            <Paper
+                elevation={1}
+                sx={{
+                    p: 1.5,
+                    mb: 2,
+                    backgroundColor: 'rgba(25, 118, 210, 0.05)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 0.5
+                }}
+            >
+                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                        Class:
+                    </Typography>
+                    <Chip 
+                        label={selectedClass?.sclassName || 'No Class Selected'} 
+                        color="primary" 
+                        variant="outlined"
+                        size="small"
+                    />
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                        Subject:
+                    </Typography>
+                    <Chip 
+                        label={selectedSubject ? `${selectedSubject.subName} (${selectedSubject.subCode})` : 'No Subject Selected'} 
+                        color="secondary" 
+                        variant="outlined"
+                        size="small"
+                    />
+                </Box>
+                {subjectDetails && subjectDetails.isLab && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 'medium' }}>
+                            Type:
+                        </Typography>
+                        <Chip 
+                            label="Lab Subject" 
+                            color="success" 
+                            variant="outlined"
+                            size="small"
+                        />
+                    </Box>
+                )}
+            </Paper>
 
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
