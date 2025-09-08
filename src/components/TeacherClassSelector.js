@@ -36,9 +36,7 @@ const TeacherClassSelector = () => {
     if (!teacherClasses || teacherClasses.length === 0) {
         return (
             <ClassSelectorContainer>
-                <NoClassesMessage>
-                    No classes assigned. Please contact your administrator to assign subjects to you.
-                </NoClassesMessage>
+                <NoClassesMessage>No classes assigned</NoClassesMessage>
             </ClassSelectorContainer>
         );
     }

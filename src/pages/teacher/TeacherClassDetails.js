@@ -230,9 +230,6 @@ const TeacherClassDetails = () => {
                 if (subjectDetails.isLab && selectedBatch) {
                     apiUrl += `?batch=${encodeURIComponent(selectedBatch)}`;
                 }
-                // Always include teacherId to filter attendance by teacher
-                const separator = apiUrl.includes('?') ? '&' : '?';
-                apiUrl += `${separator}teacherId=${currentUser._id}`;
                 
                 const response = await axios.get(apiUrl);
                 console.log('Attendance percentages response:', response.data);

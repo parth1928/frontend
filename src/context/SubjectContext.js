@@ -26,89 +26,34 @@ export const SubjectProvider = ({ children }) => {
     // Fetch complete subject data when currentUser changes
     useEffect(() => {
         const fetchSubjectDetails = async () => {
-            if (!currentUser || !currentUser._id) {
-                setTeacherSubjects([]);
-                setSelectedSubject(null);
-                setLoading(false);
-                return;
-            }
-
-            try {
-                // Always try to get detailed subject information using the new teacher-specific assignments endpoint
-                const response = await axios.get(`${apiBaseUrl}/TeacherSubjectAssignments/${currentUser._id}`);
-                console.log('SubjectContext: Fetched teacher subject assignments:', response.data);
-                
-                if (response.data && response.data.assignments && Array.isArray(response.data.assignments)) {
-                    // Transform the assignments data to match the expected subject format
-                    const transformedSubjects = response.data.assignments.map(assignment => ({
-                        ...assignment.subject,
-                        assignmentId: assignment._id,
-                        classId: assignment.sclass._id,
-                        className: assignment.sclass.sclassName,
-                        batch: assignment.batch,
-                        schedule: assignment.schedule,
-                        isActive: assignment.isActive
-                    }));
+            if (currentUser && currentUser.teachSubjects && currentUser.teachSubjects.length > 0) {
+                try {
+                    // Get detailed subject information using the teacher-specific endpoint
+                    const response = await axios.get(`${apiBaseUrl}/TeacherSubjects/${currentUser._id}`);
+                    console.log('Fetched subject details:', response.data);
                     
-                    console.log('SubjectContext: Transformed subjects:', transformedSubjects.length);
-                    setTeacherSubjects(transformedSubjects);
-                    
-                    // If no subject is selected yet, default to first subject
-                    if (transformedSubjects.length > 0 && !selectedSubject) {
-                        setSelectedSubject(transformedSubjects[0]);
+                    if (response.data && Array.isArray(response.data)) {
+                        setTeacherSubjects(response.data);
+                        
+                        // If no subject is selected yet, default to first subject
+                        if (response.data.length > 0 && !selectedSubject) {
+                            setSelectedSubject(response.data[0]);
+                        }
+                    } else {
+                        console.error('Invalid subject data received:', response.data);
+                        setTeacherSubjects([]);
+                        setSelectedSubject(null);
                     }
-                } else {
-                    console.log('SubjectContext: No assignments found or invalid response');
+                } catch (error) {
+                    console.error('Error fetching subject details:', error);
                     setTeacherSubjects([]);
                     setSelectedSubject(null);
-                    
-                    // If no assignments found, try to fall back to old system data
-                    if (currentUser.teachSubjects && currentUser.teachSubjects.length > 0) {
-                        console.log('SubjectContext: Falling back to old system teachSubjects');
-                        try {
-                            // Get subject details for old system
-                            const subjectPromises = currentUser.teachSubjects.map(subjectId => 
-                                axios.get(`${apiBaseUrl}/Subject/${subjectId}`)
-                                    .catch(error => {
-                                        console.error('SubjectContext: Error fetching subject', subjectId, ':', error);
-                                        return null;
-                                    })
-                            );
-                            
-                            const subjectResponses = await Promise.all(subjectPromises);
-                            const validSubjects = subjectResponses
-                                .filter(response => response && response.data && !response.data.message)
-                                .map(response => response.data);
-                            
-                            if (validSubjects.length > 0) {
-                                // Transform to match expected format
-                                const transformedSubjects = validSubjects.map(subject => ({
-                                    ...subject,
-                                    assignmentId: subject._id,
-                                    classId: subject.sclassName && typeof subject.sclassName === 'object' 
-                                        ? subject.sclassName._id 
-                                        : subject.sclassName,
-                                    className: subject.sclassName && typeof subject.sclassName === 'object' 
-                                        ? subject.sclassName.sclassName 
-                                        : 'Unknown Class',
-                                    batch: null,
-                                    schedule: null,
-                                    isActive: true
-                                }));
-                                
-                                setTeacherSubjects(transformedSubjects);
-                                setSelectedSubject(transformedSubjects[0]);
-                            }
-                        } catch (fallbackError) {
-                            console.error('SubjectContext: Fallback fetch failed:', fallbackError);
-                        }
-                    }
+                } finally {
+                    setLoading(false);
                 }
-            } catch (error) {
-                console.error('SubjectContext: Error fetching subject details:', error);
+            } else {
                 setTeacherSubjects([]);
                 setSelectedSubject(null);
-            } finally {
                 setLoading(false);
             }
         };
@@ -120,7 +65,7 @@ export const SubjectProvider = ({ children }) => {
     useEffect(() => {
         if (selectedClass && teacherSubjects.length > 0) {
             const subjects = teacherSubjects.filter(subject => 
-                subject.classId === selectedClass._id
+                subject.sclassName && subject.sclassName._id === selectedClass._id
             );
             
             setFilteredSubjects(subjects);
@@ -138,12 +83,7 @@ export const SubjectProvider = ({ children }) => {
                 localStorage.removeItem('selectedSubjectId');
             }
         } else {
-            // If no class is selected, show all subjects (for cases where class loading failed)
             setFilteredSubjects(teacherSubjects);
-            if (teacherSubjects.length > 0 && !selectedSubject) {
-                setSelectedSubject(teacherSubjects[0]);
-                localStorage.setItem('selectedSubjectId', teacherSubjects[0]._id);
-            }
         }
     }, [selectedClass, teacherSubjects, selectedSubject]);
 

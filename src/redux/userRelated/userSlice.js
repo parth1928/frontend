@@ -78,13 +78,6 @@ const userSlice = createSlice({
             state.loading = false;
             state.error = null;
             state.response = null;
-            
-            // If this is the current user being updated, also update currentUser
-            if (state.currentUser && action.payload && action.payload._id === state.currentUser._id) {
-                state.currentUser = action.payload;
-                localStorage.setItem('user', JSON.stringify(action.payload));
-                console.log('Updated current user details:', action.payload.name || action.payload.email);
-            }
         },
         getDeleteSuccess: (state) => {
             state.loading = false;

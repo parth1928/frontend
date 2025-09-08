@@ -240,7 +240,7 @@ const BulkAttendance = () => {
                     'Content-Type': 'application/json',
                     'Authorization': localStorage.getItem('token')
                 },
-                body: JSON.stringify({ attendanceList, teacherId: currentUser._id })
+                body: JSON.stringify({ attendanceList })
             });
 
             const data = await response.json();
