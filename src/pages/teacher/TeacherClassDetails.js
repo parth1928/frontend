@@ -222,43 +222,35 @@ const TeacherClassDetails = () => {
                 return;
             }
             
-            console.log('Fetching attendance percentages for class:', classID, 'subject:', subjectID);
+            console.log('Fetching attendance percentages for class:', classID, 'subject:', subjectID, 'batch:', selectedBatch);
             setIsLoadingPercentages(true);
             try {
-                // Use the same endpoint as coordinator reports for consistency
-                const adminId = currentUser?.school?._id;
-                const response = await axios.get(`/class-attendance/${classID}?adminId=${adminId || ''}`);
+                // Use the subject-specific endpoint with batch parameter for lab subjects
+                let apiUrl = `/attendance/subject-percentages/${classID}/${subjectID}`;
+                if (subjectDetails.isLab && selectedBatch) {
+                    apiUrl += `?batch=${encodeURIComponent(selectedBatch)}`;
+                }
+                
+                const response = await axios.get(apiUrl);
                 console.log('Attendance percentages response:', response.data);
                 
                 if (response.data && response.data.students && Array.isArray(response.data.students)) {
-                    // Process the data to extract subject-specific percentages
-                    const processedStudents = response.data.students.map(student => {
-                        // Find the percentage for the selected subject
-                        const subjectData = student.attendance.subjectWise.find(
-                            sub => sub.subject === selectedSubject?.subName
-                        );
-                        
-                        return {
-                            _id: student._id,
-                            name: student.name,
-                            rollNum: student.rollNum,
-                            type: student.type,
-                            percentage: subjectData ? subjectData.percentage : 0
-                        };
-                    });
-                    
-                    setStudentsWithPercentage(processedStudents);
-                    console.log('Set students with percentages:', processedStudents.length);
+                    setStudentsWithPercentage(response.data.students);
+                    console.log('Set students with percentages:', response.data.students.length);
+                } else {
+                    // If no students returned (e.g., batch not found), show empty list
+                    setStudentsWithPercentage([]);
                 }
             } catch (error) {
                 console.error("Error fetching attendance percentages:", error);
+                setStudentsWithPercentage([]);
             } finally {
                 setIsLoadingPercentages(false);
             }
         };
 
         fetchAttendancePercentages();
-    }, [classID, subjectID, selectedSubject, currentUser]);
+    }, [classID, subjectID, selectedSubject, selectedBatch, subjectDetails.isLab, currentUser]);
 
     const StudentsButtonHaver = ({ row }) => {
         const options = ['Take Attendance', 'Provide Marks'];
