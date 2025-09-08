@@ -118,6 +118,9 @@ const AssignSubjects = () => {
             setMessage("Subjects assigned successfully");
             setShowPopup(true);
 
+            // Refresh teacher details to update the user object
+            dispatch(getUserDetails(teacherId, 'Teacher'));
+
             // Navigate back after showing success message
             setTimeout(() => {
                 navigate('/Admin/teachers');

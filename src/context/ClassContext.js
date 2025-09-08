@@ -31,19 +31,138 @@ export const ClassProvider = ({ children }) => {
             }
 
             try {
-                // For backward compatibility - if teachClasses doesn't exist yet, use teachSclass
+                // First, try to get classes from subject assignments (new system)
+                if (currentUser._id) {
+                    console.log('ClassContext: Fetching assignments for teacher:', currentUser._id);
+                    // Fetch teacher's subject assignments to get class information
+                    const assignmentsResponse = await axios.get(`${apiBaseUrl}/TeacherSubjectAssignments/${currentUser._id}`);
+                    console.log('ClassContext: API Response:', assignmentsResponse);
+                    console.log('ClassContext: Response data:', assignmentsResponse.data);
+                    
+                    if (assignmentsResponse.data && assignmentsResponse.data.assignments && Array.isArray(assignmentsResponse.data.assignments)) {
+                        console.log('ClassContext: Found assignments:', assignmentsResponse.data.assignments.length);
+                        
+                        // Get unique class IDs from assignments
+                        const classIds = [...new Set(assignmentsResponse.data.assignments.map(assignment => {
+                            // Handle different possible structures
+                            if (assignment.sclass && typeof assignment.sclass === 'object' && assignment.sclass._id) {
+                                console.log('ClassContext: Found class ID from object:', assignment.sclass._id);
+                                return assignment.sclass._id;
+                            } else if (assignment.sclass && typeof assignment.sclass === 'string') {
+                                console.log('ClassContext: Found class ID from string:', assignment.sclass);
+                                return assignment.sclass;
+                            } else if (assignment.classId) {
+                                console.log('ClassContext: Found class ID from classId:', assignment.classId);
+                                return assignment.classId;
+                            }
+                            console.warn('ClassContext: Could not extract class ID from assignment:', assignment);
+                            return null;
+                        }).filter(id => id !== null))];
+                        
+                        console.log('ClassContext: Extracted class IDs:', classIds);
+                        
+                        if (classIds.length > 0) {
+                            console.log('ClassContext: Fetching class details for IDs:', classIds);
+                            // Fetch class details for each unique class
+                            const classPromises = classIds.map(classId => {
+                                console.log('ClassContext: Fetching class details for:', classId);
+                                return axios.get(`${apiBaseUrl}/Sclass/${classId}`)
+                                    .catch(error => {
+                                        console.error('ClassContext: Error fetching class', classId, ':', error);
+                                        return null;
+                                    });
+                            });
+                            
+                            const classResponses = await Promise.all(classPromises);
+                            const validClasses = classResponses
+                                .filter(response => response && response.data && !response.data.message)
+                                .map(response => response.data);
+                            
+                            console.log('ClassContext: Valid classes found:', validClasses.length);
+                            
+                            if (validClasses.length > 0) {
+                                setTeacherClasses(validClasses);
+                                setSelectedClass(validClasses[0]);
+                                setLoading(false);
+                                return;
+                            } else {
+                                console.log('ClassContext: No valid classes found after fetching details');
+                            }
+                        } else {
+                            console.log('ClassContext: No valid class IDs found');
+                        }
+                    } else {
+                        console.log('ClassContext: Invalid assignments response structure or no assignments');
+                        console.log('ClassContext: Response data type:', typeof assignmentsResponse.data);
+                        console.log('ClassContext: Has assignments property:', assignmentsResponse.data ? 'assignments' in assignmentsResponse.data : 'N/A');
+                    }
+                }
+
+                // Fallback to old system - if teachClasses doesn't exist yet, use teachSclass
                 if (!currentUser.teachClasses || currentUser.teachClasses.length === 0) {
                     if (currentUser.teachSclass) {
-                        // Get class details
-                        const response = await axios.get(`${apiBaseUrl}/Sclass/${currentUser.teachSclass}`);
-                        if (response.data && !response.data.message) {
-                            setTeacherClasses([response.data]);
-                            setSelectedClass(response.data);
+                        // Handle case where teachSclass might be an object or string
+                        const classId = typeof currentUser.teachSclass === 'object' 
+                            ? currentUser.teachSclass._id 
+                            : currentUser.teachSclass;
+                        
+                        if (classId && typeof classId === 'string') {
+                            // Get class details
+                            const response = await axios.get(`${apiBaseUrl}/Sclass/${classId}`);
+                            if (response.data && !response.data.message) {
+                                setTeacherClasses([response.data]);
+                                setSelectedClass(response.data);
+                            } else {
+                                setTeacherClasses([]);
+                                setSelectedClass(null);
+                            }
                         } else {
                             setTeacherClasses([]);
                             setSelectedClass(null);
                         }
                     } else {
+                        // If no old system data, try to fetch from new assignments system
+                        console.log('ClassContext: No old system data, trying new system fallback');
+                        try {
+                            const assignmentsResponse = await axios.get(`${apiBaseUrl}/TeacherSubjectAssignments/${currentUser._id}`);
+                            if (assignmentsResponse.data && assignmentsResponse.data.assignments && Array.isArray(assignmentsResponse.data.assignments)) {
+                                const classIds = [...new Set(assignmentsResponse.data.assignments.map(assignment => {
+                                    if (assignment.sclass && typeof assignment.sclass === 'object' && assignment.sclass._id) {
+                                        return assignment.sclass._id;
+                                    } else if (assignment.sclass && typeof assignment.sclass === 'string') {
+                                        return assignment.sclass;
+                                    } else if (assignment.classId) {
+                                        return assignment.classId;
+                                    }
+                                    return null;
+                                }).filter(id => id !== null))];
+                                
+                                if (classIds.length > 0) {
+                                    const classPromises = classIds.map(classId => 
+                                        axios.get(`${apiBaseUrl}/Sclass/${classId}`)
+                                            .catch(error => {
+                                                console.error('ClassContext: Error fetching class in fallback:', classId, error);
+                                                return null;
+                                            })
+                                    );
+                                    
+                                    const classResponses = await Promise.all(classPromises);
+                                    const validClasses = classResponses
+                                        .filter(response => response && response.data && !response.data.message)
+                                        .map(response => response.data);
+                                    
+                                    if (validClasses.length > 0) {
+                                        setTeacherClasses(validClasses);
+                                        setSelectedClass(validClasses[0]);
+                                        setLoading(false);
+                                        return;
+                                    }
+                                }
+                            }
+                        } catch (fallbackError) {
+                            console.error('ClassContext: Fallback fetch failed:', fallbackError);
+                        }
+                        
                         setTeacherClasses([]);
                         setSelectedClass(null);
                     }

@@ -26,45 +26,47 @@ export const SubjectProvider = ({ children }) => {
     // Fetch complete subject data when currentUser changes
     useEffect(() => {
         const fetchSubjectDetails = async () => {
-            if (currentUser && currentUser.teachSubjects && currentUser.teachSubjects.length > 0) {
-                try {
-                    // Get detailed subject information using the new teacher-specific assignments endpoint
-                    const response = await axios.get(`${apiBaseUrl}/TeacherSubjectAssignments/${currentUser._id}`);
-                    console.log('Fetched teacher subject assignments:', response.data);
-                    
-                    if (response.data && response.data.assignments && Array.isArray(response.data.assignments)) {
-                        // Transform the assignments data to match the expected subject format
-                        const transformedSubjects = response.data.assignments.map(assignment => ({
-                            ...assignment.subject,
-                            assignmentId: assignment._id,
-                            classId: assignment.sclass._id,
-                            className: assignment.sclass.sclassName,
-                            batch: assignment.batch,
-                            schedule: assignment.schedule,
-                            isActive: assignment.isActive
-                        }));
-                        
-                        setTeacherSubjects(transformedSubjects);
-                        
-                        // If no subject is selected yet, default to first subject
-                        if (transformedSubjects.length > 0 && !selectedSubject) {
-                            setSelectedSubject(transformedSubjects[0]);
-                        }
-                    } else {
-                        console.error('Invalid assignments data received:', response.data);
-                        setTeacherSubjects([]);
-                        setSelectedSubject(null);
-                    }
-                } catch (error) {
-                    console.error('Error fetching subject details:', error);
-                    setTeacherSubjects([]);
-                    setSelectedSubject(null);
-                } finally {
-                    setLoading(false);
-                }
-            } else {
+            if (!currentUser || !currentUser._id) {
                 setTeacherSubjects([]);
                 setSelectedSubject(null);
+                setLoading(false);
+                return;
+            }
+
+            try {
+                // Always try to get detailed subject information using the new teacher-specific assignments endpoint
+                const response = await axios.get(`${apiBaseUrl}/TeacherSubjectAssignments/${currentUser._id}`);
+                console.log('SubjectContext: Fetched teacher subject assignments:', response.data);
+                
+                if (response.data && response.data.assignments && Array.isArray(response.data.assignments)) {
+                    // Transform the assignments data to match the expected subject format
+                    const transformedSubjects = response.data.assignments.map(assignment => ({
+                        ...assignment.subject,
+                        assignmentId: assignment._id,
+                        classId: assignment.sclass._id,
+                        className: assignment.sclass.sclassName,
+                        batch: assignment.batch,
+                        schedule: assignment.schedule,
+                        isActive: assignment.isActive
+                    }));
+                    
+                    console.log('SubjectContext: Transformed subjects:', transformedSubjects.length);
+                    setTeacherSubjects(transformedSubjects);
+                    
+                    // If no subject is selected yet, default to first subject
+                    if (transformedSubjects.length > 0 && !selectedSubject) {
+                        setSelectedSubject(transformedSubjects[0]);
+                    }
+                } else {
+                    console.log('SubjectContext: No assignments found or invalid response');
+                    setTeacherSubjects([]);
+                    setSelectedSubject(null);
+                }
+            } catch (error) {
+                console.error('SubjectContext: Error fetching subject details:', error);
+                setTeacherSubjects([]);
+                setSelectedSubject(null);
+            } finally {
                 setLoading(false);
             }
         };
@@ -94,7 +96,12 @@ export const SubjectProvider = ({ children }) => {
                 localStorage.removeItem('selectedSubjectId');
             }
         } else {
+            // If no class is selected, show all subjects (for cases where class loading failed)
             setFilteredSubjects(teacherSubjects);
+            if (teacherSubjects.length > 0 && !selectedSubject) {
+                setSelectedSubject(teacherSubjects[0]);
+                localStorage.setItem('selectedSubjectId', teacherSubjects[0]._id);
+            }
         }
     }, [selectedClass, teacherSubjects, selectedSubject]);
 
