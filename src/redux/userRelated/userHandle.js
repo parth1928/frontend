@@ -238,7 +238,20 @@ export const updateTeacherSubject = (fields) => async (dispatch) => {
         if (result.data.message) {
             dispatch(getFailed(result.data.message));
         } else {
-            dispatch(doneSuccess(result.data));
+            // After successful assignment, fetch the updated teacher details
+            const teacherId = fields.teacherId;
+            const teacherUrl = `${baseUrl}/Teacher/${teacherId}`;
+            console.log('Fetching updated teacher details from:', teacherUrl);
+            
+            try {
+                const teacherResult = await axios.get(teacherUrl);
+                console.log('Updated teacher details:', teacherResult.data);
+                dispatch(doneSuccess(teacherResult.data));
+            } catch (teacherError) {
+                console.error('Error fetching updated teacher details:', teacherError);
+                // Fallback to the original response
+                dispatch(doneSuccess(result.data));
+            }
         }
     } catch (error) {
         console.error('API error:', error);

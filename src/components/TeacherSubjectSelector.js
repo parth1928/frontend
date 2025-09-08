@@ -46,8 +46,8 @@ const TeacherSubjectSelector = () => {
             <SubjectSelectorContainer>
                 <NoSubjectsMessage>
                     {allSubjects && allSubjects.length > 0 
-                        ? 'No subjects for this class' 
-                        : 'No subjects assigned'}
+                        ? 'No subjects for this class. Please contact your administrator to assign subjects to you.' 
+                        : 'No subjects assigned. Please contact your administrator to assign subjects to you.'}
                 </NoSubjectsMessage>
             </SubjectSelectorContainer>
         );

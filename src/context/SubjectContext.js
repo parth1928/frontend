@@ -61,6 +61,48 @@ export const SubjectProvider = ({ children }) => {
                     console.log('SubjectContext: No assignments found or invalid response');
                     setTeacherSubjects([]);
                     setSelectedSubject(null);
+                    
+                    // If no assignments found, try to fall back to old system data
+                    if (currentUser.teachSubjects && currentUser.teachSubjects.length > 0) {
+                        console.log('SubjectContext: Falling back to old system teachSubjects');
+                        try {
+                            // Get subject details for old system
+                            const subjectPromises = currentUser.teachSubjects.map(subjectId => 
+                                axios.get(`${apiBaseUrl}/Subject/${subjectId}`)
+                                    .catch(error => {
+                                        console.error('SubjectContext: Error fetching subject', subjectId, ':', error);
+                                        return null;
+                                    })
+                            );
+                            
+                            const subjectResponses = await Promise.all(subjectPromises);
+                            const validSubjects = subjectResponses
+                                .filter(response => response && response.data && !response.data.message)
+                                .map(response => response.data);
+                            
+                            if (validSubjects.length > 0) {
+                                // Transform to match expected format
+                                const transformedSubjects = validSubjects.map(subject => ({
+                                    ...subject,
+                                    assignmentId: subject._id,
+                                    classId: subject.sclassName && typeof subject.sclassName === 'object' 
+                                        ? subject.sclassName._id 
+                                        : subject.sclassName,
+                                    className: subject.sclassName && typeof subject.sclassName === 'object' 
+                                        ? subject.sclassName.sclassName 
+                                        : 'Unknown Class',
+                                    batch: null,
+                                    schedule: null,
+                                    isActive: true
+                                }));
+                                
+                                setTeacherSubjects(transformedSubjects);
+                                setSelectedSubject(transformedSubjects[0]);
+                            }
+                        } catch (fallbackError) {
+                            console.error('SubjectContext: Fallback fetch failed:', fallbackError);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('SubjectContext: Error fetching subject details:', error);
