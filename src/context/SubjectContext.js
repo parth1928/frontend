@@ -28,19 +28,30 @@ export const SubjectProvider = ({ children }) => {
         const fetchSubjectDetails = async () => {
             if (currentUser && currentUser.teachSubjects && currentUser.teachSubjects.length > 0) {
                 try {
-                    // Get detailed subject information using the teacher-specific endpoint
-                    const response = await axios.get(`${apiBaseUrl}/TeacherSubjects/${currentUser._id}`);
-                    console.log('Fetched subject details:', response.data);
+                    // Get detailed subject information using the new teacher-specific assignments endpoint
+                    const response = await axios.get(`${apiBaseUrl}/TeacherSubjectAssignments/${currentUser._id}`);
+                    console.log('Fetched teacher subject assignments:', response.data);
                     
-                    if (response.data && Array.isArray(response.data)) {
-                        setTeacherSubjects(response.data);
+                    if (response.data && response.data.assignments && Array.isArray(response.data.assignments)) {
+                        // Transform the assignments data to match the expected subject format
+                        const transformedSubjects = response.data.assignments.map(assignment => ({
+                            ...assignment.subject,
+                            assignmentId: assignment._id,
+                            classId: assignment.sclass._id,
+                            className: assignment.sclass.sclassName,
+                            batch: assignment.batch,
+                            schedule: assignment.schedule,
+                            isActive: assignment.isActive
+                        }));
+                        
+                        setTeacherSubjects(transformedSubjects);
                         
                         // If no subject is selected yet, default to first subject
-                        if (response.data.length > 0 && !selectedSubject) {
-                            setSelectedSubject(response.data[0]);
+                        if (transformedSubjects.length > 0 && !selectedSubject) {
+                            setSelectedSubject(transformedSubjects[0]);
                         }
                     } else {
-                        console.error('Invalid subject data received:', response.data);
+                        console.error('Invalid assignments data received:', response.data);
                         setTeacherSubjects([]);
                         setSelectedSubject(null);
                     }
@@ -65,7 +76,7 @@ export const SubjectProvider = ({ children }) => {
     useEffect(() => {
         if (selectedClass && teacherSubjects.length > 0) {
             const subjects = teacherSubjects.filter(subject => 
-                subject.sclassName && subject.sclassName._id === selectedClass._id
+                subject.classId === selectedClass._id
             );
             
             setFilteredSubjects(subjects);
