@@ -21,7 +21,7 @@ export const SubjectProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     
     // Get the base URL from environment or use the default
-    const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
+    const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
     // Fetch complete subject data when currentUser changes
     useEffect(() => {

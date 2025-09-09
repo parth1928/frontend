@@ -211,7 +211,8 @@ const QuickAttendance = ({ classID: propClassID, subjectID: propSubjectID, batch
                     subjectId: subjectID,
                     date: date.format('YYYY-MM-DD'),
                     markedStudents: markedStudents,
-                    mode: mode
+                    mode: mode,
+                    batchName: selectedBatch
                 })
             });
 

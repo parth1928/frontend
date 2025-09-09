@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
-import { Button, TextField, Grid, Box, Typography, CircularProgress, FormControlLabel, Switch, MenuItem, Select, InputLabel, FormControl } from "@mui/material";
+import { Button, TextField, Grid, Box, Typography, CircularProgress, FormControlLabel, Switch, MenuItem, Select, InputLabel, FormControl, Chip, Autocomplete } from "@mui/material";
 import { useNavigate, useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { addStuff } from '../../../redux/userRelated/userHandle';
 import { underControl } from '../../../redux/userRelated/userSlice';
 import { getStudentList } from '../../../redux/studentRelated/studentHandle';
 import Popup from '../../../components/Popup';
+import axios from '../../../api/axiosInstance';
 
 const SubjectForm = () => {
-    const [subjects, setSubjects] = useState([{ subName: "", subCode: "", sessions: "", isLab: false, batches: [] }]);
+    const [subjects, setSubjects] = useState([{ subName: "", subCode: "", sessions: "", isLab: false, batches: [], teachers: [] }]);
     const [batchCounts, setBatchCounts] = useState([0]);
     const [batchRanges, setBatchRanges] = useState([[]]);
+    const [availableTeachers, setAvailableTeachers] = useState([]);
+    const [teachersLoading, setTeachersLoading] = useState(false);
 
     const dispatch = useDispatch()
     const navigate = useNavigate()
@@ -82,8 +85,14 @@ const SubjectForm = () => {
         setSubjects(newSubjects);
     };
 
+    const handleTeacherChange = (index) => (event, newValue) => {
+        const newSubjects = [...subjects];
+        newSubjects[index].teachers = newValue ? newValue.map(teacher => teacher._id) : [];
+        setSubjects(newSubjects);
+    };
+
     const handleAddSubject = () => {
-        setSubjects([...subjects, { subName: "", subCode: "", sessions: "", isLab: false }]);
+        setSubjects([...subjects, { subName: "", subCode: "", sessions: "", isLab: false, batches: [], teachers: [] }]);
     };
 
     const handleRemoveSubject = (index) => () => {
@@ -104,6 +113,7 @@ const SubjectForm = () => {
                     batchName: `Batch ${idx + 1}`,
                     students: batch
                 })) : [],
+            teachers: subject.teachers || [],
         })),
         adminID,
     };
@@ -122,6 +132,28 @@ const SubjectForm = () => {
             dispatch(getStudentList(sclassName, adminID));
         }
     }, [sclassName, adminID, dispatch]);
+
+    // Fetch available teachers
+    useEffect(() => {
+        const fetchTeachers = async () => {
+            if (!currentUser?.school?._id) {
+                console.log('No school ID available for fetching teachers');
+                return;
+            }
+            
+            setTeachersLoading(true);
+            try {
+                const response = await axios.get(`/Teachers/${currentUser.school._id}`);
+                setAvailableTeachers(response.data || []);
+            } catch (error) {
+                console.error('Error fetching teachers:', error);
+                setAvailableTeachers([]);
+            } finally {
+                setTeachersLoading(false);
+            }
+        };
+        fetchTeachers();
+    }, [currentUser]);
 
     useEffect(() => {
         if (status === 'added') {
@@ -189,6 +221,35 @@ const SubjectForm = () => {
                                             onChange={handleSessionsChange(index)}
                                             sx={styles.inputField}
                                             required
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={3}>
+                                        <Autocomplete
+                                            multiple
+                                            id={`teachers-${index}`}
+                                            options={availableTeachers}
+                                            getOptionLabel={(option) => option.name || ''}
+                                            value={availableTeachers.filter(teacher => subject.teachers?.includes(teacher._id)) || []}
+                                            onChange={handleTeacherChange(index)}
+                                            loading={teachersLoading}
+                                            renderTags={(value, getTagProps) =>
+                                                value.map((option, index) => (
+                                                    <Chip
+                                                        key={option._id}
+                                                        label={option.name}
+                                                        {...getTagProps({ index })}
+                                                        size="small"
+                                                    />
+                                                ))
+                                            }
+                                            renderInput={(params) => (
+                                                <TextField
+                                                    {...params}
+                                                    label="Assign Teachers (Optional)"
+                                                    placeholder="Select teachers"
+                                                    sx={styles.inputField}
+                                                />
+                                            )}
                                         />
                                     </Grid>
                                     <Grid item xs={12} sm={3}>

@@ -14,7 +14,7 @@ import {
 } from './userSlice';
 
 // Get the base URL from environment or use the default
-const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
+const apiBaseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
 
 export const loginUser = (fields, role) => async (dispatch) => {
     dispatch(authRequest());
@@ -198,7 +198,7 @@ export const addStuff = (fields, address) => async (dispatch) => {
 
     try {
         // Get base URL from environment or default
-        const baseUrl = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
+        const baseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
         // Construct full URL
         const url = `${baseUrl}/${address}Create`;
         console.log('Making API request to:', url);
@@ -224,7 +224,7 @@ export const updateTeacherSubject = (fields) => async (dispatch) => {
     dispatch(getRequest());
     try {
         // Get base URL from environment or default
-        const baseUrl = process.env.REACT_APP_API_BASE_URL || 'https://backend-a2q3.onrender.com';
+        const baseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
         // Construct full URL
         const url = `${baseUrl}/TeacherSubject`;
         console.log('Making API request to:', url);

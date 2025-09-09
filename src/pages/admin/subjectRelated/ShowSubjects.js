@@ -5,9 +5,10 @@ import { getSubjectList } from '../../../redux/sclassRelated/sclassHandle';
 import { deleteSubject, deleteAllSubjects } from '../../../redux/subjectRelated/subjectHandle';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import {
-    Paper, Box, IconButton, CircularProgress
+    Paper, Box, IconButton, CircularProgress, Button, Stack
 } from '@mui/material';
 import DeleteIcon from "@mui/icons-material/Delete";
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import TableTemplate from '../../../components/TableTemplate';
 import { BlueButton, GreenButton } from '../../../components/buttonStyles';
 import SpeedDialTemplate from '../../../components/SpeedDialTemplate';
@@ -86,21 +87,34 @@ const ShowSubjects = () => {
 
     const SubjectsButtonHaver = ({ row }) => {
         return (
-            <>
+            <Stack direction="row" spacing={1} alignItems="center">
                 <IconButton 
                     onClick={() => deleteHandler(row.id, "Subject")}
                     disabled={deleteInProgress}
+                    size="small"
                 >
                     {deleteInProgress ? 
-                        <CircularProgress size={24} /> : 
+                        <CircularProgress size={20} /> : 
                         <DeleteIcon color="error" />
                     }
                 </IconButton>
-                <BlueButton variant="contained"
-                    onClick={() => navigate(`/Admin/subjects/subject/${row.sclassID}/${row.id}`)}>
+                <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<PersonAddIcon />}
+                    onClick={() => navigate(`/Admin/subjects/assign-teachers/${row.id}`)}
+                    sx={{ minWidth: 'auto', px: 1 }}
+                >
+                    Teachers
+                </Button>
+                <BlueButton 
+                    variant="contained"
+                    size="small"
+                    onClick={() => navigate(`/Admin/subjects/subject/${row.sclassID}/${row.id}`)}
+                >
                     View
                 </BlueButton>
-            </>
+            </Stack>
         );
     };
 
